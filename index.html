@@ -16,6 +16,7 @@
       height: 100dvh; 
       min-height: 100vh; 
       overflow: hidden; 
+      transition: background-image 0.5s ease;
     }
     header { 
       padding: 14px 20px; 
@@ -40,7 +41,6 @@
       text-align: center; 
     }
 
-    /* ДОСТОПРИМЕЧАТЕЛЬНОСТИ С ПУЛЬСАЦИЕЙ */
     .avatar-wrapper {
       position: relative;
       width: 200px;
@@ -157,7 +157,7 @@
     <button class="btn-icon" id="btnSettings">⚙️</button>
   </header>
 
- <main>
+  <main>
     <div class="avatar-wrapper">
       <div class="avatar-halo" id="avatarHalo"></div>
       <div class="avatar-card" id="avatarCard">
@@ -207,7 +207,6 @@
     let targetLanguage = localStorage.getItem('target_language') || 'french';
     let globalMemory = localStorage.getItem('global_memory') || '';
     let langMemory = localStorage.getItem(`memory_${targetLanguage}`) || '';     
-    let hasCompletedFirstLesson = localStorage.getItem(`learned_${targetLanguage}`) === 'true';
 
     const btnAction = document.getElementById('btnAction');
     const btnEndTurn = document.getElementById('btnEndTurn');
@@ -225,26 +224,30 @@
     const selectTeacher = document.getElementById('selectTeacher');
     const selectLanguage = document.getElementById('selectLanguage');
 
-    // Проверенные прямые фото достопримечательностей столиц
     const landmarkPhotos = {
-      french: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80", // Париж (Эйфелева башня)
-      spanish: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=600&q=80", // Мадрид / Испания (Гран-Виа)
-      english: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80"  // Лондон (Биг-Бен)
+      french: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
+      spanish: "https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=600&q=80",
+      english: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80"
     };
 
-    // Атмосферные фоны для всего окна под каждый язык
     const bgPhotos = {
-      french: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1920&q=80", // Мост Александра III
-      spanish: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=1920&q=80", // Вечерняя Испания
-      english: "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?auto=format&fit=crop&w=1920&q=80"  // Вечерний Лондон
+      french: "https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1920&q=80",
+      spanish: "https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=1920&q=80",
+      english: "https://images.unsplash.com/photo-1526129318478-62ed807ebdf9?auto=format&fit=crop&w=1920&q=80"
     };
+
+    function getTeacherName() {
+      if (targetLanguage === 'french') return teacherGender === 'male' ? 'Лоран (Laurent)' : 'Камилла (Camille)';
+      if (targetLanguage === 'english') return teacherGender === 'male' ? 'Артур (Arthur)' : 'Эмма (Emma)';
+      if (targetLanguage === 'spanish') return teacherGender === 'male' ? 'Диего (Diego)' : 'Кармен (Carmen)';
+    }
 
     function updateUI() {
-      hasCompletedFirstLesson = localStorage.getItem(`learned_${targetLanguage}`) === 'true';       
       langMemory = localStorage.getItem(`memory_${targetLanguage}`) || '';
       globalMemory = localStorage.getItem('global_memory') || '';
       
-      profileBadge.innerText = (hasCompletedFirstLesson || globalMemory) ? "Профиль ученика активен" : "Новый ученик";
+      const hasLangProgress = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.';
+      profileBadge.innerText = hasLangProgress ? "Профиль активен" : "Новый курс";
       
       let shortName = '', langLabel = '';
       if (targetLanguage === 'french') { shortName = teacherGender === 'male' ? 'Laurent' : 'Camille'; langLabel = 'Français'; }
@@ -252,18 +255,17 @@
       if (targetLanguage === 'spanish') { shortName = teacherGender === 'male' ? 'Diego' : 'Carmen'; langLabel = 'Español'; }
       headerTitle.innerText = `${shortName} • ${langLabel}`;
 
-      // Смена фото достопримечательности в круге
       const imgElem = document.getElementById('landmarkImage');
       if (imgElem && landmarkPhotos[targetLanguage]) {
         imgElem.src = landmarkPhotos[targetLanguage];
       }
 
-      // Смена фоновой заставки всего экрана под выбранную страну
       if (bgPhotos[targetLanguage]) {
         document.body.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.75), rgba(15, 23, 42, 0.97)), url('${bgPhotos[targetLanguage]}')`;
       }
     }
     updateUI();
+
     btnSettings.onclick = () => { 
       inputApiKey.value = apiKey; selectTeacher.value = teacherGender; selectLanguage.value = targetLanguage;
       modalSettings.style.display = 'flex'; 
@@ -276,11 +278,10 @@
     };
     btnResetMemory.onclick = () => {
       localStorage.removeItem(`learned_${targetLanguage}`); localStorage.removeItem(`memory_${targetLanguage}`); localStorage.removeItem('global_memory');
-      hasCompletedFirstLesson = false; globalMemory = ''; langMemory = '';
+      globalMemory = ''; langMemory = '';
       updateUI(); modalSettings.style.display = 'none'; alert('Память очищена.');
     };
 
-    // ОРИГИНАЛЬНЫЙ ПРОМПТ С ПРАВИЛОМ ПАУЗ
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -290,44 +291,49 @@
       if (targetLanguage === 'spanish') { langName = 'испанского'; langAdverb = 'по-испански'; }
       
       return `Ты — ${tName}, ${tRole} ${langName} языка. Твой голос — ${teacherGender === 'male' ? 'приятный мужской' : 'мягкий женский'}.
-Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель. Веди диалог плавно, реплика за репликой. НЕ задавай несколько вопросов подряд.
+Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель.
 
-ТЕМП РЕЧИ И ПАУЗА (КРИТИЧЕСКИ ВАЖНОЕ ПРАВИЛО ДЛЯ СЛУХА):
-1. Говори размеренно, не спеша, с четкой и выразительной дикцией. Категорически запрещено тараторить!
-2. Сначала четко и спокойно произнеси фразу на изучаемом языке (${langAdverb}).
-3. ПОСЛЕ ЭТОГО ОБЯЗАТЕЛЬНО СДЕЛАЙ ВЫРАЖЕННУЮ ПАУЗУ В 2-3 СЕКУНДЫ (выдержи молчание), чтобы ученик успел услышать, переварить и осознать сказанное.
-4. И ТОЛЬКО ПОТОМ медленно и понятно дай перевод на язык ученика. Никогда не склеивай изучаемую фразу с переводом в одно сплошное предложение!
+ПРАВИЛО ОДНОЙ РЕПЛИКИ (СТРОЖАЙШИЙ ЗАПРЕТ НА МОНОЛОГИ):
+1. В каждом ответе ты озвучиваешь СТРОГО ОДНУ мысль и задаешь МАКСИМУМ ОДИН вопрос.
+2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить сплошным потоком и объединять приветствия с расспросами!
+3. Задав любой вопрос (даже простой "Как дела?"), ТЫ ОБЯЗАН СРАЗУ ЗАМОЛЧАТЬ И ПЕРЕДАТЬ ХОД УЧЕНИКУ. Дождись его реального ответа. Только после ответа ученика реагируй на него и развивай урок дальше.
 
-СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ (НЕ ОЗВУЧИВАЙ ЭТО, ИСПОЛЬЗУЙ ДЛЯ ДИАЛОГА):
+ТЕМП РЕЧИ И ПАУЗА:
+1. Говори размеренно, не спеша, с четкой дикцией. Запрещено тараторить!
+2. Сначала четко произнеси фразу на изучаемом языке (${langAdverb}).
+3. ОБЯЗАТЕЛЬНО СДЕЛАЙ ПАУЗУ В 2-3 СЕКУНДЫ (выдержи тишину для осмысления).
+4. Только потом спокойно и медленно дай перевод на язык ученика. Никогда не склеивай их!
+
+СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ:
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMemory || 'Пока ничего неизвестно.'}
 [ПРОГРЕСС И ОШИБКИ В ЯЗЫКЕ]: ${langMemory || 'Чистый лист.'}
 
 ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
 Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
 
-ПРАВИЛО ИЗУЧАЕМОГО ЯЗЫКА (КРИТИЧЕСКИ ВАЖНО):
-Первая фраза в твоем ответе ВСЕГДА ДОЛЖНА БЫТЬ НА ИЗУЧАЕМОМ ЯЗЫКЕ (${langAdverb}). Сначала скажи это ${langAdverb}, сделай паузу, а только потом дай перевод на язык ученика.
+ПРАВИЛО ИЗУЧАЕМОГО ЯЗЫКА:
+Первая фраза в твоем ответе ВСЕГДА ДОЛЖНА БЫТЬ НА ИЗУЧАЕМОМ ЯЗЫКЕ (${langAdverb}). Сначала скажи это ${langAdverb}, сделай паузу, затем дай перевод.
+
+ПРАВИЛА ОПРЕДЕЛЕНИЯ УРОКА:
+1. ЕСЛИ ЭТО ПЕРВЫЙ УРОК ДАННОГО ЯЗЫКА (в блоке ПРОГРЕСС "Чистый лист"):
+   - Если имя ученика уже есть в ОБЩЕЙ БАЗЕ — сразу поприветствуй его по имени, не спрашивая имя снова!
+   - Поздоровайся ${langAdverb} и задай ТОЛЬКО ОДИН вопрос: какой у него примерный уровень в ${langName} языке. И ВСЁ, СРАЗУ ЗАМОЛЧИ И ЖДИ ОТВЕТА!
+2. ЕСЛИ ЭТО ПОВТОРНЫЙ УРОК ДАННОГО ЯЗЫКА (в блоке ПРОГРЕСС уже есть пройденные темы):
+   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО спрашивать про уровень!
+   - Радостно поздоровайся и задай 1-й проверочный вопрос по прошлой теме. Замолчи и жди ответа.
 
 АДАПТИВНОСТЬ:
 Ученик устно управляет уроком. Просит меньше переводить — прекрати автоперевод. Просит разыграть сценку — играй роль.
 
-ИСПРАВЛЕНИЕ ОШИБОК (ДЕТАЛЬНЫЙ АЛГОРИТМ):
+ИСПРАВЛЕНИЕ ОШИБОК:
 В 50% случаев мягко останавливай при ошибках. Действуй строго по шагам:
-1. Назови конкретное слово или фразу, которую ученик произнес неправильно.
-2. Объясни, в чем ошибка, и четко произнеси правильный вариант ${langAdverb}.
+1. Назови слово или фразу, которую ученик произнес неправильно.
+2. Объясни, в чем ошибка, и четко произнеси правильный эталон ${langAdverb}.
 3. Попроси ученика повторить именно это слово/фразу.
-4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни, как нужно правильно произносить, и попроси повторить еще раз.
+4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни и попроси повторить.
 5. Если после 5 попыток не получается произнести идеально, мягко скажи, что результат пока не идеален, и вы повторите это в следующий раз.
 
-ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
-
-КАК ВЕСТИ УРОК (ЕСТЕСТВЕННО И ПЛАВНО):
-1. ПЕРВЫЙ УРОК: Тепло поздоровайся ${langAdverb}. Уточни имя и уровень.
-2. ПОВТОРНЫЕ УРОКИ:
-   - Приветствие: Радостно поздоровайся по имени (из Памяти). 
-   - ПРОВЕРКА ПРОШЛОГО УРОКА: СРАЗУ ПОСЛЕ ПРИВЕТСТВИЯ ОБЯЗАТЕЛЬНО задай 2 коротких тестовых вопроса по ПРОШЛОЙ теме (из блока ПРОГРЕСС). Дождись ответа.
-   - План: Выслушав ответ, предложи 2 варианта новой темы.
-3. ЗАВЕРШЕНИЕ УРОКА (ТЕСТ): Когда ученик просит завершить урок или время подходит к концу, ПЕРЕД ТЕМ как попрощаться, ОБЯЗАТЕЛЬНО задай 2 контрольных вопроса по материалу, который вы обсудили СЕГОДНЯ. Только после ответа ученика прощайся.`;
+ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.`;
     }
 
     let socket = null, audioContext = null, mediaStream = null, audioWorkletNode = null;
@@ -513,7 +519,11 @@
            statusText.innerText = "Слушаю вас...";
 
            let helloWord = targetLanguage === 'french' ? 'Bonjour' : (targetLanguage === 'english' ? 'Hello' : '¡Hola');
-           const startPrompt = (hasCompletedFirstLesson || globalMemory) ? `${helloWord} ! Я готов, давай продолжим урок.` : `${helloWord} ! Я готов к первому уроку.`;
+           
+           const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.';
+           const startPrompt = !hasCurrentLangMemory
+             ? `${helloWord}! Я готов к первому уроку по этому языку.` 
+             : `${helloWord}! Я готов продолжить наши занятия.`;
            
            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: startPrompt }] }], turnComplete: true } }));
            return;
@@ -607,7 +617,6 @@
           socket.close();
       }
       
-      localStorage.setItem(`learned_${targetLanguage}`, 'true'); 
       updateUI();
     }
 
