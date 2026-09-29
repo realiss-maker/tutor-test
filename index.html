@@ -40,7 +40,7 @@
       text-align: center; 
     }
 
-   /* КОНТЕЙНЕР ДОСТОПРИМЕЧАТЕЛЬНОСТЕЙ С ПУЛЬСАЦИЕЙ */
+    /* ДОСТОПРИМЕЧАТЕЛЬНОСТИ С ПУЛЬСАЦИЕЙ */
     .avatar-wrapper {
       position: relative;
       width: 200px;
@@ -82,7 +82,6 @@
       object-fit: cover;
       transition: transform 0.5s ease;
     }
-    /* Эффект дыхания и пульсации при речи репетитора */
     .avatar-card.speaking {
       border-color: #c084fc;
       animation: landmarkPulse 1.6s infinite alternate ease-in-out;
@@ -100,6 +99,7 @@
         box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 60px rgba(192, 132, 252, 0.85);
       }
     }
+
     .status-text { 
       font-size: 1.05rem; 
       font-weight: 500; 
@@ -157,17 +157,17 @@
     <button class="btn-icon" id="btnSettings">⚙️</button>
   </header>
 
- <main>
+  <main>
     <div class="avatar-wrapper">
       <div class="avatar-halo" id="avatarHalo"></div>
       <div class="avatar-card" id="avatarCard">
-        <!-- Фотография достопримечательности (Париж / Барселона / Лондон) -->
         <img id="landmarkImage" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80" alt="Landmark">
       </div>
     </div>
     
     <div class="status-text" id="statusText">Нажмите «Начать урок» для старта</div>
   </main>
+
   <footer>
     <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал, жду ответ ➔</button>
     <button class="btn-main btn-start" id="btnAction">Начать урок</button>
@@ -190,8 +190,8 @@
         <div style="flex: 1;">
           <label>Голос репетитора:</label>
           <select id="selectTeacher">
-            <option value="female">Женский (Камилла)</option>
-            <option value="male">Мужской (Лоран)</option>
+            <option value="female">Женский</option>
+            <option value="male">Мужской</option>
           </select>
         </div>
       </div>
@@ -214,14 +214,6 @@
     const statusText = document.getElementById('statusText');
     const avatarCard = document.getElementById('avatarCard');
     const avatarHalo = document.getElementById('avatarHalo');
-    
-    // Элементы переключения внешности аватара
-    const backHairCamille = document.getElementById('backHairCamille');
-    const frontHairCamille = document.getElementById('frontHairCamille');
-    const bodyCamille = document.getElementById('bodyCamille');
-    const hairLaurentGroup = document.getElementById('hairLaurentGroup');
-    const bodyLaurent = document.getElementById('bodyLaurent');
-
     const profileBadge = document.getElementById('profileBadge');
     const headerTitle = document.getElementById('headerTitle');
     const modalSettings = document.getElementById('modalSettings');
@@ -232,6 +224,12 @@
     const inputApiKey = document.getElementById('inputApiKey');
     const selectTeacher = document.getElementById('selectTeacher');
     const selectLanguage = document.getElementById('selectLanguage');
+
+    const landmarkPhotos = {
+      french: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
+      spanish: "https://images.unsplash.com/photo-1583422409516-2895a77efded?auto=format&fit=crop&w=600&q=80",
+      english: "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=600&q=80"
+    };
 
     function getTeacherName() {
       if (targetLanguage === 'french') return teacherGender === 'male' ? 'Лоран (Laurent)' : 'Камилла (Camille)';
@@ -252,17 +250,9 @@
       if (targetLanguage === 'spanish') { shortName = teacherGender === 'male' ? 'Diego' : 'Carmen'; langLabel = 'Español'; }
       headerTitle.innerText = `${shortName} • ${langLabel}`;
 
-      // Мгновенное переключение аватара без изменения логики
-      const avatarCamille = document.getElementById('avatarCamille');
-      const avatarLaurent = document.getElementById('avatarLaurent');
-      if (avatarCamille && avatarLaurent) {
-        if (teacherGender === 'male') {
-          avatarCamille.style.display = 'none';
-          avatarLaurent.style.display = 'block';
-        } else {
-          avatarCamille.style.display = 'block';
-          avatarLaurent.style.display = 'none';
-        }
+      const imgElem = document.getElementById('landmarkImage');
+      if (imgElem && landmarkPhotos[targetLanguage]) {
+        imgElem.src = landmarkPhotos[targetLanguage];
       }
     }
     updateUI();
@@ -283,6 +273,7 @@
       updateUI(); modalSettings.style.display = 'none'; alert('Память очищена.');
     };
 
+    // ОРИГИНАЛЬНЫЙ ПРОМПТ С ПРАВИЛОМ ПАУЗ
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -341,6 +332,7 @@
     let isBotSpeaking = false;
     let isExtractingMemory = false;
     let isWaitingForResponse = false;
+    let watchdogTimer = null;
     let activeAudioSources = [];
 
     const workletCode = `
@@ -397,7 +389,7 @@
             avatarHalo.style.opacity = '1'; 
           } else { 
             avatarHalo.style.transform = "scale(1)"; 
-            avatarHalo.style.opacity = '0.5'; 
+            avatarHalo.style.opacity = '0.4'; 
           }
         }
 
@@ -428,10 +420,18 @@
         
         socket.send(JSON.stringify({ 
           clientContent: { 
-            turns: [{ role: "user", parts: [{ text: "[Ученик закончил говорить. Пожалуйста, ответь на сказанное!]" }] }], 
+            turns: [{ role: "user", parts: [{ text: "Ответь, пожалуйста, на то, что я только что сказал." }] }], 
             turnComplete: true 
           } 
         }));
+
+        clearTimeout(watchdogTimer);
+        watchdogTimer = setTimeout(() => {
+          if (isWaitingForResponse) {
+            isWaitingForResponse = false;
+            statusText.innerText = "Слушаю вас...";
+          }
+        }, 4000);
       }
     };
 
@@ -528,12 +528,14 @@
         }
 
         if (responseData.serverContent?.interrupted) {
+          clearTimeout(watchdogTimer);
           stopBotSpeech();
           isWaitingForResponse = false;
           statusText.innerText = "Слушаю вас...";
         }
 
         if (responseData.serverContent?.modelTurn) {
+          clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           for (const part of responseData.serverContent.modelTurn.parts) {
             if (part.inlineData?.mimeType.startsWith("audio/pcm")) {
@@ -548,6 +550,7 @@
         }
         
         if (responseData.serverContent?.turnComplete) { 
+          clearTimeout(watchdogTimer);
           isBotSpeaking = false; 
           isWaitingForResponse = false;
           avatarCard.classList.remove('speaking');
