@@ -2,8 +2,15 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <!-- Строга політика захисту вмісту (CSP): запобігає несанкціонованим мережевим витокам API-ключа -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- PWA & Mobile Web App метатеги для iOS Safari, Android Chrome и ПК -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AI Tutor">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f172a">
+  
+  <!-- Защита CSP: блокировка посторонних сетевых утечек API-ключа -->
   <meta http-equiv="Content-Security-Policy" 
         content="default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:; 
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
@@ -11,43 +18,88 @@
                  media-src 'self' blob:;">
   <title>AI Language Tutor v3.6.1</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    
     body { 
-      background: linear-gradient(rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.98)), 
+      background: linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.98)), 
                   url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?auto=format&fit=crop&w=1920&q=80') no-repeat center center; 
       background-size: cover; 
       color: #f8fafc; 
       display: flex; 
-      flex-direction: column; 
+      justify-content: center;
+      align-items: center;
       height: 100dvh; 
       min-height: 100vh; 
       overflow: hidden; 
       transition: background-image 0.5s ease;
     }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
     header { 
-      padding: 12px 20px; 
+      padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px 16px; 
       display: flex; 
       justify-content: space-between; 
       align-items: center; 
-      background: rgba(15, 23, 42, 0.75); 
+      background: rgba(15, 23, 42, 0.8); 
       backdrop-filter: blur(14px); 
+      -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
       flex-shrink: 0; 
+      z-index: 10;
     }
-    .profile-badge { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+
+    .header-left { display: flex; flex-direction: column; }
+    .header-title { font-weight: 600; font-size: 0.95rem; }
+    .profile-badge { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
+
+    /* Переключатель закладок (Урок / Текст) */
+    .nav-tabs {
+      display: flex;
+      background: rgba(30, 41, 59, 0.8);
+      border-radius: 10px;
+      padding: 3px;
+      gap: 3px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .tab-btn {
+      padding: 5px 12px;
+      border-radius: 7px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; }
     .timer-badge { 
-      font-size: 0.9rem; 
+      font-size: 0.85rem; 
       font-weight: 700; 
       color: #38bdf8; 
       background: rgba(15, 23, 42, 0.6); 
-      padding: 4px 10px; 
+      padding: 4px 8px; 
       border-radius: 8px; 
       border: 1px solid rgba(56, 189, 248, 0.3);
       display: none;
     }
     .timer-warning { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); animation: blink 1.2s infinite alternate; }
     @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.4; } }
-    .btn-icon { background: none; border: none; color: #f8fafc; font-size: 1.4rem; cursor: pointer; }
+    .btn-icon { background: none; border: none; color: #f8fafc; font-size: 1.3rem; cursor: pointer; padding: 2px 4px; }
     
     main { 
       flex: 1; 
@@ -55,8 +107,20 @@
       flex-direction: column; 
       align-items: center; 
       justify-content: center; 
-      padding: 16px 20px; 
+      padding: 12px 16px; 
       text-align: center; 
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Экран 1: Классический чистый визуальный вид (Урок) */
+    .view-lesson {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
     }
 
     .avatar-wrapper {
@@ -114,29 +178,87 @@
       font-size: 1.05rem; 
       font-weight: 500; 
       color: #e2e8f0; 
-      margin-bottom: 8px; 
+      margin-top: 10px;
       text-shadow: 0 2px 4px rgba(0,0,0,0.6); 
       min-height: 28px;
     }
 
+    /* Экран 2: Закладка живого текста диалога */
+    .view-transcript {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 8px 4px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+    }
+    .view-transcript::-webkit-scrollbar { width: 5px; }
+    .view-transcript::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+
+    .transcript-bubble {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.88rem;
+      line-height: 1.45;
+      text-align: left;
+      max-width: 92%;
+      word-break: break-word;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+      animation: fadeIn 0.25s ease-out;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .bubble-tutor {
+      background: rgba(30, 41, 59, 0.92);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #f8fafc;
+      align-self: flex-start;
+    }
+    .bubble-user {
+      background: rgba(37, 99, 235, 0.35);
+      border: 1px solid rgba(37, 99, 235, 0.5);
+      color: #e0f2fe;
+      align-self: flex-end;
+    }
+    .bubble-system {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px dashed rgba(148, 163, 184, 0.3);
+      color: #94a3b8;
+      font-size: 0.8rem;
+      align-self: center;
+      text-align: center;
+      max-width: 96%;
+    }
+    .bubble-author {
+      font-weight: 700;
+      font-size: 0.72rem;
+      margin-bottom: 3px;
+      color: #38bdf8;
+    }
+    .bubble-author.user { color: #60a5fa; }
+
     footer { 
-      padding: 16px 20px; 
+      padding: 12px 20px calc(14px + env(safe-area-inset-bottom, 0px)) 20px; 
       display: flex; 
       flex-direction: column; 
       align-items: center; 
       gap: 10px; 
       background: rgba(15, 23, 42, 0.85); 
       backdrop-filter: blur(14px); 
+      -webkit-backdrop-filter: blur(14px);
       border-top: 1px solid rgba(255, 255, 255, 0.1); 
       flex-shrink: 0; 
     }
     .btn-main { 
       width: 100%; 
       max-width: 340px; 
-      padding: 15px; 
+      padding: 14px; 
       border-radius: 14px; 
       border: none; 
-      font-size: 1rem; 
+      font-size: 0.95rem; 
       font-weight: 600; 
       cursor: pointer; 
       transition: all 0.2s; 
@@ -148,45 +270,64 @@
     .btn-main:active { transform: scale(0.97); }
     .btn-main:disabled { opacity: 0.5; cursor: not-allowed; }
 
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(5px); justify-content: center; align-items: center; padding: 20px; z-index: 50; }
-    .modal-content { background: #1e293b; padding: 24px; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 0.95rem; width: 100%; }
-    .modal-content label { font-size: 0.85rem; color: #94a3b8; margin-bottom: -6px; text-align: left; }
-    .modal-content button { padding: 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
-    .btn-save { background: #2563eb; color: white; margin-top: 6px; }
-    .btn-reset-profile { background: #475569; color: #f8fafc; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); justify-content: center; align-items: center; padding: 20px; z-index: 50; }
+    .modal-content { background: #1e293b; padding: 22px; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 0.9rem; width: 100%; }
+    .modal-content label { font-size: 0.82rem; color: #94a3b8; margin-bottom: -5px; text-align: left; }
+    .modal-content button { padding: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+    .btn-save { background: #2563eb; color: white; margin-top: 4px; }
+    .btn-reset-current { background: #475569; color: #f8fafc; }
+    .btn-reset-all { background: #991b1b; color: #fee2e2; }
     .btn-close { background: transparent; color: #94a3b8; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div>
-      <div style="font-weight: 600; font-size: 1.05rem;" id="headerTitle">AI Tutor</div>
-      <div class="profile-badge" id="profileBadge">Завантаження...</div>
-    </div>
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div class="timer-badge" id="timerBadge">15:00</div>
-      <button class="btn-icon" id="btnSettings" title="Налаштування">⚙️</button>
-    </div>
-  </header>
-
-  <main>
-    <div class="avatar-wrapper">
-      <div class="avatar-halo" id="avatarHalo"></div>
-      <div class="avatar-card" id="avatarCard">
-        <img id="landmarkImage" src="" alt="Landmark">
+  <div class="app-container">
+    <header>
+      <div class="header-left">
+        <div class="header-title" id="headerTitle">AI Tutor</div>
+        <div class="profile-badge" id="profileBadge">Завантаження...</div>
       </div>
-    </div>
-    
-    <div class="status-text" id="statusText">Натисніть «Почати урок» для старту</div>
-  </main>
+      
+      <!-- Вкладки "Урок" и "Текст" -->
+      <div class="nav-tabs">
+        <button class="tab-btn active" id="tabLesson">🎧 Урок</button>
+        <button class="tab-btn" id="tabTranscript">📜 Текст</button>
+      </div>
 
-  <footer>
-    <button class="btn-main btn-interrupt" id="btnInterrupt">Перебити / Досить ✋</button>
-    <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я все сказав, чекаю відповідь ➔</button>
-    <button class="btn-main btn-start" id="btnAction">Почати урок</button>
-  </footer>
+      <div class="header-right">
+        <div class="timer-badge" id="timerBadge">15:00</div>
+        <button class="btn-icon" id="btnSettings" title="Налаштування">⚙️️</button>
+      </div>
+    </header>
+
+    <main>
+      <!-- Вкладка 1: Визуальный экран (чистый вид с достопримечательностью) -->
+      <div class="view-lesson" id="viewLesson">
+        <div class="avatar-wrapper">
+          <div class="avatar-halo" id="avatarHalo"></div>
+          <div class="avatar-card" id="avatarCard">
+            <img id="landmarkImage" src="" alt="Landmark">
+          </div>
+        </div>
+        <div class="status-text" id="statusText">Натисніть «Почати урок» для старту</div>
+      </div>
+
+      <!-- Вкладка 2: Экран живого текста (синхронные субтитры и история) -->
+      <div class="view-transcript" id="viewTranscript">
+        <div class="transcript-bubble bubble-system">
+          Тут буде з'являтися текст розмови з репетитором. Ви можете перемикатися сюди в будь-який момент уроку.
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <button class="btn-main btn-interrupt" id="btnInterrupt">Перебити / Досить ✋</button>
+      <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я все сказав, чекаю відповідь ➔</button>
+      <button class="btn-main btn-start" id="btnAction">Почати урок</button>
+    </footer>
+  </div>
 
   <div class="modal" id="modalSettings">
     <div class="modal-content">
@@ -199,7 +340,7 @@
       <label>Режим зберігання ключа:</label>
       <select id="selectStorageMode">
         <option value="local">Зберегти на цьому пристрої (localStorage)</option>
-        <option value="session">Лише на час сесії / до закриття вкладки (sessionStorage)</option>
+        <option value="session">Лише на час сесії (sessionStorage)</option>
       </select>
 
       <div style="display: flex; gap: 10px;">
@@ -228,7 +369,8 @@
       </select>
 
       <button class="btn-save" id="btnSaveKey">Зберегти налаштування</button>
-      <button class="btn-reset-profile" id="btnResetMemory">Очистити пам'ять (Забути все)</button>
+      <button class="btn-reset-current" id="btnResetCurrentLang">Скинути пам'ять поточної мови</button>
+      <button class="btn-reset-all" id="btnResetAllMemory">Скинути всю пам'ять (всі мови)</button>
       <button class="btn-close" id="btnCloseModal">Закрити</button>
     </div>
   </div>
@@ -259,12 +401,76 @@
     const btnSettings = document.getElementById('btnSettings');
     const btnCloseModal = document.getElementById('btnCloseModal');
     const btnSaveKey = document.getElementById('btnSaveKey');
-    const btnResetMemory = document.getElementById('btnResetMemory');
+    const btnResetCurrentLang = document.getElementById('btnResetCurrentLang');
+    const btnResetAllMemory = document.getElementById('btnResetAllMemory');
     const inputApiKey = document.getElementById('inputApiKey');
     const selectStorageMode = document.getElementById('selectStorageMode');
     const selectTeacher = document.getElementById('selectTeacher');
     const selectLanguage = document.getElementById('selectLanguage');
     const selectAudioMode = document.getElementById('selectAudioMode');
+
+    // Элементы вкладок
+    const tabLesson = document.getElementById('tabLesson');
+    const tabTranscript = document.getElementById('tabTranscript');
+    const viewLesson = document.getElementById('viewLesson');
+    const viewTranscript = document.getElementById('viewTranscript');
+
+    // Переключение между чистым экраном и экраном с текстом
+    tabLesson.onclick = () => {
+      tabLesson.classList.add('active');
+      tabTranscript.classList.remove('active');
+      viewLesson.style.display = 'flex';
+      viewTranscript.style.display = 'none';
+    };
+
+    tabTranscript.onclick = () => {
+      tabTranscript.classList.add('active');
+      tabLesson.classList.remove('active');
+      viewLesson.style.display = 'none';
+      viewTranscript.style.display = 'flex';
+      viewTranscript.scrollTop = viewTranscript.scrollHeight;
+    };
+
+    let currentTutorBubble = null;
+
+    function appendTranscript(role, text) {
+      if (!text || !text.trim()) return;
+      
+      if (role === 'tutor') {
+        if (!currentTutorBubble) {
+          currentTutorBubble = document.createElement('div');
+          currentTutorBubble.className = 'transcript-bubble bubble-tutor';
+          const author = document.createElement('div');
+          author.className = 'bubble-author';
+          author.innerText = getTeacherName().split(' ')[0];
+          currentTutorBubble.appendChild(author);
+          
+          const content = document.createElement('span');
+          content.className = 'bubble-body';
+          content.innerText = text;
+          currentTutorBubble.appendChild(content);
+          viewTranscript.appendChild(currentTutorBubble);
+        } else {
+          const content = currentTutorBubble.querySelector('.bubble-body');
+          if (content) content.innerText += (content.innerText.endsWith(' ') ? '' : ' ') + text;
+        }
+      } else {
+        currentTutorBubble = null;
+        const bubble = document.createElement('div');
+        bubble.className = role === 'user' ? 'transcript-bubble bubble-user' : 'transcript-bubble bubble-system';
+        if (role === 'user') {
+          const author = document.createElement('div');
+          author.className = 'bubble-author user';
+          author.innerText = 'Ви';
+          bubble.appendChild(author);
+        }
+        const content = document.createElement('div');
+        content.innerText = text;
+        bubble.appendChild(content);
+        viewTranscript.appendChild(bubble);
+      }
+      viewTranscript.scrollTop = viewTranscript.scrollHeight;
+    }
 
     const landmarkPhotos = {
       french: "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80",
@@ -288,7 +494,7 @@
       langMemory = localStorage.getItem(`memory_${targetLanguage}`) || '';
       globalMemory = localStorage.getItem('global_memory') || '';
       
-      const hasLangProgress = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистий аркуш.';
+      const hasLangProgress = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.';
       profileBadge.innerText = hasLangProgress ? "Профіль активний" : "Новий курс";
       
       let shortName = '', langLabel = '';
@@ -303,7 +509,7 @@
       }
 
       if (bgPhotos[targetLanguage]) {
-        document.body.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.98)), url('${bgPhotos[targetLanguage]}')`;
+        document.body.style.backgroundImage = `linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.98)), url('${bgPhotos[targetLanguage]}')`;
       }
     }
     updateUI();
@@ -343,74 +549,119 @@
       alert('Налаштування збережено успішно.');
     };
 
-    btnResetMemory.onclick = () => {
-      if (!confirm("Ви впевнені, що хочете стерти історію навчання та пам'ять профілю?")) return;
+    btnResetCurrentLang.onclick = () => {
+      if (!confirm("Скинути пам'ять та історію для поточної обраної мови?")) return;
       localStorage.removeItem(`memory_${targetLanguage}`); 
+      langMemory = '';
+      updateUI(); 
+      modalSettings.style.display = 'none'; 
+      appendTranscript('system', 'Пам\'ять поточної мови очищено.');
+      alert('Пам\'ять поточної мови очищено.');
+    };
+
+    btnResetAllMemory.onclick = () => {
+      if (!confirm("УВАГА: Видалити ВСІ збережені дані профілю та історію за всіма мовами?")) return;
+      localStorage.removeItem('memory_french'); 
+      localStorage.removeItem('memory_english'); 
+      localStorage.removeItem('memory_spanish'); 
       localStorage.removeItem('global_memory');
       globalMemory = ''; 
       langMemory = '';
       updateUI(); 
       modalSettings.style.display = 'none'; 
-      alert('Пам\'ять успішно очищено.');
+      appendTranscript('system', 'Всю пам\'ять повністю очищено.');
+      alert('Всю пам\'ять повністю скинуто.');
     };
 
-    // Синхронізований системний промпт (Чистий аркуш.)
+    // --- СИСТЕМНИЙ ПРОМПТ: ПОВНЕ ВІДНОВЛЕННЯ ОРИГІНАЛУ З Промт.odt ТА ЙОГО ДОПОВНЕННЯ ---
     function getSystemInstruction() {
       const tName = getTeacherName();
-      const tRole = teacherGender === 'male' ? 'емпатичний та теплий викладач' : 'емпатична та тепла викладачка';
+      const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
       let langName = '', langAdverb = '';
-      if (targetLanguage === 'french') { langName = 'французької'; langAdverb = 'французькою'; }
-      if (targetLanguage === 'english') { langName = 'англійської'; langAdverb = 'англійською'; }
-      if (targetLanguage === 'spanish') { langName = 'іспанської'; langAdverb = 'іспанською'; }
-      
-      return `Ти — ${tName}, ${tRole} ${langName} мови. Твій голос — ${teacherGender === 'male' ? 'приємний чоловічий' : 'м\'який жіночий'}.
-Твоя головна риса — щира турбота, тактовність, теплота та підтримка учня.
+      if (targetLanguage === 'french') { langName = 'французского'; langAdverb = 'по-французски'; }
+      if (targetLanguage === 'english') { langName = 'английского'; langAdverb = 'по-английски'; }
+      if (targetLanguage === 'spanish') { langName = 'испанского'; langAdverb = 'по-испански'; }
 
-ПРАВИЛО ОДНІЄЇ РЕПЛІКИ (СТРОГИЙ ЗАБОРОНА НА МОНОЛОГИ):
-1. У кожній відповіді ти озвучуєш СТРОГО ОДНУ думку та ставиш МАКСИМУМ ОДНЕ запитання.
-2. КАТЕГОРИЧНО ЗАБОРОНЕНО говорити довгим суцільним потоком!
-3. Поставивши запитання, ТИ ЗОБОВ'ЯЗАНИЙ НЕГАЙНО ЗАМОВКНУТИ ТА ЧЕКАТИ ВІДПОВІДІ УЧНЯ.
+      // 1. ОРИГІНАЛЬНИЙ БАЗОВИЙ ПРОМПТ (ВІДНОВЛЕНО НА 100% БЕЗ ВИЛУЧЕНЬ)
+      const originalPrompt = `Ты — ${tName}, ${tRole} ${langName} языка. Твой голос — ${teacherGender === 'male' ? 'приятный мужской' : 'мягкий женский'}.
+Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель. Веди диалог плавно, реплика за репликой. НЕ задавай несколько вопросов подряд.
 
-ТЕМП МОВЛЕННЯ ТА ПАУЗА:
-1. Говори спокійно, не поспішаючи, з бездоганною артикуляцією.
-2. Спочатку чітко промов фразу мовою, що вивчається (${langAdverb}).
-3. ОБОВ'ЯЗКОВО ЗРОБИ ПАУЗУ В 2-3 СЕКУНДИ (витримай тишу, щоб учень обдумав почуте).
-4. Тільки після паузи спокійно дай переклад рідною мовою учня.
+СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ (НЕ ОЗВУЧИВАЙ ЭТО, ИСПОЛЬЗУЙ ДЛЯ ДИАЛОГА):
+[ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMemory || 'Пока ничего неизвестно.'}
+[ПРОГРЕСС И ОШИБКИ В ЯЗЫКЕ]: ${langMemory || 'Чистый лист.'}
 
-СЕКРЕТНА ПАМ'ЯТЬ ПРО УЧНЯ:
-[ЗАГАЛЬНІ ДАНІ ПРО ЖИТТЯ]: ${globalMemory || 'Поки нічого невідомо.'}
-[ПРОГРЕС ТА ПОМИЛКИ В МОВІ]: ${langMemory || 'Чистий аркуш.'}
+ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
+Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
 
-МОВНА АДАПТИВНІСТЬ ПОЯСНЕНЬ:
-Якщо учень говорить з тобою УКРАЇНСЬКОЮ мовою — давай усі коментарі та переклади СТРОГО УКРАЇНСЬКОЮ. Якщо звертається російською — російською.
+ПРАВИЛО ИЗУЧАЕМОГО ЯЗЫКА (КРИТИЧЕСКИ ВАЖНО):
+Первая фраза в твоем ответе ВСЕГДА ДОЛЖНА БЫТЬ НА ИЗУЧАЕМОМ ЯЗЫКЕ (${langAdverb}). Сначала скажи это ${langAdverb}, а только потом дай перевод на язык ученика.
 
-ПЕРША РЕПЛІКА:
-Перша фраза твоєї відповіді ЗАВЖДИ МАЄ БУТИ ${langAdverb}. Потім пауза, потім переклад.
+АДАПТИВНОСТЬ:
+Ученик устно управляет уроком. Просит меньше переводить — прекрати автоперевод. Просит разыграть сценку — играй роль.
 
-ПРАВИЛА ВИЗНАЧЕННЯ УРОКУ:
-1. ЯКЩО ЦЕ ПЕРШИЙ УРОК ДАНОЇ МОВИ (у блоці ПРОГРЕС "Чистий аркуш."):
-   - Якщо ім'я учня вже є в ЗАГАЛЬНІЙ БАЗІ — привітай його на ім'я, не запитуючи знову!
-   - Привітайся ${langAdverb} та постав ТІЛЬКИ ОДНЕ запитання: який у нього приблизний рівень у мові. Замовкни та чекай відповіді!
-2. ЯКЩО ЦЕ ПОВТОРНИЙ УРОК ДАНОЇ МОВИ:
-   - ЗАБОРОНЕНО запитувати про рівень!
-   - Привітайся ${langAdverb} і постав 1-ше перевірочне запитання за минулою темою. Замовкни та чекай відповіді.
+ИСПРАВЛЕНИЕ ОШИБОК (ДЕТАЛЬНЫЙ АЛГОРИТМ):
+В 50% случаев мягко останавливай при ошибках. Действуй строго по шагам:
+1. Назови конкретное слово или фразу, которую ученик произнес неправильно.
+2. Объясни, в чем ошибка, и четко произнеси правильный вариант ${langAdverb}.
+3. Попроси ученика повторить именно это слово/фразу.
+4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни, как нужно правильно произносить, и попроси повторить еще раз.
+5. Если после 5 попыток не получается произнести идеально, мягко скажи, что результат пока не идеален, и вы повторите это в следующий раз.
 
-СТРУКТУРА ЗАНЯТТЯ (РЕГЛАМЕНТ 15 ХВИЛИН):
-Базова тривалість уроку — 15 хвилин. Коли надходить системна підказка про завершення часу — завершуй поточну тему, підбий короткий підсумок, постав 1-2 контрольні запитання та ініціюй збереження пам'яті через функцію saveStudentProfile.
+ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
 
-ВИПРАВЛЕННЯ ПОМИЛОК:
-У 50% випадків м'яко зупиняй при помилках:
-1. Назви слово або фразу, де допущено неточність.
-2. Поясни суть помилки та вимов еталон ${langAdverb}.
-3. Попроси учня повторити еталон.`;
+КАК ВЕСТИ УРОК (ЕСТЕСТВЕННО И ПЛАВНО):
+1. ПЕРВЫЙ УРОК: Тепло поздоровайся ${langAdverb}. Уточни имя и уровень.
+2. ПОВТОРНЫЕ УРОКИ:
+- Приветствие: Радостно поздоровайся по имени (из Памяти). 
+- ПРОВЕРКА ПРОШЛОГО УРОКА: СРАЗУ ПОСЛЕ ПРИВЕТСТВИЯ ОБЯЗАТЕЛЬНО задай 2 коротких тестовых вопроса по ПРОШЛОЙ теме (из блока ПРОГРЕСС). Дождись ответа.
+- План: Выслушав ответ, предложи 2 варианта новой темы.
+3. ЗАВЕРШЕНИЕ УРОКА (ТЕСТ): Когда ученик просит завершить урок или время подходит к концу, ПЕРЕД ТЕМ как попрощаться, ОБЯЗАТЕЛЬНО задай 2 контрольных вопроса по материалу, который вы обсудили СЕГОДНЯ. Только после ответа ученика прощайся.`;
+
+      // 2. ДОПОВНЕННЯ (АКТИВНА РОЛЬ ВЕДУЧОГО, ПАУЗА 3-5 СЕК, ОПИТУВАННЯ ТА КРАЇНОЗНАВСТВО)
+      const additions = `
+
+АКТИВНОЕ ПЕДАГОГИЧЕСКОЕ ЛИДЕРСТВО И НЕПРЕРЫВНОСТЬ УРОКА:
+1. Ты — безусловный лидер и ведущий диалога. Ученик в пассивной роли, ты активно ведешь и направляешь его.
+2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО просто сказать «Да, отлично!», «Все верно», «Хорошо» и замолчать!
+3. Твой ответ ВСЕГДА состоит из двух неразрывных частей:
+   а) Краткая оценка или тактичное исправление ответа ученика;
+   б) СРАЗУ ЖЕ следующее действие: новое задание, новая фраза для перевода или встречный вопрос в рамках темы. Мяч ВСЕГДА должен оставаться на стороне ученика!
+
+КОГНИТИВНАЯ ПАУЗА (3-5 СЕКУНД) И САМОСТОЯТЕЛЬНОСТЬ:
+1. Чтобы ученик успел включить мыслительный процесс и попытаться понять иностранную речь сам, произнеся фразу ${langAdverb}, ОБЯЗАТЕЛЬНО выдерживай паузу тишины в 3-5 секунд, и только потом давай перевод на язык ученика.
+
+ОПРОС И ГИБКОСТЬ НА ПЕРВОМ УРОКЕ:
+1. На первом уроке обязательно уточни у ученика: как ему удобнее — чтобы ты переводил каждую фразу, или только новые темы и сложные обороты, а простые бытовые реплики и приветствия оставлял ${langAdverb} без перевода?
+2. Напомни ученику, что он в любой момент прямо голосом может сказать: «Не переводи простое», «Говори помедленнее», «Повтори» или предложить изменить ход занятия.
+
+КУЛЬТУРНО-СТРАНОВЕДЧЕСКИЙ КОНТЕКСТ (СООТВЕТСТВЕННО СТРАНЕ):
+Органично вплетай в темы уроков культуру, быт и историю:
+- Для французского языка: жизнь во Франции (Париж и провинция), французская кухня и этикет кафе, королевская история, замки Луары, привычки и характер французов.
+- Для английского языка: реалии жизни в Англии / Великобритании, королевская семья и монархия, традиции чаепития, национальные блюда, британский юмор и манеры.
+- Для испанского языка: повседневная жизнь в Испании, регионы, культура тапас и сиесты, национальные праздники, архитектура, королевская история и ритм жизни испанцев.`;
+
+      return originalPrompt + additions;
+    }
+
+    // --- Швидке блокове кодування Base64 без навантаження на процесор ---
+    function arrayBufferToBase64(buffer) {
+      let binary = '';
+      const bytes = new Uint8Array(buffer);
+      const len = bytes.byteLength;
+      const chunkSize = 0x8000;
+      for (let i = 0; i < len; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
+      }
+      return window.btoa(binary);
     }
 
     // --- Звуковий тракт (Web Audio API) та мережа ---
     let socket = null;
     let audioContext = null;
     let mediaStream = null;
-    let audioWorkletNode = null;
+    let sourceNode = null;
     let biquadFilter = null;
+    let audioWorkletNode = null;
     let playbackContext = null;
     let scheduledPlayTime = 0;
     
@@ -420,7 +671,7 @@
     let isExtractingMemory = false;
     let isWaitingForResponse = false;
     let memorySavedSuccessfully = false;
-    let isTimeWarningPending = false; // М'який прапорець 13-ї хвилини
+    let isTimeWarningPending = false;
 
     let watchdogTimer = null;
     let stopSessionTimeoutId = null;
@@ -429,7 +680,6 @@
     let activeAudioSources = [];
     let isHeadsetConnected = false;
 
-    // Ресемплер 16kHz з розрахунком RMS
     const workletCode = `
       class PCMProcessor extends AudioWorkletProcessor {
         constructor() {
@@ -460,12 +710,10 @@
       registerProcessor('pcm-processor', PCMProcessor);
     `;
 
-    // Детекція гарнітури з урахуванням обмежень iOS Safari та Android
     async function checkAudioOutputs() {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
         const devices = await navigator.mediaDevices.enumerateDevices();
-        // Аналізуємо як виходи, так і мікрофони гарнітур
         isHeadsetConnected = devices.some(d => {
           const lbl = (d.label || '').toLowerCase();
           return lbl.includes('head') || lbl.includes('airpods') || lbl.includes('bluetooth') || lbl.includes('buds') || lbl.includes('ear');
@@ -478,88 +726,86 @@
     }
 
     async function initMicrophone() {
-      audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      
+      if (!audioContext || audioContext.state === 'closed') {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
       mediaStream = await navigator.mediaDevices.getUserMedia({ 
         audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true } 
       });
       
-      // Запуск перевірки пристроїв строго після надання доступу до мікрофона (коли labels доступні)
       await checkAudioOutputs();
 
-      const blob = new Blob([workletCode], { type: 'application/javascript' });
-      const workletUrl = URL.createObjectURL(blob);
-      await audioContext.audioWorklet.addModule(workletUrl);
+      if (!audioWorkletNode) {
+        const blob = new Blob([workletCode], { type: 'application/javascript' });
+        const workletUrl = URL.createObjectURL(blob);
+        await audioContext.audioWorklet.addModule(workletUrl);
+        audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm-processor');
+        
+        audioWorkletNode.port.onmessage = (event) => {
+          if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
+          
+          const rms = event.data.rms;
+          
+          if (!isBotSpeaking && !isWaitingForResponse) {
+            if (rms > 0.015) { 
+              avatarHalo.style.transform = `scale(${1 + Math.min(rms * 3, 0.45)})`; 
+              avatarHalo.style.opacity = '1'; 
+            } else { 
+              avatarHalo.style.transform = "scale(1)"; 
+              avatarHalo.style.opacity = '0.3'; 
+            }
+          }
+
+          let allowTransmission = true;
+          const currentMode = (audioMode === 'auto') ? (isHeadsetConnected ? 'full' : 'half') : audioMode;
+
+          if (currentMode === 'half') {
+            if (isBotSpeaking || isWaitingForResponse || isExtractingMemory) {
+              allowTransmission = false;
+            }
+          } else {
+            if (isExtractingMemory) allowTransmission = false;
+          }
+
+          if (allowTransmission) {
+            const base64Data = arrayBufferToBase64(event.data.pcm);
+            socket.send(JSON.stringify({ 
+              realtimeInput: { 
+                mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: base64Data }] 
+              } 
+            }));
+          }
+        };
+      }
       
-      const source = audioContext.createMediaStreamSource(mediaStream);
-      
-      // Апаратний Low-Pass фільтр (Anti-Aliasing) на 7.5 кГц
+      sourceNode = audioContext.createMediaStreamSource(mediaStream);
       biquadFilter = audioContext.createBiquadFilter();
       biquadFilter.type = "lowpass";
       biquadFilter.frequency.value = 7500;
       biquadFilter.Q.value = 0.707;
 
-      audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm-processor');
-      
-      audioWorkletNode.port.onmessage = (event) => {
-        if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
-        
-        const rms = event.data.rms;
-        
-        // Візуалізація мовлення
-        if (!isBotSpeaking && !isWaitingForResponse) {
-          if (rms > 0.015) { 
-            avatarHalo.style.transform = `scale(${1 + Math.min(rms * 3, 0.45)})`; 
-            avatarHalo.style.opacity = '1'; 
-          } else { 
-            avatarHalo.style.transform = "scale(1)"; 
-            avatarHalo.style.opacity = '0.3'; 
-          }
-        }
-
-        // Обчислення режиму дуплексу
-        let allowTransmission = true;
-        const currentMode = (audioMode === 'auto') ? (isHeadsetConnected ? 'full' : 'half') : audioMode;
-
-        if (currentMode === 'half') {
-          if (isBotSpeaking || isWaitingForResponse || isExtractingMemory) {
-            allowTransmission = false;
-          }
-        } else {
-          if (isExtractingMemory) allowTransmission = false;
-        }
-
-        if (allowTransmission) {
-          const bytes = new Uint8Array(event.data.pcm);
-          let binary = '';
-          for (let i = 0; i < bytes.byteLength; i++) {
-            binary += String.fromCharCode(bytes[i]);
-          }
-          socket.send(JSON.stringify({ 
-            realtimeInput: { 
-              mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: window.btoa(binary) }] 
-            } 
-          }));
-        }
-      };
-      
-      source.connect(biquadFilter);
+      sourceNode.connect(biquadFilter);
       biquadFilter.connect(audioWorkletNode);
     }
 
     // --- Кнопки управління уроком ---
     btnAction.onclick = () => { isSessionActive ? stopSession() : startSession(); };
 
-    // Передача ходу з органічною ін'єкцією таймінгу (без розриву реплік)
     btnEndTurn.onclick = () => {
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory) {
         isWaitingForResponse = true;
         stopBotSpeech(); 
+        currentTutorBubble = null;
         statusText.innerText = "Репетитор думає...";
-        
-        let promptText = "Дай відповідь на те, що я щойно сказав.";
+        appendTranscript('user', 'Я відповів(ла). Чекаю продовження...');
+
+        let promptText = "Оціни мою відповідь і одразу давай наступне завдання або запитання, активно веди урок далі.";
         if (isTimeWarningPending) {
-          promptText += " [СИСТЕМНА ПІДКАЗКА: До кінця уроку залишилося менше 2 хвилин. Завершуй поточну тему, підбий короткий підсумок та постав 1 контрольне запитання!]";
+          promptText += " [СИСТЕМНА ПІДКАЗКА: До кінця уроку залишилося менше 2 хвилин. Завершуй поточну тему, підбий короткий підсумок та постав 2 контрольні запитання!]";
           isTimeWarningPending = false;
         }
 
@@ -577,12 +823,13 @@
       }
     };
 
-    // Коректне ручне переривання: глушимо динамік, НЕ відправляючи ходу в сокет
     btnInterrupt.onclick = () => {
       if (isBotSpeaking) {
         stopBotSpeech();
+        currentTutorBubble = null;
         isWaitingForResponse = false;
         statusText.innerText = "Слухаю вас...";
+        appendTranscript('system', 'Ви перебили репетитора. Слухаю вас...');
       }
     };
 
@@ -595,7 +842,6 @@
       btnInterrupt.style.display = "none";
     }
 
-    // --- Таймер структури уроку (15 хвилин) ---
     function startLessonTimer() {
       lessonSecondsRemaining = 15 * 60;
       isTimeWarningPending = false;
@@ -610,7 +856,7 @@
 
         if (lessonSecondsRemaining === 120) {
           timerBadge.classList.add('timer-warning');
-          isTimeWarningPending = true; // М'який флаг замість сліпого пострілу в сокет
+          isTimeWarningPending = true;
         }
 
         if (lessonSecondsRemaining <= 0) {
@@ -641,25 +887,28 @@
         return; 
       }
       
+      // Розблокування Web Audio без знищення контексту (iOS Safari безпечно)
+      if (!playbackContext) playbackContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
+      if (playbackContext.state === 'suspended') await playbackContext.resume();
+
       btnAction.disabled = true; 
       isSessionActive = true;
       isSetupComplete = false;
       isExtractingMemory = false;
       isWaitingForResponse = false;
       memorySavedSuccessfully = false;
+      currentTutorBubble = null;
       stopBotSpeech();
 
-      if (!playbackContext) playbackContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
-      if (playbackContext.state === 'suspended') playbackContext.resume();
-      
       if (!mediaStream) await initMicrophone();
-      if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+      if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
 
       connectWebSocket();
     }
 
     function connectWebSocket() {
       statusText.innerText = "З'єднання з сервером...";
+      appendTranscript('system', 'Підключення до Gemini Live API...');
       socket = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`);
       
       socket.onopen = () => {
@@ -670,6 +919,8 @@
               responseModalities: ["AUDIO"], 
               speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: teacherGender === 'male' ? "Puck" : "Aoede" } } } 
             },
+            // Запит на синхронну текстову транскрипцію аудіо
+            outputAudioTranscription: {},
             systemInstruction: { parts: [{ text: getSystemInstruction() }] },
             tools: [{ 
               functionDeclarations: [{ 
@@ -679,7 +930,7 @@
                   type: "OBJECT", 
                   properties: { 
                     global_memory: { type: "STRING", description: "Факти про учня (ім'я, сім'я, професія, місто, хобі тощо)." }, 
-                    lang_memory: { type: "STRING", description: "Прогрес: розібрані теми, помилки, нові слова." } 
+                    lang_memory: { type: "STRING", description: "Прогрес: розібрані теми, помилки, нові слова, вподобання." } 
                   }, 
                   required: ["global_memory", "lang_memory"] 
                 } 
@@ -700,19 +951,20 @@
            btnAction.className = "btn-main btn-stop";
            btnEndTurn.style.display = "block"; 
            statusText.innerText = "Слухаю вас...";
+           appendTranscript('system', 'Зв\'язок встановлено. Урок розпочато.');
            startLessonTimer();
 
            let helloWord = targetLanguage === 'french' ? 'Bonjour' : (targetLanguage === 'english' ? 'Hello' : '¡Hola');
-           const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистий аркуш.';
+           const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.';
            const startPrompt = !hasCurrentLangMemory
-             ? `${helloWord}! Я готовий до першого уроку.` 
-             : `${helloWord}! Продовжимо наші заняття.`;
+             ? `${helloWord}! Я готов к первому уроку.` 
+             : `${helloWord}! Продолжим наши занятия.`;
            
            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: startPrompt }] }], turnComplete: true } }));
            return;
         }
 
-        // Обробка збереження прогресу (Function Call)
+        // Обробка збереження пам'яті (Function Calling) з відповіддю toolResponse
         const functionCalls = responseData.toolCall?.functionCalls || 
           (responseData.serverContent?.modelTurn?.parts ? responseData.serverContent.modelTurn.parts.filter(p => p.functionCall).map(p => p.functionCall) : null);
         
@@ -728,6 +980,17 @@
                 localStorage.setItem(`memory_${targetLanguage}`, langMemory); 
               }
               memorySavedSuccessfully = true;
+
+              if (socket && socket.readyState === WebSocket.OPEN && call.id) {
+                socket.send(JSON.stringify({
+                  toolResponse: {
+                    functionResponses: [{
+                      response: { output: { status: "success" } },
+                      id: call.id
+                    }]
+                  }
+                }));
+              }
             }
           });
 
@@ -738,7 +1001,6 @@
           }
         }
 
-        // Захист від втрати даних: turnComplete НЕ закриває сокет, доки пам'ять не записано
         if (isExtractingMemory && responseData.serverContent?.turnComplete) {
           if (memorySavedSuccessfully) {
             clearTimeout(stopSessionTimeoutId);
@@ -750,14 +1012,23 @@
         if (responseData.serverContent?.interrupted) {
           clearTimeout(watchdogTimer);
           stopBotSpeech();
+          currentTutorBubble = null;
           isWaitingForResponse = false;
           statusText.innerText = "Слухаю вас...";
+        }
+
+        // Прийом живого тексту з транскрипції Google Gemini Live
+        if (responseData.serverContent?.outputTranscription?.text) {
+          appendTranscript('tutor', responseData.serverContent.outputTranscription.text);
         }
 
         if (responseData.serverContent?.modelTurn) {
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           for (const part of responseData.serverContent.modelTurn.parts) {
+            if (part.text) {
+              appendTranscript('tutor', part.text);
+            }
             if (part.inlineData?.mimeType.startsWith("audio/pcm")) {
               playPcmChunk(part.inlineData.data); 
               if (!isBotSpeaking) {
@@ -774,6 +1045,7 @@
           clearTimeout(watchdogTimer);
           isBotSpeaking = false; 
           isWaitingForResponse = false;
+          currentTutorBubble = null;
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = "none";
           statusText.innerText = "Ваша черга говорити..."; 
@@ -784,22 +1056,24 @@
       socket.onclose = () => { if (isSessionActive) finalizeStop(); };
     }
 
-    // --- Завершення сесії без втрати даних ---
+    // --- Завершення сесії ---
     function stopSession() {
       if (!isSessionActive) return;
       isExtractingMemory = true;
       stopLessonTimer();
       stopBotSpeech(); 
+      currentTutorBubble = null;
       btnAction.disabled = true; 
       btnEndTurn.style.display = "none";
       btnInterrupt.style.display = "none";
       statusText.innerText = "Збереження прогресу...";
+      appendTranscript('system', 'Завершення заняття та фіксація прогресу в пам\'яті...');
 
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
-        const memoryPrompt = `[СИСТЕМНА ВКАЗІВКА: Заняття завершено. Виклич saveStudentProfile та передай оновлені факти й помилки учня.
-СТАРА БАЗА: ${globalMemory || 'порожньо'}
-СТАРИЙ ПРОГРЕС: ${langMemory || 'порожньо'}
-Об'єднай попередні дані з новими та виклич функцію. Голосом нічого не промовляй!]`;
+        const memoryPrompt = `[СИСТЕМНАЯ ДИРЕКТИВА: Урок завершен. Немедленно вызови функцию saveStudentProfile и передай обновленные факты, предпочтения ученика и языковые ошибки.
+СТАРАЯ БАЗА: ${globalMemory || 'пусто'}
+СТАРЫЙ ПРОГРЕСС: ${langMemory || 'пусто'}
+Объедини предыдущие данные с новыми и вызови функцию. Голосом ничего не говори!]`;
         
         socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: memoryPrompt }] }], turnComplete: true } }));
         
@@ -817,6 +1091,24 @@
       stopSessionTimeoutId = null;
       stopLessonTimer();
       stopBotSpeech();
+      currentTutorBubble = null;
+
+      // Повне звільнення мікрофона (індикатор у телефоні гасне)
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        mediaStream = null;
+      }
+      if (sourceNode) {
+        try { sourceNode.disconnect(); } catch(e) {}
+        sourceNode = null;
+      }
+      if (audioContext && audioContext.state === 'running') {
+        try { audioContext.suspend(); } catch(e) {}
+      }
+      // playbackContext усыпляем (не уничтожаем!), чтобы сохранить User Gesture на iOS
+      if (playbackContext && playbackContext.state === 'running') {
+        try { playbackContext.suspend(); } catch(e) {}
+      }
 
       isSessionActive = false;
       isSetupComplete = false;
@@ -829,6 +1121,7 @@
       btnEndTurn.style.display = "none"; 
       btnInterrupt.style.display = "none";
       statusText.innerText = "Урок та прогрес збережено.";
+      appendTranscript('system', 'Урок завершено. Дані збережено.');
       
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.onclose = null; 
@@ -838,7 +1131,7 @@
       updateUI();
     }
 
-    // --- Відтворення звуку через Web Audio API ---
+    // --- Відтворення звуку ---
     function playPcmChunk(base64Audio) {
       if (!playbackContext) return;
       
