@@ -154,157 +154,100 @@
       <div class="avatar-halo" id="avatarHalo"></div>
       <div class="avatar-card" id="avatarCard">
         
-        <!-- АВАТАР КАМИЛЛЫ (ЖЕНСКИЙ) -->
-        <svg id="avatarCamille" viewBox="0 0 120 120" width="100%" height="100%">
+        <!-- АВАТАР КАМИЛЛЫ (ЖЕНСКИЙ - ПРЕМИУМ FLAT DESIGN) -->
+        <svg id="avatarCamille" viewBox="0 0 200 200" width="100%" height="100%">
           <defs>
-            <linearGradient id="cSkin" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#ffeedd"/>
-              <stop offset="60%" stop-color="#fcd5b8"/>
-              <stop offset="100%" stop-color="#f1b590"/>
+            <radialGradient id="skinCamille" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#ffe4d6"/>
+              <stop offset="100%" stop-color="#f2c8b1"/>
+            </radialGradient>
+            <linearGradient id="hairCamille" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#4a2e1b"/>
+              <stop offset="100%" stop-color="#2a160a"/>
             </linearGradient>
-            <linearGradient id="cHair" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#5c3317"/>
-              <stop offset="40%" stop-color="#3b1d0c"/>
-              <stop offset="100%" stop-color="#1e0c04"/>
-            </linearGradient>
-            <linearGradient id="cBlouse" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#0284c7"/>
-              <stop offset="100%" stop-color="#075985"/>
-            </linearGradient>
-            <filter id="cSoftShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-opacity="0.25"/>
+            <filter id="shadowC">
+              <feDropShadow dx="0" dy="6" stdDeviation="4" flood-opacity="0.2"/>
             </filter>
           </defs>
-
-          <!-- Задние пряди волос -->
-          <path d="M 28 50 C 18 70, 16 100, 28 120 L 92 120 C 104 100, 102 70, 92 50 Z" fill="url(#cHair)"/>
-
-          <!-- Одежда: блузка с вырезом -->
-          <path d="M 20 120 C 22 94, 38 90, 60 90 C 82 90, 98 94, 100 120 Z" fill="url(#cBlouse)"/>
-          <path d="M 52 90 Q 60 102 68 90 Z" fill="#ffeedd"/>
-
-          <!-- Шея с мягкой тенью -->
-          <rect x="52" y="70" width="16" height="18" rx="4" fill="#f1b590" />
-          <path d="M 52 70 Q 60 76 68 70 L 68 75 Q 60 80 52 75 Z" fill="#e29b72" opacity="0.6"/>
-
-          <!-- Лицо правильной анатомической формы -->
-          <path d="M 36 50 C 36 30, 84 30, 84 50 C 84 66, 74 82, 60 84 C 46 82, 36 66, 36 50 Z" fill="url(#cSkin)" filter="url(#cSoftShadow)"/>
-
-          <!-- Нежный румянец -->
-          <ellipse cx="44" cy="62" rx="6" ry="4" fill="#f43f5e" opacity="0.2"/>
-          <ellipse cx="76" cy="62" rx="6" ry="4" fill="#f43f5e" opacity="0.2"/>
-
-          <!-- Брови с изящным изгибом -->
-          <path d="M 40 43 Q 46 39 52 42" stroke="#3b1d0c" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-          <path d="M 68 42 Q 74 39 80 43" stroke="#3b1d0c" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-
-          <!-- Глаза с веками (моргают) -->
-          <g class="eye-lid">
-            <!-- Белок и радужка -->
-            <ellipse cx="46" cy="50" rx="5" ry="3.8" fill="#ffffff"/>
-            <ellipse cx="74" cy="50" rx="5" ry="3.8" fill="#ffffff"/>
-            <circle cx="46.5" cy="50" r="2.8" fill="#1e3a8a"/>
-            <circle cx="73.5" cy="50" r="2.8" fill="#1e3a8a"/>
-            <circle cx="46.8" cy="50" r="1.3" fill="#090d16"/>
-            <circle cx="73.2" cy="50" r="1.3" fill="#090d16"/>
-            <!-- Блики в глазах -->
-            <circle cx="47.5" cy="48.8" r="0.8" fill="#ffffff"/>
-            <circle cx="74.2" cy="48.8" r="0.8" fill="#ffffff"/>
-            <!-- Линия ресниц -->
-            <path d="M 41 50 Q 46 46 51 50" stroke="#1c1917" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-            <path d="M 69 50 Q 74 46 79 50" stroke="#1c1917" stroke-width="1.6" stroke-linecap="round" fill="none"/>
-          </g>
-
-          <!-- Аккуратный нос -->
-          <path d="M 59 51 L 58 60 Q 60 62 62 60" stroke="#d58c65" stroke-width="1.3" stroke-linecap="round" fill="none"/>
-
-          <!-- РОТ С АНАТОМИЧЕСКОЙ АНИМАЦИЕЙ РЕЧИ -->
-          <g>
-            <!-- Полость рта и зубы (видны при речи) -->
-            <g class="mouth-open-cavity" style="opacity: 0.15;">
-              <path d="M 53 72 Q 60 70 67 72 Q 66 79 60 79 Q 54 79 53 72 Z" fill="#60101b" />
-              <path d="M 54.5 72.5 Q 60 71.5 65.5 72.5 Q 64.5 74.5 60 74.5 Q 55.5 74.5 54.5 72.5 Z" fill="#ffffff" />
-            </g>
-            <!-- Верхняя губа -->
-            <path d="M 52 72 Q 56 69 60 70 Q 64 69 68 72 Q 60 72.5 52 72 Z" fill="#b91c1c" />
-            <!-- Нижняя губа и челюсть (двигаются в такт голосу) -->
-            <path class="mouth-lower-jaw" d="M 53 72 Q 60 73 67 72 Q 65 77 60 77 Q 55 77 53 72 Z" fill="#dc2626" />
-          </g>
-
-          <!-- Стильная укладка волос спереди -->
-          <path d="M 36 46 C 36 22, 84 22, 84 46 C 80 28, 66 26, 60 30 C 54 26, 40 28, 36 46 Z" fill="url(#cHair)"/>
-          <path d="M 37 42 C 32 58, 33 76, 40 86 C 33 72, 34 54, 40 42 Z" fill="url(#cHair)"/>
-          <path d="M 83 42 C 88 58, 87 76, 80 86 C 87 72, 86 54, 80 42 Z" fill="url(#cHair)"/>
+          
+          <!-- Волосы (фон) -->
+          <path d="M 40 80 C 10 120, 30 220, 60 220 L 140 220 C 170 220, 190 120, 160 80 Z" fill="url(#hairCamille)"/>
+          
+          <!-- Плечи и одежда -->
+          <path d="M 30 200 C 40 160, 70 145, 100 145 C 130 145, 160 160, 170 200 Z" fill="#0284c7"/>
+          <path d="M 75 145 L 100 175 L 125 145 Z" fill="#e0f2fe"/>
+          
+          <!-- Шея -->
+          <rect x="85" y="120" width="30" height="40" rx="10" fill="#f2c8b1" />
+          
+          <!-- Лицо -->
+          <ellipse cx="100" cy="95" rx="42" ry="52" fill="url(#skinCamille)" filter="url(#shadowC)"/>
+          
+          <!-- Очки (придают реалистичный стиль и скрывают недочеты глаз) -->
+          <path d="M 52 85 C 52 75, 92 75, 92 85 C 92 95, 52 95, 52 85 Z" fill="#1e293b" fill-opacity="0.1" stroke="#0f172a" stroke-width="4"/>
+          <path d="M 108 85 C 108 75, 148 75, 148 85 C 148 95, 108 95, 108 85 Z" fill="#1e293b" fill-opacity="0.1" stroke="#0f172a" stroke-width="4"/>
+          <path d="M 92 85 L 108 85" stroke="#0f172a" stroke-width="4"/>
+          
+          <!-- Глаза (статичные) -->
+          <circle cx="72" cy="85" r="4" fill="#0f172a"/>
+          <circle cx="128" cy="85" r="4" fill="#0f172a"/>
+          
+          <!-- Нос -->
+          <path d="M 100 95 L 98 108 Q 100 110 102 108" fill="none" stroke="#d4a38c" stroke-width="2.5" stroke-linecap="round"/>
+          
+          <!-- Губы (статичная легкая улыбка) -->
+          <path d="M 88 122 Q 100 128 112 122 Q 100 132 88 122 Z" fill="#e11d48"/>
+          
+          <!-- Волосы (челка) -->
+          <path d="M 100 40 C 50 40, 50 75, 50 100 C 50 70, 75 50, 100 50 C 125 50, 150 70, 150 100 C 150 75, 150 40, 100 40 Z" fill="url(#hairCamille)"/>
         </svg>
 
-        <!-- АВАТАР ЛОРАНА (МУЖСКОЙ) -->
-        <svg id="avatarLaurent" viewBox="0 0 120 120" width="100%" height="100%" style="display: none;">
+        <!-- АВАТАР ЛОРАНА (МУЖСКОЙ - ПРЕМИУМ FLAT DESIGN) -->
+        <svg id="avatarLaurent" viewBox="0 0 200 200" width="100%" height="100%" style="display: none;">
           <defs>
-            <linearGradient id="lSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+            <radialGradient id="skinLaurent" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#fae3d1"/>
-              <stop offset="60%" stop-color="#f2c8a7"/>
               <stop offset="100%" stop-color="#dfa47b"/>
-            </linearGradient>
-            <linearGradient id="lHair" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#334155"/>
-              <stop offset="60%" stop-color="#1e293b"/>
-              <stop offset="100%" stop-color="#0f172a"/>
-            </linearGradient>
-            <linearGradient id="lSuit" x1="0%" y1="0%" x2="0%" y2="100%">
+            </radialGradient>
+            <linearGradient id="hairLaurent" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#1e293b"/>
               <stop offset="100%" stop-color="#0f172a"/>
             </linearGradient>
+            <filter id="shadowL">
+              <feDropShadow dx="0" dy="6" stdDeviation="4" flood-opacity="0.2"/>
+            </filter>
           </defs>
-
-          <!-- Одежда: пиджак и рубашка с галстуком -->
-          <path d="M 18 120 C 20 90, 38 86, 60 86 C 82 86, 100 90, 102 120 Z" fill="url(#lSuit)"/>
-          <path d="M 48 86 L 60 106 L 72 86 Z" fill="#f8fafc"/>
-          <polygon points="58,94 62,94 61,118 59,118" fill="#2563eb" />
-
-          <!-- Мужественная шея -->
-          <rect x="51" y="68" width="18" height="20" rx="3" fill="#dfa47b" />
-
-          <!-- Четкий контур лица и подбородка -->
-          <path d="M 37 48 C 37 28, 83 28, 83 48 C 83 66, 75 80, 60 82 C 45 80, 37 66, 37 48 Z" fill="url(#lSkin)"/>
-
-          <!-- Легкая стильная тень/щетина -->
-          <path d="M 45 66 Q 60 80 75 66 Q 60 76 45 66 Z" fill="#334155" opacity="0.22"/>
-
-          <!-- Мужские густые брови -->
-          <path d="M 39 42 Q 46 39 52 41" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-          <path d="M 68 41 Q 74 39 81 42" stroke="#0f172a" stroke-width="2.4" stroke-linecap="round" fill="none"/>
-
-          <!-- Глаза с веками -->
-          <g class="eye-lid">
-            <ellipse cx="46" cy="49" rx="4.8" ry="3.5" fill="#ffffff"/>
-            <ellipse cx="74" cy="49" rx="4.8" ry="3.5" fill="#ffffff"/>
-            <circle cx="46.5" cy="49" r="2.6" fill="#334155"/>
-            <circle cx="73.5" cy="49" r="2.6" fill="#334155"/>
-            <circle cx="46.8" cy="49" r="1.3" fill="#090d16"/>
-            <circle cx="73.2" cy="49" r="1.3" fill="#090d16"/>
-            <circle cx="47.3" cy="48" r="0.7" fill="#ffffff"/>
-            <circle cx="74.1" cy="48" r="0.7" fill="#ffffff"/>
-            <path d="M 41 49 Q 46 46 51 49" stroke="#0f172a" stroke-width="1.6" fill="none"/>
-            <path d="M 69 49 Q 74 46 79 49" stroke="#0f172a" stroke-width="1.6" fill="none"/>
-          </g>
-
-          <!-- Прямой мужской нос -->
-          <path d="M 59 48 L 58 59 Q 60 61 63 59" stroke="#c0845a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-
-          <!-- РОТ С АНАТОМИЧЕСКОЙ АНИМАЦИЕЙ РЕЧИ -->
-          <g>
-            <g class="mouth-open-cavity" style="opacity: 0.15;">
-              <path d="M 52 71 Q 60 69 68 71 Q 66 78 60 78 Q 54 78 52 71 Z" fill="#581c20" />
-              <path d="M 54 71.5 Q 60 70.5 66 71.5 Q 65 73.5 60 73.5 Q 55 73.5 54 71.5 Z" fill="#ffffff" />
-            </g>
-            <path d="M 51 71 Q 60 70 69 71 Q 60 72 51 71 Z" fill="#991b1b" />
-            <path class="mouth-lower-jaw" d="M 52 71 Q 60 72 68 71 Q 66 76 60 76 Q 54 76 52 71 Z" fill="#b91c1c" />
-          </g>
-
-          <!-- Стильная мужская стрижка с объемом -->
-          <path d="M 35 44 C 34 20, 86 20, 85 40 C 78 26, 68 25, 60 26 C 46 26, 40 32, 35 44 Z" fill="url(#lHair)"/>
-          <path d="M 36 44 L 35 52 L 38 48 Z" fill="url(#lHair)"/>
-          <path d="M 84 42 L 85 52 L 82 48 Z" fill="url(#lHair)"/>
+          
+          <!-- Плечи и строгий костюм -->
+          <path d="M 25 200 C 35 155, 65 145, 100 145 C 135 145, 165 155, 175 200 Z" fill="#0f172a"/>
+          <path d="M 75 145 L 100 180 L 125 145 Z" fill="#f8fafc"/>
+          <path d="M 95 160 L 105 160 L 100 200 Z" fill="#3b82f6"/>
+          
+          <!-- Шея -->
+          <rect x="83" y="115" width="34" height="40" rx="6" fill="#dfa47b" />
+          
+          <!-- Лицо -->
+          <path d="M 58 90 C 58 50, 142 50, 142 90 C 142 125, 125 145, 100 148 C 75 145, 58 125, 58 90 Z" fill="url(#skinLaurent)" filter="url(#shadowL)"/>
+          
+          <!-- Легкая щетина -->
+          <path d="M 72 110 Q 100 135 128 110 Q 100 145 72 110 Z" fill="#334155" opacity="0.15"/>
+          
+          <!-- Брови -->
+          <path d="M 68 75 Q 78 72 88 75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          <path d="M 112 75 Q 122 72 132 75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          
+          <!-- Глаза -->
+          <circle cx="78" cy="88" r="4.5" fill="#1e293b"/>
+          <circle cx="122" cy="88" r="4.5" fill="#1e293b"/>
+          
+          <!-- Нос -->
+          <path d="M 100 90 L 98 108 Q 100 112 104 108" fill="none" stroke="#be8460" stroke-width="2.5" stroke-linecap="round"/>
+          
+          <!-- Рот (статичный, закрытый) -->
+          <path d="M 85 125 Q 100 128 115 125" fill="none" stroke="#8a5342" stroke-width="2.5" stroke-linecap="round"/>
+          
+          <!-- Аккуратная мужская стрижка -->
+          <path d="M 55 80 C 50 40, 150 40, 145 80 C 135 55, 115 50, 100 52 C 85 50, 65 55, 55 80 Z" fill="url(#hairLaurent)"/>
         </svg>
 
       </div>
