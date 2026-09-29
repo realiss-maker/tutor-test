@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -10,13 +10,12 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0f172a">
   
-  <!-- Защита CSP: блокировка посторонних сетевых утечек API-ключа -->
   <meta http-equiv="Content-Security-Policy" 
         content="default-src 'self' 'unsafe-inline' 'unsafe-eval' blob: data:; 
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
                  img-src 'self' https://images.unsplash.com data:; 
                  media-src 'self' blob:;">
-  <title>AI Language Tutor v3.6.1</title>
+  <title>AI Language Tutor v3.6.2</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     
@@ -60,7 +59,6 @@
     .header-title { font-weight: 600; font-size: 0.95rem; }
     .profile-badge { font-size: 0.75rem; color: #94a3b8; margin-top: 1px; }
 
-    /* Переключатель закладок (Урок / Текст) */
     .nav-tabs {
       display: flex;
       background: rgba(30, 41, 59, 0.8);
@@ -113,7 +111,6 @@
       position: relative;
     }
 
-    /* Экран 1: Классический чистый визуальный вид (Урок) */
     .view-lesson {
       display: flex;
       flex-direction: column;
@@ -125,9 +122,9 @@
 
     .avatar-wrapper {
       position: relative;
-      width: 190px;
-      height: 190px;
-      margin-bottom: 20px;
+      width: 185px;
+      height: 185px;
+      margin-bottom: 18px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -145,8 +142,8 @@
     }
     .avatar-card {
       position: relative;
-      width: 165px;
-      height: 165px;
+      width: 160px;
+      height: 160px;
       border-radius: 50%;
       background: #0f172a;
       border: 3px solid #38bdf8;
@@ -183,7 +180,6 @@
       min-height: 28px;
     }
 
-    /* Экран 2: Закладка живого текста диалога */
     .view-transcript {
       display: none;
       width: 100%;
@@ -287,10 +283,9 @@
     <header>
       <div class="header-left">
         <div class="header-title" id="headerTitle">AI Tutor</div>
-        <div class="profile-badge" id="profileBadge">Завантаження...</div>
+        <div class="profile-badge" id="profileBadge">Загрузка...</div>
       </div>
       
-      <!-- Вкладки "Урок" и "Текст" -->
       <div class="nav-tabs">
         <button class="tab-btn active" id="tabLesson">🎧 Урок</button>
         <button class="tab-btn" id="tabTranscript">📜 Текст</button>
@@ -298,12 +293,11 @@
 
       <div class="header-right">
         <div class="timer-badge" id="timerBadge">15:00</div>
-        <button class="btn-icon" id="btnSettings" title="Налаштування">⚙️️</button>
+        <button class="btn-icon" id="btnSettings" title="Настройки">⚙</button>
       </div>
     </header>
 
     <main>
-      <!-- Вкладка 1: Визуальный экран (чистый вид с достопримечательностью) -->
       <div class="view-lesson" id="viewLesson">
         <div class="avatar-wrapper">
           <div class="avatar-halo" id="avatarHalo"></div>
@@ -311,72 +305,77 @@
             <img id="landmarkImage" src="" alt="Landmark">
           </div>
         </div>
-        <div class="status-text" id="statusText">Натисніть «Почати урок» для старту</div>
+        <div class="status-text" id="statusText">Нажмите «Начать урок» для старта</div>
       </div>
 
-      <!-- Вкладка 2: Экран живого текста (синхронные субтитры и история) -->
       <div class="view-transcript" id="viewTranscript">
         <div class="transcript-bubble bubble-system">
-          Тут буде з'являтися текст розмови з репетитором. Ви можете перемикатися сюди в будь-який момент уроку.
+          Здесь отображаются важные моменты урока и реплики. Вы можете переключаться сюда в любой момент диалога.
         </div>
       </div>
     </main>
 
     <footer>
-      <button class="btn-main btn-interrupt" id="btnInterrupt">Перебити / Досить ✋</button>
-      <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я все сказав, чекаю відповідь ➔</button>
-      <button class="btn-main btn-start" id="btnAction">Почати урок</button>
+      <button class="btn-main btn-interrupt" id="btnInterrupt">Перебить / Хватит ✋</button>
+      <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал, жду ответ ➔</button>
+      <button class="btn-main btn-start" id="btnAction">Начать урок</button>
     </footer>
   </div>
 
   <div class="modal" id="modalSettings">
     <div class="modal-content">
-      <h3 style="margin-bottom: 2px; text-align: left;">Налаштування</h3>
+      <h3 style="margin-bottom: 2px; text-align: left;">Настройки</h3>
       
       <label>Google AI Studio API Key:</label>
       <input type="password" id="inputApiKey" placeholder="AIzaSy..." 
              autocomplete="off" spellcheck="false" autocapitalize="off">
       
-      <label>Режим зберігання ключа:</label>
+      <label>Режим хранения ключа:</label>
       <select id="selectStorageMode">
-        <option value="local">Зберегти на цьому пристрої (localStorage)</option>
-        <option value="session">Лише на час сесії (sessionStorage)</option>
+        <option value="local">Сохранить на этом устройстве (localStorage)</option>
+        <option value="session">Только на время сессии (sessionStorage)</option>
       </select>
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label>Мова вивчення:</label>
+          <label>Изучаемый язык:</label>
           <select id="selectLanguage">
-            <option value="french">Французька</option>
-            <option value="english">Англійська</option>
-            <option value="spanish">Іспанська</option>
+            <option value="french">Французский</option>
+            <option value="english">Английский</option>
+            <option value="spanish">Испанский</option>
           </select>
         </div>
         <div style="flex: 1;">
           <label>Голос репетитора:</label>
           <select id="selectTeacher">
-            <option value="female">Жіночий</option>
-            <option value="male">Чоловічий</option>
+            <option value="female">Женский</option>
+            <option value="male">Мужской</option>
           </select>
         </div>
       </div>
 
-      <label>Аудіо-режим:</label>
-      <select id="selectAudioMode">
-        <option value="auto">Автодетекція (Гарнітура / Динамік)</option>
-        <option value="half">Напівдуплекс (динамік без відлуння)</option>
-        <option value="full">Вільний дуплекс (для навушників)</option>
+      <label>Язык общения и объяснений (ваш родной язык):</label>
+      <select id="selectNativeLang">
+        <option value="ru">Русский (объяснения строго на русском)</option>
+        <option value="uk">Українська (пояснення строго українською)</option>
+        <option value="auto">Автоопределение (по живому голосу)</option>
       </select>
 
-      <button class="btn-save" id="btnSaveKey">Зберегти налаштування</button>
-      <button class="btn-reset-current" id="btnResetCurrentLang">Скинути пам'ять поточної мови</button>
-      <button class="btn-reset-all" id="btnResetAllMemory">Скинути всю пам'ять (всі мови)</button>
-      <button class="btn-close" id="btnCloseModal">Закрити</button>
+      <label>Аудио-режим:</label>
+      <select id="selectAudioMode">
+        <option value="auto">Автодетекция (Гарнитура / Динамик)</option>
+        <option value="half">Полудуплекс (динамик без эха)</option>
+        <option value="full">Свободный дуплекс (для наушников)</option>
+      </select>
+
+      <button class="btn-save" id="btnSaveKey">Сохранить настройки</button>
+      <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
+      <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
+      <button class="btn-close" id="btnCloseModal">Закрыть</button>
     </div>
   </div>
 
   <script>
-    // --- Управління ключем та сховищем (BYOK) ---
     function getStoredApiKey() {
       return sessionStorage.getItem('gemini_api_key') || localStorage.getItem('gemini_api_key') || '';
     }
@@ -384,6 +383,7 @@
     let storageMode = localStorage.getItem('api_storage_mode') || 'local';
     let teacherGender = localStorage.getItem('teacher_gender') || 'female';
     let targetLanguage = localStorage.getItem('target_language') || 'french';
+    let nativeLang = localStorage.getItem('native_lang') || 'ru'; // По умолчанию русский
     let audioMode = localStorage.getItem('audio_mode') || 'auto';
     let globalMemory = localStorage.getItem('global_memory') || '';
     let langMemory = localStorage.getItem(`memory_${targetLanguage}`) || '';     
@@ -407,15 +407,14 @@
     const selectStorageMode = document.getElementById('selectStorageMode');
     const selectTeacher = document.getElementById('selectTeacher');
     const selectLanguage = document.getElementById('selectLanguage');
+    const selectNativeLang = document.getElementById('selectNativeLang');
     const selectAudioMode = document.getElementById('selectAudioMode');
 
-    // Элементы вкладок
     const tabLesson = document.getElementById('tabLesson');
     const tabTranscript = document.getElementById('tabTranscript');
     const viewLesson = document.getElementById('viewLesson');
     const viewTranscript = document.getElementById('viewTranscript');
 
-    // Переключение между чистым экраном и экраном с текстом
     tabLesson.onclick = () => {
       tabLesson.classList.add('active');
       tabTranscript.classList.remove('active');
@@ -431,45 +430,32 @@
       viewTranscript.scrollTop = viewTranscript.scrollHeight;
     };
 
-    let currentTutorBubble = null;
-
     function appendTranscript(role, text) {
       if (!text || !text.trim()) return;
+      const bubble = document.createElement('div');
+      bubble.className = role === 'user' ? 'transcript-bubble bubble-user' : (role === 'tutor' ? 'transcript-bubble bubble-tutor' : 'transcript-bubble bubble-system');
       
-      if (role === 'tutor') {
-        if (!currentTutorBubble) {
-          currentTutorBubble = document.createElement('div');
-          currentTutorBubble.className = 'transcript-bubble bubble-tutor';
-          const author = document.createElement('div');
-          author.className = 'bubble-author';
-          author.innerText = getTeacherName().split(' ')[0];
-          currentTutorBubble.appendChild(author);
-          
-          const content = document.createElement('span');
-          content.className = 'bubble-body';
-          content.innerText = text;
-          currentTutorBubble.appendChild(content);
-          viewTranscript.appendChild(currentTutorBubble);
-        } else {
-          const content = currentTutorBubble.querySelector('.bubble-body');
-          if (content) content.innerText += (content.innerText.endsWith(' ') ? '' : ' ') + text;
-        }
-      } else {
-        currentTutorBubble = null;
-        const bubble = document.createElement('div');
-        bubble.className = role === 'user' ? 'transcript-bubble bubble-user' : 'transcript-bubble bubble-system';
-        if (role === 'user') {
-          const author = document.createElement('div');
-          author.className = 'bubble-author user';
-          author.innerText = 'Ви';
-          bubble.appendChild(author);
-        }
-        const content = document.createElement('div');
-        content.innerText = text;
-        bubble.appendChild(content);
-        viewTranscript.appendChild(bubble);
+      if (role === 'user') {
+        const author = document.createElement('div');
+        author.className = 'bubble-author user';
+        author.innerText = 'Вы';
+        bubble.appendChild(author);
+      } else if (role === 'tutor') {
+        const author = document.createElement('div');
+        author.className = 'bubble-author';
+        author.innerText = getTeacherName().split(' ')[0];
+        bubble.appendChild(author);
       }
-      viewTranscript.scrollTop = viewTranscript.scrollHeight;
+      
+      const content = document.createElement('div');
+      content.innerText = text;
+      bubble.appendChild(content);
+      viewTranscript.appendChild(bubble);
+      
+      // Мягкая прокрутка без фризов аудиопотока
+      requestAnimationFrame(() => {
+        viewTranscript.scrollTop = viewTranscript.scrollHeight;
+      });
     }
 
     const landmarkPhotos = {
@@ -485,9 +471,9 @@
     };
 
     function getTeacherName() {
-      if (targetLanguage === 'french') return teacherGender === 'male' ? 'Лоран (Laurent)' : 'Камілла (Camille)';
-      if (targetLanguage === 'english') return teacherGender === 'male' ? 'Артур (Arthur)' : 'Емма (Emma)';
-      if (targetLanguage === 'spanish') return teacherGender === 'male' ? 'Дієго (Diego)' : 'Кармен (Carmen)';
+      if (targetLanguage === 'french') return teacherGender === 'male' ? 'Лоран (Laurent)' : 'Камилла (Camille)';
+      if (targetLanguage === 'english') return teacherGender === 'male' ? 'Артур (Arthur)' : 'Эмма (Emma)';
+      if (targetLanguage === 'spanish') return teacherGender === 'male' ? 'Диего (Diego)' : 'Кармен (Carmen)';
     }
 
     function updateUI() {
@@ -495,7 +481,7 @@
       globalMemory = localStorage.getItem('global_memory') || '';
       
       const hasLangProgress = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.';
-      profileBadge.innerText = hasLangProgress ? "Профіль активний" : "Новий курс";
+      profileBadge.innerText = hasLangProgress ? "Профиль активен" : "Новый курс";
       
       let shortName = '', langLabel = '';
       if (targetLanguage === 'french') { shortName = teacherGender === 'male' ? 'Laurent' : 'Camille'; langLabel = 'Français'; }
@@ -519,6 +505,7 @@
       selectStorageMode.value = storageMode;
       selectTeacher.value = teacherGender; 
       selectLanguage.value = targetLanguage;
+      selectNativeLang.value = nativeLang;
       selectAudioMode.value = audioMode;
       modalSettings.style.display = 'flex'; 
     };
@@ -529,6 +516,7 @@
       storageMode = selectStorageMode.value;
       teacherGender = selectTeacher.value; 
       targetLanguage = selectLanguage.value;
+      nativeLang = selectNativeLang.value;
       audioMode = selectAudioMode.value;
 
       localStorage.setItem('api_storage_mode', storageMode);
@@ -542,25 +530,26 @@
 
       localStorage.setItem('teacher_gender', teacherGender); 
       localStorage.setItem('target_language', targetLanguage);
+      localStorage.setItem('native_lang', nativeLang);
       localStorage.setItem('audio_mode', audioMode);
 
       updateUI(); 
       modalSettings.style.display = 'none'; 
-      alert('Налаштування збережено успішно.');
+      alert('Настройки сохранены успешно.');
     };
 
     btnResetCurrentLang.onclick = () => {
-      if (!confirm("Скинути пам'ять та історію для поточної обраної мови?")) return;
+      if (!confirm("Сбросить память и историю для текущего языка?")) return;
       localStorage.removeItem(`memory_${targetLanguage}`); 
       langMemory = '';
       updateUI(); 
       modalSettings.style.display = 'none'; 
-      appendTranscript('system', 'Пам\'ять поточної мови очищено.');
-      alert('Пам\'ять поточної мови очищено.');
+      appendTranscript('system', 'Память текущего языка очищена.');
+      alert('Память текущего языка очищена.');
     };
 
     btnResetAllMemory.onclick = () => {
-      if (!confirm("УВАГА: Видалити ВСІ збережені дані профілю та історію за всіма мовами?")) return;
+      if (!confirm("ВНИМАНИЕ: Удалить ВСЕ данные профиля и историю по всем языкам?")) return;
       localStorage.removeItem('memory_french'); 
       localStorage.removeItem('memory_english'); 
       localStorage.removeItem('memory_spanish'); 
@@ -569,11 +558,11 @@
       langMemory = '';
       updateUI(); 
       modalSettings.style.display = 'none'; 
-      appendTranscript('system', 'Всю пам\'ять повністю очищено.');
-      alert('Всю пам\'ять повністю скинуто.');
+      appendTranscript('system', 'Вся память профиля полностью очищена.');
+      alert('Вся память профиля полностью сброшена.');
     };
 
-    // --- СИСТЕМНИЙ ПРОМПТ: ПОВНЕ ВІДНОВЛЕННЯ ОРИГІНАЛУ З Промт.odt ТА ЙОГО ДОПОВНЕННЯ ---
+    // --- СИСТЕМНЫЙ ПРОМПТ (БАЗОВЫЙ ОРИГИНАЛ + СТРОГОЕ УПРАВЛЕНИЕ ЯЗЫКОМ И ЛИДЕРСТВО) ---
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -582,7 +571,19 @@
       if (targetLanguage === 'english') { langName = 'английского'; langAdverb = 'по-английски'; }
       if (targetLanguage === 'spanish') { langName = 'испанского'; langAdverb = 'по-испански'; }
 
-      // 1. ОРИГІНАЛЬНИЙ БАЗОВИЙ ПРОМПТ (ВІДНОВЛЕНО НА 100% БЕЗ ВИЛУЧЕНЬ)
+      // Формируем четкое правило родного языка (Русский / Украинский / Авто)
+      let languageDirective = '';
+      if (nativeLang === 'ru') {
+        languageDirective = `СТРОГОЕ ПРАВИЛО ЯЗЫКА ОБЪЯСНЕНИЙ:
+Все пояснения, переводы, комментарии и диалог веди ИСКЛЮЧИТЕЛЬНО НА РУССКОМ ЯЗЫКЕ! Не используй украинский язык, даже если старые записи в памяти содержат украинский текст.`;
+      } else if (nativeLang === 'uk') {
+        languageDirective = `СТРОГЕ ПРАВИЛО МОВИ ПОЯСНЕНЬ:
+Усі пояснення, переклади, коментарі та діалог веди ВИКЛЮЧНО УКРАЇНСЬКОЮ МОВОЮ!`;
+      } else {
+        languageDirective = `ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
+Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском. Определяй язык строго по живому голосу ученика, игнорируя язык старых заметок в памяти.`;
+      }
+
       const originalPrompt = `Ты — ${tName}, ${tRole} ${langName} языка. Твой голос — ${teacherGender === 'male' ? 'приятный мужской' : 'мягкий женский'}.
 Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель. Веди диалог плавно, реплика за репликой. НЕ задавай несколько вопросов подряд.
 
@@ -590,8 +591,7 @@
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMemory || 'Пока ничего неизвестно.'}
 [ПРОГРЕСС И ОШИБКИ В ЯЗЫКЕ]: ${langMemory || 'Чистый лист.'}
 
-ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
-Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
+${languageDirective}
 
 ПРАВИЛО ИЗУЧАЕМОГО ЯЗЫКА (КРИТИЧЕСКИ ВАЖНО):
 Первая фраза в твоем ответе ВСЕГДА ДОЛЖНА БЫТЬ НА ИЗУЧАЕМОМ ЯЗЫКЕ (${langAdverb}). Сначала скажи это ${langAdverb}, а только потом дай перевод на язык ученика.
@@ -617,45 +617,32 @@
 - План: Выслушав ответ, предложи 2 варианта новой темы.
 3. ЗАВЕРШЕНИЕ УРОКА (ТЕСТ): Когда ученик просит завершить урок или время подходит к концу, ПЕРЕД ТЕМ как попрощаться, ОБЯЗАТЕЛЬНО задай 2 контрольных вопроса по материалу, который вы обсудили СЕГОДНЯ. Только после ответа ученика прощайся.`;
 
-      // 2. ДОПОВНЕННЯ (АКТИВНА РОЛЬ ВЕДУЧОГО, ПАУЗА 3-5 СЕК, ОПИТУВАННЯ ТА КРАЇНОЗНАВСТВО)
       const additions = `
 
 АКТИВНОЕ ПЕДАГОГИЧЕСКОЕ ЛИДЕРСТВО И НЕПРЕРЫВНОСТЬ УРОКА:
-1. Ты — безусловный лидер и ведущий диалога. Ученик в пассивной роли, ты активно ведешь и направляешь его.
+1. Ты — ведущий и лидер диалога. Ученик занимает ведомую роль.
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО просто сказать «Да, отлично!», «Все верно», «Хорошо» и замолчать!
 3. Твой ответ ВСЕГДА состоит из двух неразрывных частей:
    а) Краткая оценка или тактичное исправление ответа ученика;
-   б) СРАЗУ ЖЕ следующее действие: новое задание, новая фраза для перевода или встречный вопрос в рамках темы. Мяч ВСЕГДА должен оставаться на стороне ученика!
+   б) СРАЗУ ЖЕ следующее действие: новое задание, новая фраза для перевода или встречный вопрос в рамках темы. Всегда веди диалог дальше!
 
 КОГНИТИВНАЯ ПАУЗА (3-5 СЕКУНД) И САМОСТОЯТЕЛЬНОСТЬ:
-1. Чтобы ученик успел включить мыслительный процесс и попытаться понять иностранную речь сам, произнеся фразу ${langAdverb}, ОБЯЗАТЕЛЬНО выдерживай паузу тишины в 3-5 секунд, и только потом давай перевод на язык ученика.
+1. Чтобы ученик успел включить мыслительный процесс и попытаться понять иностранную речь сам, произнеся фразу ${langAdverb}, ОБЯЗАТЕЛЬНО выдерживай ощутимую паузу тишины в 3-5 секунд, и только потом давай перевод на язык ученика.
 
 ОПРОС И ГИБКОСТЬ НА ПЕРВОМ УРОКЕ:
 1. На первом уроке обязательно уточни у ученика: как ему удобнее — чтобы ты переводил каждую фразу, или только новые темы и сложные обороты, а простые бытовые реплики и приветствия оставлял ${langAdverb} без перевода?
 2. Напомни ученику, что он в любой момент прямо голосом может сказать: «Не переводи простое», «Говори помедленнее», «Повтори» или предложить изменить ход занятия.
 
-КУЛЬТУРНО-СТРАНОВЕДЧЕСКИЙ КОНТЕКСТ (СООТВЕТСТВЕННО СТРАНЕ):
+КУЛЬТУРНО-СТРАНОВЕДЧЕСКИЙ КОНТЕКСТ:
 Органично вплетай в темы уроков культуру, быт и историю:
-- Для французского языка: жизнь во Франции (Париж и провинция), французская кухня и этикет кафе, королевская история, замки Луары, привычки и характер французов.
-- Для английского языка: реалии жизни в Англии / Великобритании, королевская семья и монархия, традиции чаепития, национальные блюда, британский юмор и манеры.
-- Для испанского языка: повседневная жизнь в Испании, регионы, культура тапас и сиесты, национальные праздники, архитектура, королевская история и ритм жизни испанцев.`;
+- Французский язык: жизнь во Франции (Париж и провинция), французская кухня, этикет кафе, замки Луары и королевская история, привычки французов.
+- Английский язык: реалии жизни в Англии / Великобритании, королевская семья и монархия, традиции чаепития, национальные блюда, британский юмор и манеры.
+- Испанский язык: повседневная жизнь в Испании, культура тапас и сиесты, национальные праздники, архитектура, королевская история и ритм жизни испанцев.`;
 
       return originalPrompt + additions;
     }
 
-    // --- Швидке блокове кодування Base64 без навантаження на процесор ---
-    function arrayBufferToBase64(buffer) {
-      let binary = '';
-      const bytes = new Uint8Array(buffer);
-      const len = bytes.byteLength;
-      const chunkSize = 0x8000;
-      for (let i = 0; i < len; i += chunkSize) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + chunkSize, len)));
-      }
-      return window.btoa(binary);
-    }
-
-    // --- Звуковий тракт (Web Audio API) та мережа ---
+    // --- Звуковой тракт и сокет ---
     let socket = null;
     let audioContext = null;
     let mediaStream = null;
@@ -772,10 +759,14 @@
           }
 
           if (allowTransmission) {
-            const base64Data = arrayBufferToBase64(event.data.pcm);
+            const bytes = new Uint8Array(event.data.pcm);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+              binary += String.fromCharCode(bytes[i]);
+            }
             socket.send(JSON.stringify({ 
               realtimeInput: { 
-                mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: base64Data }] 
+                mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: window.btoa(binary) }] 
               } 
             }));
           }
@@ -792,20 +783,25 @@
       biquadFilter.connect(audioWorkletNode);
     }
 
-    // --- Кнопки управління уроком ---
+    // --- Кнопки управления уроком ---
     btnAction.onclick = () => { isSessionActive ? stopSession() : startSession(); };
 
     btnEndTurn.onclick = () => {
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory) {
         isWaitingForResponse = true;
         stopBotSpeech(); 
-        currentTutorBubble = null;
-        statusText.innerText = "Репетитор думає...";
-        appendTranscript('user', 'Я відповів(ла). Чекаю продовження...');
+        statusText.innerText = "Репетитор думает...";
+        appendTranscript('user', 'Я ответил(а). Жду продолжения...');
 
-        let promptText = "Оціни мою відповідь і одразу давай наступне завдання або запитання, активно веди урок далі.";
+        // Адаптивная подсказка в сокет без навязывания украинского
+        let promptText = nativeLang === 'uk' 
+          ? "Оціни мою відповідь і одразу давай наступне завдання або запитання, активно веди урок далі."
+          : "Оцени мой ответ и сразу давай следующее задание или вопрос, активно веди урок дальше.";
+          
         if (isTimeWarningPending) {
-          promptText += " [СИСТЕМНА ПІДКАЗКА: До кінця уроку залишилося менше 2 хвилин. Завершуй поточну тему, підбий короткий підсумок та постав 2 контрольні запитання!]";
+          promptText += nativeLang === 'uk'
+            ? " [СИСТЕМНА ПІДКАЗКА: До кінця уроку менше 2 хвилин. Завершуй поточну тему, підбий підсумок та постав 2 контрольні запитання!]"
+            : " [СИСТЕМНАЯ ПОДСКАЗКА: До конца урока меньше 2 минут. Завершай тему, подводи итог и задай 2 контрольных вопроса!]";
           isTimeWarningPending = false;
         }
 
@@ -817,7 +813,7 @@
         watchdogTimer = setTimeout(() => {
           if (isWaitingForResponse) {
             isWaitingForResponse = false;
-            statusText.innerText = "Слухаю вас...";
+            statusText.innerText = "Слушаю вас...";
           }
         }, 4000);
       }
@@ -826,10 +822,9 @@
     btnInterrupt.onclick = () => {
       if (isBotSpeaking) {
         stopBotSpeech();
-        currentTutorBubble = null;
         isWaitingForResponse = false;
-        statusText.innerText = "Слухаю вас...";
-        appendTranscript('system', 'Ви перебили репетитора. Слухаю вас...');
+        statusText.innerText = "Слушаю вас...";
+        appendTranscript('system', 'Вы перебили репетитора. Слушаю вас...');
       }
     };
 
@@ -861,7 +856,7 @@
 
         if (lessonSecondsRemaining <= 0) {
           clearInterval(lessonTimerInterval);
-          statusText.innerText = "Час уроку вичерпано. Збереження...";
+          statusText.innerText = "Время урока истекло. Сохранение...";
           stopSession();
         }
       }, 1000);
@@ -879,7 +874,7 @@
       timerBadge.innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
-    // --- Запуск та підключення сесії ---
+    // --- Запуск сессии ---
     async function startSession() {
       apiKey = getStoredApiKey();
       if (!apiKey) { 
@@ -887,7 +882,6 @@
         return; 
       }
       
-      // Розблокування Web Audio без знищення контексту (iOS Safari безпечно)
       if (!playbackContext) playbackContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 24000 });
       if (playbackContext.state === 'suspended') await playbackContext.resume();
 
@@ -897,7 +891,6 @@
       isExtractingMemory = false;
       isWaitingForResponse = false;
       memorySavedSuccessfully = false;
-      currentTutorBubble = null;
       stopBotSpeech();
 
       if (!mediaStream) await initMicrophone();
@@ -907,8 +900,8 @@
     }
 
     function connectWebSocket() {
-      statusText.innerText = "З'єднання з сервером...";
-      appendTranscript('system', 'Підключення до Gemini Live API...');
+      statusText.innerText = "Соединение с сервером...";
+      appendTranscript('system', 'Подключение к Gemini Live...');
       socket = new WebSocket(`wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${apiKey}`);
       
       socket.onopen = () => {
@@ -919,18 +912,16 @@
               responseModalities: ["AUDIO"], 
               speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: teacherGender === 'male' ? "Puck" : "Aoede" } } } 
             },
-            // Запит на синхронну текстову транскрипцію аудіо
-            outputAudioTranscription: {},
             systemInstruction: { parts: [{ text: getSystemInstruction() }] },
             tools: [{ 
               functionDeclarations: [{ 
                 name: "saveStudentProfile", 
-                description: "Зберегти профіль учня та його прогрес у пам'ять пристрою.", 
+                description: "Сохранить профиль ученика и его прогресс в память устройства.", 
                 parameters: { 
                   type: "OBJECT", 
                   properties: { 
-                    global_memory: { type: "STRING", description: "Факти про учня (ім'я, сім'я, професія, місто, хобі тощо)." }, 
-                    lang_memory: { type: "STRING", description: "Прогрес: розібрані теми, помилки, нові слова, вподобання." } 
+                    global_memory: { type: "STRING", description: "Факты об ученике (имя, семья, профессия, хобби)." }, 
+                    lang_memory: { type: "STRING", description: "Прогресс: темы, ошибки, новые слова, предпочтения." } 
                   }, 
                   required: ["global_memory", "lang_memory"] 
                 } 
@@ -947,24 +938,29 @@
         if (responseData.setupComplete) {
            isSetupComplete = true;
            btnAction.disabled = false; 
-           btnAction.innerText = "Завершити урок"; 
+           btnAction.innerText = "Завершить урок"; 
            btnAction.className = "btn-main btn-stop";
            btnEndTurn.style.display = "block"; 
-           statusText.innerText = "Слухаю вас...";
-           appendTranscript('system', 'Зв\'язок встановлено. Урок розпочато.');
+           statusText.innerText = "Слушаю вас...";
+           appendTranscript('system', 'Связь установлена. Урок начат.');
            startLessonTimer();
 
            let helloWord = targetLanguage === 'french' ? 'Bonjour' : (targetLanguage === 'english' ? 'Hello' : '¡Hola');
            const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.';
-           const startPrompt = !hasCurrentLangMemory
-             ? `${helloWord}! Я готов к первому уроку.` 
-             : `${helloWord}! Продолжим наши занятия.`;
+           
+           let startPrompt = '';
+           if (nativeLang === 'ru') {
+             startPrompt = !hasCurrentLangMemory ? `${helloWord}! Я готов к первому уроку.` : `${helloWord}! Продолжим наши занятия.`;
+           } else if (nativeLang === 'uk') {
+             startPrompt = !hasCurrentLangMemory ? `${helloWord}! Я готовий до першого уроку.` : `${helloWord}! Продовжимо наші заняття.`;
+           } else {
+             startPrompt = `${helloWord}! [СИСТЕМНАЯ ПОДСКАЗКА: Начни урок. Поприветствуй на изучаемом языке, сделай паузу 3-5 секунд, дай перевод. Жди, на каком языке ответит ученик, чтобы продолжить на его языке!]`;
+           }
            
            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: startPrompt }] }], turnComplete: true } }));
            return;
         }
 
-        // Обробка збереження пам'яті (Function Calling) з відповіддю toolResponse
         const functionCalls = responseData.toolCall?.functionCalls || 
           (responseData.serverContent?.modelTurn?.parts ? responseData.serverContent.modelTurn.parts.filter(p => p.functionCall).map(p => p.functionCall) : null);
         
@@ -1012,30 +1008,21 @@
         if (responseData.serverContent?.interrupted) {
           clearTimeout(watchdogTimer);
           stopBotSpeech();
-          currentTutorBubble = null;
           isWaitingForResponse = false;
-          statusText.innerText = "Слухаю вас...";
-        }
-
-        // Прийом живого тексту з транскрипції Google Gemini Live
-        if (responseData.serverContent?.outputTranscription?.text) {
-          appendTranscript('tutor', responseData.serverContent.outputTranscription.text);
+          statusText.innerText = "Слушаю вас...";
         }
 
         if (responseData.serverContent?.modelTurn) {
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           for (const part of responseData.serverContent.modelTurn.parts) {
-            if (part.text) {
-              appendTranscript('tutor', part.text);
-            }
             if (part.inlineData?.mimeType.startsWith("audio/pcm")) {
               playPcmChunk(part.inlineData.data); 
               if (!isBotSpeaking) {
                  isBotSpeaking = true; 
                  avatarCard.classList.add('speaking');
                  btnInterrupt.style.display = "block";
-                 statusText.innerText = "Репетитор говорить...";
+                 statusText.innerText = "Репетитор говорит...";
               }
             }
           }
@@ -1043,12 +1030,16 @@
         
         if (responseData.serverContent?.turnComplete) { 
           clearTimeout(watchdogTimer);
-          isBotSpeaking = false; 
-          isWaitingForResponse = false;
-          currentTutorBubble = null;
-          avatarCard.classList.remove('speaking');
-          btnInterrupt.style.display = "none";
-          statusText.innerText = "Ваша черга говорити..."; 
+          // Внимание: флаг isBotSpeaking НЕ сбрасываем здесь сразу! 
+          // Он сбросится в source.onended, когда динамик реально закончит проигрывать звук.
+          // Это исключает самоперебивание и заикания!
+          if (activeAudioSources.length === 0) {
+            isBotSpeaking = false;
+            isWaitingForResponse = false;
+            avatarCard.classList.remove('speaking');
+            btnInterrupt.style.display = "none";
+            statusText.innerText = "Ваша очередь говорить..."; 
+          }
         }
       };
 
@@ -1056,24 +1047,23 @@
       socket.onclose = () => { if (isSessionActive) finalizeStop(); };
     }
 
-    // --- Завершення сесії ---
     function stopSession() {
       if (!isSessionActive) return;
       isExtractingMemory = true;
       stopLessonTimer();
       stopBotSpeech(); 
-      currentTutorBubble = null;
       btnAction.disabled = true; 
       btnEndTurn.style.display = "none";
       btnInterrupt.style.display = "none";
-      statusText.innerText = "Збереження прогресу...";
-      appendTranscript('system', 'Завершення заняття та фіксація прогресу в пам\'яті...');
+      statusText.innerText = "Сохранение прогресса...";
+      appendTranscript('system', 'Завершение урока и фиксация прогресса в памяти...');
 
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
-        const memoryPrompt = `[СИСТЕМНАЯ ДИРЕКТИВА: Урок завершен. Немедленно вызови функцию saveStudentProfile и передай обновленные факты, предпочтения ученика и языковые ошибки.
+        const langDirective = nativeLang === 'ru' ? 'Записи сделай на РУССКОМ языке.' : (nativeLang === 'uk' ? 'Записи зроби УКРАЇНСЬКОЮ мовою.' : '');
+        const memoryPrompt = `[СИСТЕМНАЯ ДИРЕКТИВА: Урок завершен. Немедленно вызови saveStudentProfile и передай обновленные факты, предпочтения ученика и ошибки. ${langDirective}
 СТАРАЯ БАЗА: ${globalMemory || 'пусто'}
 СТАРЫЙ ПРОГРЕСС: ${langMemory || 'пусто'}
-Объедини предыдущие данные с новыми и вызови функцию. Голосом ничего не говори!]`;
+Объедини данные и вызови функцию. Голосом ничего не говори!]`;
         
         socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: memoryPrompt }] }], turnComplete: true } }));
         
@@ -1091,9 +1081,7 @@
       stopSessionTimeoutId = null;
       stopLessonTimer();
       stopBotSpeech();
-      currentTutorBubble = null;
 
-      // Повне звільнення мікрофона (індикатор у телефоні гасне)
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
         mediaStream = null;
@@ -1105,7 +1093,6 @@
       if (audioContext && audioContext.state === 'running') {
         try { audioContext.suspend(); } catch(e) {}
       }
-      // playbackContext усыпляем (не уничтожаем!), чтобы сохранить User Gesture на iOS
       if (playbackContext && playbackContext.state === 'running') {
         try { playbackContext.suspend(); } catch(e) {}
       }
@@ -1116,12 +1103,12 @@
       isWaitingForResponse = false;
 
       btnAction.disabled = false; 
-      btnAction.innerText = "Почати урок"; 
+      btnAction.innerText = "Начать урок"; 
       btnAction.className = "btn-main btn-start";
       btnEndTurn.style.display = "none"; 
       btnInterrupt.style.display = "none";
-      statusText.innerText = "Урок та прогрес збережено.";
-      appendTranscript('system', 'Урок завершено. Дані збережено.');
+      statusText.innerText = "Урок и прогресс сохранены.";
+      appendTranscript('system', 'Урок завершен.');
       
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.onclose = null; 
@@ -1131,7 +1118,7 @@
       updateUI();
     }
 
-    // --- Відтворення звуку ---
+    // --- Бесшовное воспроизведение аудио (буфер 90мс для устранения заиканий) ---
     function playPcmChunk(base64Audio) {
       if (!playbackContext) return;
       
@@ -1151,8 +1138,9 @@
       source.connect(playbackContext.destination);
       
       const currentTime = playbackContext.currentTime;
+      // Увеличенный интервал до 0.09s гарантирует бесшовную склейку пакетов на мобильных устройствах
       if (scheduledPlayTime < currentTime) {
-        scheduledPlayTime = currentTime + 0.04; 
+        scheduledPlayTime = currentTime + 0.09; 
       }
       
       source.start(scheduledPlayTime); 
@@ -1161,6 +1149,15 @@
       activeAudioSources.push(source); 
       source.onended = () => { 
         activeAudioSources = activeAudioSources.filter(s => s !== source); 
+        // Микрофон включается СТРОГО тогда, когда звук физически доиграл до конца
+        if (activeAudioSources.length === 0) {
+          isBotSpeaking = false;
+          avatarCard.classList.remove('speaking');
+          btnInterrupt.style.display = "none";
+          if (!isWaitingForResponse && isSessionActive) {
+            statusText.innerText = "Ваша очередь говорить...";
+          }
+        }
       };
     }
   </script>
