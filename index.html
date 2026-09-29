@@ -157,113 +157,17 @@
     <button class="btn-icon" id="btnSettings">⚙️</button>
   </header>
 
-  <main>
+ <main>
     <div class="avatar-wrapper">
       <div class="avatar-halo" id="avatarHalo"></div>
       <div class="avatar-card" id="avatarCard">
-        
-        <!-- АВАТАР КАМИЛЛЫ (ЖЕНСКИЙ - ПРЕМИУМ FLAT DESIGN) -->
-        <svg id="avatarCamille" viewBox="0 0 200 200" width="100%" height="100%">
-          <defs>
-            <radialGradient id="skinCamille" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#ffe4d6"/>
-              <stop offset="100%" stop-color="#f2c8b1"/>
-            </radialGradient>
-            <linearGradient id="hairCamille" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#4a2e1b"/>
-              <stop offset="100%" stop-color="#2a160a"/>
-            </linearGradient>
-            <filter id="shadowC">
-              <feDropShadow dx="0" dy="6" stdDeviation="4" flood-opacity="0.2"/>
-            </filter>
-          </defs>
-          
-          <!-- Волосы (фон) -->
-          <path d="M 40 80 C 10 120, 30 220, 60 220 L 140 220 C 170 220, 190 120, 160 80 Z" fill="url(#hairCamille)"/>
-          
-          <!-- Плечи и одежда -->
-          <path d="M 30 200 C 40 160, 70 145, 100 145 C 130 145, 160 160, 170 200 Z" fill="#0284c7"/>
-          <path d="M 75 145 L 100 175 L 125 145 Z" fill="#e0f2fe"/>
-          
-          <!-- Шея -->
-          <rect x="85" y="120" width="30" height="40" rx="10" fill="#f2c8b1" />
-          
-          <!-- Лицо -->
-          <ellipse cx="100" cy="95" rx="42" ry="52" fill="url(#skinCamille)" filter="url(#shadowC)"/>
-          
-          <!-- Очки (придают реалистичный стиль и скрывают недочеты глаз) -->
-          <path d="M 52 85 C 52 75, 92 75, 92 85 C 92 95, 52 95, 52 85 Z" fill="#1e293b" fill-opacity="0.1" stroke="#0f172a" stroke-width="4"/>
-          <path d="M 108 85 C 108 75, 148 75, 148 85 C 148 95, 108 95, 108 85 Z" fill="#1e293b" fill-opacity="0.1" stroke="#0f172a" stroke-width="4"/>
-          <path d="M 92 85 L 108 85" stroke="#0f172a" stroke-width="4"/>
-          
-          <!-- Глаза (статичные) -->
-          <circle cx="72" cy="85" r="4" fill="#0f172a"/>
-          <circle cx="128" cy="85" r="4" fill="#0f172a"/>
-          
-          <!-- Нос -->
-          <path d="M 100 95 L 98 108 Q 100 110 102 108" fill="none" stroke="#d4a38c" stroke-width="2.5" stroke-linecap="round"/>
-          
-          <!-- Губы (статичная легкая улыбка) -->
-          <path d="M 88 122 Q 100 128 112 122 Q 100 132 88 122 Z" fill="#e11d48"/>
-          
-          <!-- Волосы (челка) -->
-          <path d="M 100 40 C 50 40, 50 75, 50 100 C 50 70, 75 50, 100 50 C 125 50, 150 70, 150 100 C 150 75, 150 40, 100 40 Z" fill="url(#hairCamille)"/>
-        </svg>
-
-        <!-- АВАТАР ЛОРАНА (МУЖСКОЙ - ПРЕМИУМ FLAT DESIGN) -->
-        <svg id="avatarLaurent" viewBox="0 0 200 200" width="100%" height="100%" style="display: none;">
-          <defs>
-            <radialGradient id="skinLaurent" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#fae3d1"/>
-              <stop offset="100%" stop-color="#dfa47b"/>
-            </radialGradient>
-            <linearGradient id="hairLaurent" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#1e293b"/>
-              <stop offset="100%" stop-color="#0f172a"/>
-            </linearGradient>
-            <filter id="shadowL">
-              <feDropShadow dx="0" dy="6" stdDeviation="4" flood-opacity="0.2"/>
-            </filter>
-          </defs>
-          
-          <!-- Плечи и строгий костюм -->
-          <path d="M 25 200 C 35 155, 65 145, 100 145 C 135 145, 165 155, 175 200 Z" fill="#0f172a"/>
-          <path d="M 75 145 L 100 180 L 125 145 Z" fill="#f8fafc"/>
-          <path d="M 95 160 L 105 160 L 100 200 Z" fill="#3b82f6"/>
-          
-          <!-- Шея -->
-          <rect x="83" y="115" width="34" height="40" rx="6" fill="#dfa47b" />
-          
-          <!-- Лицо -->
-          <path d="M 58 90 C 58 50, 142 50, 142 90 C 142 125, 125 145, 100 148 C 75 145, 58 125, 58 90 Z" fill="url(#skinLaurent)" filter="url(#shadowL)"/>
-          
-          <!-- Легкая щетина -->
-          <path d="M 72 110 Q 100 135 128 110 Q 100 145 72 110 Z" fill="#334155" opacity="0.15"/>
-          
-          <!-- Брови -->
-          <path d="M 68 75 Q 78 72 88 75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-          <path d="M 112 75 Q 122 72 132 75" fill="none" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-          
-          <!-- Глаза -->
-          <circle cx="78" cy="88" r="4.5" fill="#1e293b"/>
-          <circle cx="122" cy="88" r="4.5" fill="#1e293b"/>
-          
-          <!-- Нос -->
-          <path d="M 100 90 L 98 108 Q 100 112 104 108" fill="none" stroke="#be8460" stroke-width="2.5" stroke-linecap="round"/>
-          
-          <!-- Рот (статичный, закрытый) -->
-          <path d="M 85 125 Q 100 128 115 125" fill="none" stroke="#8a5342" stroke-width="2.5" stroke-linecap="round"/>
-          
-          <!-- Аккуратная мужская стрижка -->
-          <path d="M 55 80 C 50 40, 150 40, 145 80 C 135 55, 115 50, 100 52 C 85 50, 65 55, 55 80 Z" fill="url(#hairLaurent)"/>
-        </svg>
-
+        <!-- Фотография достопримечательности (Париж / Барселона / Лондон) -->
+        <img id="landmarkImage" src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=600&q=80" alt="Landmark">
       </div>
     </div>
     
     <div class="status-text" id="statusText">Нажмите «Начать урок» для старта</div>
   </main>
-
   <footer>
     <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал, жду ответ ➔</button>
     <button class="btn-main btn-start" id="btnAction">Начать урок</button>
