@@ -14,7 +14,7 @@
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
                  img-src 'self' https://images.unsplash.com data:; 
                  media-src 'self' blob:;">
-  <title>AI Language Tutor v3.8.1</title>
+  <title>AI Language Tutor v3.9.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     
@@ -236,7 +236,10 @@
 
   <div class="modal" id="modalSettings">
     <div class="modal-content">
-      <h3 style="margin-bottom: 2px; text-align: left;">Настройки</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <h3 style="margin: 0; text-align: left;">Настройки</h3>
+        <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">v3.9.0</span>
+      </div>
       
       <label>Google AI Studio API Key:</label>
       <input type="password" id="inputApiKey" placeholder="AIzaSy..." 
@@ -284,6 +287,7 @@
       <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
       <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
+      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;">AI Tutor v3.9.0 • Cumulative Memory Engine</div>
     </div>
   </div>
 
@@ -404,7 +408,7 @@
     };
 
     btnResetCurrentLang.onclick = () => {
-      if (!confirm("Сбросить память и историю для текущего языка?")) return;
+      if (!confirm("Сбросить накопительную память и историю для текущего языка?")) return;
       localStorage.removeItem(`memory_${targetLanguage}`); 
       langMemory = '';
       updateUI(); 
@@ -425,7 +429,7 @@
       alert('Вся память профиля полностью сброшена.');
     };
 
-    // --- СИСТЕМНЫЙ ПРОМПТ С СОХРАНЕНИЕМ ВСЕХ БЛОКОВ И ЗАЩИТОЙ ТЕМПА УРОКА ---
+    // --- СИСТЕМНЫЙ ПРОМПТ С НАКОПИТЕЛЬНОЙ ПАМЯТЬЮ И ТОЧЕЧНОЙ ХИРУРГИЕЙ ---
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -439,7 +443,7 @@
 
 СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ (НЕ ОЗВУЧИВАЙ ЭТО, ИСПОЛЬЗУЙ ДЛЯ ДИАЛОГА):
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMemory || 'Пока ничего неизвестно.'}
-[ПРОГРЕСС И ОШИБКИ В ЯЗЫКЕ]: ${langMemory || 'Чистый лист.'}
+[НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА (НЕ СТИРАТЬ, ИСПОЛЬЗОВАТЬ ДЛЯ ИНТЕРВАЛЬНОГО ПОВТОРЕНИЯ)]: ${langMemory || 'Чистый лист (урок 1).'}
 
 ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
 Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
@@ -461,7 +465,7 @@
 2. Объясни, в чем ошибка, и четко произнеси правильный вариант ${langAdverb}.
 3. Попроси ученика повторить именно это слово/фразу командой «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой же реплике хвалить ученика («молодец», «отлично») или продолжать речь! Твоя реплика ОБЯЗАНА закончиться словом «Повтори», после чего ты обязана молчать и ждать ответа ученика в следующем ходе.
 4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни, как нужно правильно произносить, и попроси повторить еще раз.
-5. Если после 5 попыток не получается произнести идеально, мягко скажи, что результат пока не идеален, и вы повторите это в следующий раз.
+5. Если после 5 попыток не получается произнести идеально, мягко скажи, что результат пока не идеален, и вы повторите это в следующий раз (обязательно внеси это слово в [БАНК ОШИБОК] для будущих уроков).
 
 ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
 
@@ -472,9 +476,13 @@
 1. ПЕРВЫЙ УРОК: Тепло поздоровайся ${langAdverb}. Уточни имя и уровень.
 2. ПОВТОРНЫЕ УРОКИ:
 - Приветствие и Small Talk: Радостно поздоровайся по имени (из Памяти). Начни с 1-2 непринужденных реплик ${langAdverb} (дела, настроение, семья, питомец из Памяти) БЕЗ перевода на русский/украинский и БЕЗ внезапных проверок в лоб! Дождись ответа ученика.
-- ПРОВЕРКА ПРОШЛОГО УРОКА: Только ПОСЛЕ завершения приветственного small talk плавно переходи к повторению: задай 2 контрольных вопроса по ПРОШЛОЙ теме (из блока ПРОГРЕСС) строго по двусторонней методике. Дождись ответа.
-- План: Выслушав ответ, предложи 2 варианта новой темы сегодняшнего урока (избегая повторов).
-3. ЗАВЕРШЕНИЕ УРОКА (ТЕСТ): Пункт завершения урока наступает ТОЛЬКО когда время урока подходит к концу (менее 2 минут) по системной подсказке. ПЕРЕД ТЕМ как попрощаться, ОБЯЗАТЕЛЬНО задай 2 контрольных вопроса по материалу, который вы обсудили СЕГОДНЯ. Только после ответа ученика прощайся.`;
+- ПРОВЕРКА ЗНАНИЙ И ИНТЕРВАЛЬНОЕ ПОВТОРЕНИЕ: После small talk задай 2 контрольных вопроса строго по двусторонней методике: 1 вопрос по прошлому уроку И 1 вопрос обязательно вытяни из [БАНКА ОШИБОК И СЛОЖНЫХ СЛОВ] (из позапрошлых занятий или неисправленных ранее ошибок)! Дождись ответа.
+- ВЫБОР ТЕМЫ (ДИАЛОГ С УЧЕНИКОМ): Напомни тему, согласованную в прошлый раз, предложи её или обязательно спроси: «Либо, может быть, у тебя есть своя тема на сегодня?». Дай ученику возможность предложить свою тему!
+3. ЗАВЕРШЕНИЕ УРОКА (ИТОГ И МОСТИК НА БУДУЩЕЕ): Наступает ТОЛЬКО при системной подсказке о финале времени (менее 2 мин). Действуй строго по шагам:
+1) Задай 2 контрольных вопроса по сегодняшнему материалу двусторонней методикой.
+2) Подведи короткий итог (что удалось освоить, а что занесем в банк повторения).
+3) Спроси пожелание ученика: «Какую тему разберем в следующий раз? Или мне подготовить план?», зафиксируй тему на будущее.
+4) Только после этого тепло, спокойно и до конца договори фразу прощания на изучаемом языке (${langAdverb}) БЕЗ внезапных обрывов!`;
 
       let settingLanguageDirective = '';
       if (nativeLang === 'ru') {
@@ -490,7 +498,8 @@ ${settingLanguageDirective}
 ОБЪЕМ УРОКА — 15 ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
 1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз и слов (3 блока по 5 фраз)!
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить фразы вроде «это последнее слово», «на этом всё», «заканчиваем», пока не пройдены все 15 фраз или пока не поступит системная подсказка о финале времени!
-3. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные 15 минут!
+3. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО давать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] под видом нового материала! Если слово уже есть в памяти — ученик его знает, изучай НОВЫЕ выражения.
+4. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные 15 минут!
 
 ДВУСТОРОННЯЯ МЕТОДИКА КОНТРОЛЬНЫХ ВОПРОСОВ (ПРОВЕРКА БЕЗ ПОДСКАЗОК):
 Категорически запрещено просто называть слово на иностранном языке и просить его повторить — это подсказка, а не проверка!
@@ -690,7 +699,7 @@ ${settingLanguageDirective}
       biquadFilter.connect(audioWorkletNode);
     }
 
-    btnAction.onclick = () => { isSessionActive ? stopSession() : startSession(); };
+    btnAction.onclick = () => { isSessionActive ? stopSession(true) : startSession(); };
 
     btnEndTurn.onclick = () => {
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory) {
@@ -705,8 +714,8 @@ ${settingLanguageDirective}
           
         if (isTimeWarningPending) {
           promptText += nativeLang === 'uk'
-            ? " [СИСТЕМНА ПІДКАЗКА: ЧАС УРОКУ ДОБІГАЄ КІНЦЯ (менше 2 хв). Проведи фінальну двосторонню перевірку 2 слів і підведи підсумки!]"
-            : " [СИСТЕМНАЯ ПОДСКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (меньше 2 мин). Проведи финальную двустороннюю проверку 2 слов и подводи итоги!]";
+            ? " [СИСТЕМНА ПІДКАЗКА: ЧАС УРОКУ ДОБІГАЄ КІНЦЯ (менше 2 хв). Проведи фінальну двосторонню перевірку 2 слів, підведи підсумки, узгодь тему на наступний урок і тепло попрощайся без обривів!]"
+            : " [СИСТЕМНАЯ ПОДСКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (меньше 2 мин). Проведи финальную двустороннюю проверку 2 слов, подведи итоги, согласуй тему на следующий урок и тепло попрощайся без обрывов!]";
           isTimeWarningPending = false;
         }
 
@@ -769,8 +778,8 @@ ${settingLanguageDirective}
 
         if (lessonSecondsRemaining <= 0) {
           clearInterval(lessonTimerInterval);
-          statusText.innerText = "Время урока истекло. Сохранение...";
-          stopSession();
+          statusText.innerText = "Время урока истекло. Завершение...";
+          stopSession(false);
         }
       }, 1000);
     }
@@ -829,12 +838,12 @@ ${settingLanguageDirective}
             tools: [{ 
               functionDeclarations: [{ 
                 name: "saveStudentProfile", 
-                description: "Сохранить профиль ученика. ВНИМАНИЕ: Вызывать ТОЛЬКО по системной команде завершения урока в самом конце! Во время урока вызов СТРОГО ЗАПРЕЩЕН.", 
+                description: "Сохранить профиль ученика в постоянную накопительную память. ВНИМАНИЕ: Вызывать ТОЛЬКО по системной команде завершения урока в самом конце! Во время урока вызов СТРОГО ЗАПРЕЩЕН.", 
                 parameters: { 
                   type: "OBJECT", 
                   properties: { 
                     global_memory: { type: "STRING", description: "Факты об ученике (имя, семья, профессия, хобби)." }, 
-                    lang_memory: { type: "STRING", description: "Прогресс: темы, ошибки, новые слова, предпочтения." } 
+                    lang_memory: { type: "STRING", description: "Накопительный архив: [ЖУРНАЛ УРОКОВ], [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], [БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ], [ПЛАН НА СЛЕДУЮЩИЙ УРОК]." } 
                   }, 
                   required: ["global_memory", "lang_memory"] 
                 } 
@@ -858,19 +867,19 @@ ${settingLanguageDirective}
            startLessonTimer();
 
            let helloWord = targetLanguage === 'french' ? 'Bonjour' : (targetLanguage === 'english' ? 'Hello' : '¡Hola');
-           const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.';
+           const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.' && langMemory !== 'Чистый лист (урок 1).';
            
            let startPrompt = '';
            if (nativeLang === 'ru') {
              startPrompt = !hasCurrentLangMemory 
                ? `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')} и спроси имя и уровень БЕЗ перевода на русский. Замолчи!]`
-               : `${helloWord}! [ИНСТРУКЦИЯ: Радостно поздоровайся по имени ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')}, начни дружеский small talk ТОЛЬКО на изучаемом языке БЕЗ перевода и БЕЗ внезапных тестов в лоб. Рассчитывай на большой урок из 15 фраз! Замолчи!]`;
+               : `${helloWord}! [ИНСТРУКЦИЯ: Радостно поздоровайся по имени. Проведи теплый small talk ТОЛЬКО на изучаемом языке БЕЗ перевода и БЕЗ тестов. Затем проведи двустороннюю проверку слов (1 слово с прошлого урока и 1 слово из БАНКА ОШИБОК). Затем напомни согласованную тему или спроси тему ученика. Рассчитывай на большой урок из 15 фраз! Замолчи!]`;
            } else if (nativeLang === 'uk') {
              startPrompt = !hasCurrentLangMemory 
                ? `${helloWord}! [ІНСТРУКЦІЯ: Привітайся мовою вивчення і запитай ім'я та рівень БЕЗ перекладу. Замовкни!]`
-               : `${helloWord}! [ІНСТРУКЦІЯ: Привітайся на ім'я мовою вивчення, почни дружній small talk ТІЛЬКИ мовою вивчення БЕЗ перекладу та БЕЗ раптових тестів у лоб. Розраховуй на великий урок із 15 фраз! Замовкни!]`;
+               : `${helloWord}! [ІНСТРУКЦІЯ: Привітайся на ім'я. Проведи теплий small talk ТІЛЬКИ мовою вивчення БЕЗ перекладу та БЕЗ тестів. Потім проведи двосторонню перевірку слів (1 слово з минулого уроку та 1 слово з БАНКУ ПОМИЛОК). Потім нагадай узгоджену тему або запитай тему учня. Розраховуй на великий урок із 15 фраз! Замовкни!]`;
            } else {
-             startPrompt = `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся на изучаемом языке и начни дружеский small talk. Урок рассчитан на 15 фраз!]`;
+             startPrompt = `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся, проведи small talk, проверь слово из прошлого урока и слово из банка ошибок, предложи тему или спроси тему ученика. Урок на 15 фраз!]`;
            }
            
            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: startPrompt }] }], turnComplete: true } }));
@@ -908,7 +917,7 @@ ${settingLanguageDirective}
 
           if (isExtractingMemory && memorySavedSuccessfully) {
             clearTimeout(stopSessionTimeoutId);
-            setTimeout(() => finalizeStop("Урок и прогресс сохранены."), 300);
+            setTimeout(() => finalizeStop("Урок и накопительный прогресс сохранены."), 300);
             return;
           }
         }
@@ -916,7 +925,7 @@ ${settingLanguageDirective}
         if (isExtractingMemory && responseData.serverContent?.turnComplete) {
           if (memorySavedSuccessfully) {
             clearTimeout(stopSessionTimeoutId);
-            setTimeout(() => finalizeStop("Урок и прогресс сохранены."), 300);
+            setTimeout(() => finalizeStop("Урок и накопительный прогресс сохранены."), 300);
             return;
           }
         }
@@ -967,42 +976,67 @@ ${settingLanguageDirective}
       socket.onclose = (e) => { 
         console.warn("WebSocket close code:", e.code, e.reason);
         if (isSessionActive) {
-          const msg = lessonSecondsRemaining <= 10 ? "Урок и прогресс сохранены." : "Связь с сервером завершена. Данные сохранены.";
+          const msg = lessonSecondsRemaining <= 10 ? "Урок и накопительный прогресс сохранены." : "Связь с сервером завершена. Данные сохранены.";
           finalizeStop(msg);
         }
       };
     }
 
-    function stopSession() {
+    // Мягкое завершение: даем договорить текущую фразу перед сохранением
+    function stopSession(forceImmediate = false) {
       if (!isSessionActive) return;
       isExtractingMemory = true;
       stopLessonTimer();
-      stopBotSpeech(); 
       btnAction.disabled = true; 
       btnEndTurn.style.display = "none";
       btnInterrupt.style.display = "none";
-      statusText.innerText = "Сохранение прогресса...";
 
-      if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
-        const langDirective = nativeLang === 'ru' ? 'Записи сделай на РУССКОМ языке.' : (nativeLang === 'uk' ? 'Записи зроби УКРАЇНСЬКОЮ мовою.' : '');
-        const memoryPrompt = `[СИСТЕМНАЯ ДИРЕКТИВА: Урок завершен. Немедленно вызови saveStudentProfile и передай обновленные факты, предпочтения ученика, разобранные фразы и ошибки. ${langDirective}
-СТАРАЯ БАЗА: ${globalMemory || 'пусто'}
-СТАРЫЙ ПРОГРЕСС: ${langMemory || 'пусто'}
-Объедини данные и вызови функцию. Голосом ничего не говори!]`;
-        
-        socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: memoryPrompt }] }], turnComplete: true } }));
-        
-        clearTimeout(stopSessionTimeoutId);
-        stopSessionTimeoutId = setTimeout(() => {
-          finalizeStop("Урок и прогресс сохранены.");
-        }, 5500);
+      const proceedToSave = () => {
+        statusText.innerText = "Сохранение накопительной памяти...";
+        if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
+          const langDirective = nativeLang === 'ru' ? 'Записи сделай на РУССКОМ языке.' : (nativeLang === 'uk' ? 'Записи зроби УКРАЇНСЬКОЮ мовою.' : '');
+          const memoryPrompt = `[СИСТЕМНАЯ ДИРЕКТИВА: Урок завершен. Немедленно вызови функцию saveStudentProfile.
+ВНИМАНИЕ: Твоя память — это НАКОПИТЕЛЬНЫЙ АРХИВ (CUMULATIVE). КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО СТИРАТЬ или сокращать старые уроки и слова!
+ОБЯЗАТЕЛЬНО ОБЪЕДИНИ старые данные с новыми по структуре:
+1. [ЖУРНАЛ УРОКОВ]: список всех тем всех прошедших уроков (добавь сегодняшний урок с темой).
+2. [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ]: полный список всех слов за все уроки (добавь сегодняшние новые слова).
+3. [БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ]: слова/фразы/звуки, в которых ученик сегодня ошибся или которые не поддались за 5 попыток + сохрани неисправленные старые ошибки. Если старая ошибка сегодня была исправлена без запинки — отметь её как исправленную.
+4. [СОГЛАСОВАННАЯ ТЕМА СЛЕДУЮЩЕГО УРОКА]: тема, которую вы договорились разобрать в следующий раз.
+${langDirective}
+СТАРАЯ БАЗА О ЖИЗНИ: ${globalMemory || 'пусто'}
+СТАРАЯ НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА: ${langMemory || 'пусто'}
+Вызови saveStudentProfile с полным объединенным архивом. Голосом ничего не говори!]`;
+          
+          socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: memoryPrompt }] }], turnComplete: true } }));
+          
+          clearTimeout(stopSessionTimeoutId);
+          stopSessionTimeoutId = setTimeout(() => {
+            finalizeStop("Урок и накопительный прогресс сохранены.");
+          }, 6500);
+        } else {
+          finalizeStop("Урок завершен.");
+        }
+      };
+
+      if (!forceImmediate && (activeAudioSources.length > 0 || isBotSpeaking)) {
+        statusText.innerText = "Репетитор договаривает...";
+        const waitAudio = setInterval(() => {
+          if (activeAudioSources.length === 0 && !isBotSpeaking) {
+            clearInterval(waitAudio);
+            proceedToSave();
+          }
+        }, 150);
+        setTimeout(() => {
+          clearInterval(waitAudio);
+          proceedToSave();
+        }, 5000);
       } else {
-        finalizeStop("Урок завершен.");
+        stopBotSpeech();
+        proceedToSave();
       }
     }
 
-    // Мягкое завершение с воспроизведением уже полученного звука
-    function finalizeStop(finalMessage = "Урок и прогресс сохранены.") {
+    function finalizeStop(finalMessage = "Урок и накопительный прогресс сохранены.") {
       clearTimeout(stopSessionTimeoutId);
       stopSessionTimeoutId = null;
       stopLessonTimer();
