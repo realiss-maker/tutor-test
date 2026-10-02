@@ -14,7 +14,7 @@
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
                  img-src 'self' https://images.unsplash.com data:; 
                  media-src 'self' blob:;">
-  <title>AI Language Tutor v3.10.0</title>
+  <title>AI Language Tutor v3.11.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     
@@ -238,7 +238,7 @@
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
         <h3 style="margin: 0; text-align: left;">Настройки</h3>
-        <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">v3.10.0</span>
+        <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">v3.11.0</span>
       </div>
       
       <label>Google AI Studio API Key:</label>
@@ -269,12 +269,23 @@
         </div>
       </div>
 
-      <label>Язык общения и объяснений:</label>
-      <select id="selectNativeLang">
-        <option value="ru">Русский (все объяснения строго по-русски)</option>
-        <option value="uk">Українська (усі пояснення строго українською)</option>
-        <option value="auto">Автоопределение (по живому голосу)</option>
-      </select>
+      <div style="display: flex; gap: 10px;">
+        <div style="flex: 1;">
+          <label>Пол ученика (обращение):</label>
+          <select id="selectStudentGender">
+            <option value="male">Мужской («ты сказал, повторил»)</option>
+            <option value="female">Женский («ты сказала, повторила»)</option>
+          </select>
+        </div>
+        <div style="flex: 1;">
+          <label>Язык объяснений:</label>
+          <select id="selectNativeLang">
+            <option value="ru">Русский</option>
+            <option value="uk">Українська</option>
+            <option value="auto">Автоопределение</option>
+          </select>
+        </div>
+      </div>
 
       <label>Аудио-режим:</label>
       <select id="selectAudioMode">
@@ -287,7 +298,7 @@
       <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
       <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
-      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;">AI Tutor v3.10.0 • Turn-taking & Pacing Engine</div>
+      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;">AI Tutor v3.11.0 • Gender-aware & Natural Cadence Engine</div>
     </div>
   </div>
 
@@ -298,6 +309,7 @@
     let apiKey = getStoredApiKey();
     let storageMode = localStorage.getItem('api_storage_mode') || 'local';
     let teacherGender = localStorage.getItem('teacher_gender') || 'female';
+    let studentGender = localStorage.getItem('student_gender') || 'male';
     let targetLanguage = localStorage.getItem('target_language') || 'french';
     let nativeLang = localStorage.getItem('native_lang') || 'ru';
     let audioMode = localStorage.getItem('audio_mode') || 'auto';
@@ -323,6 +335,7 @@
     const inputApiKey = document.getElementById('inputApiKey');
     const selectStorageMode = document.getElementById('selectStorageMode');
     const selectTeacher = document.getElementById('selectTeacher');
+    const selectStudentGender = document.getElementById('selectStudentGender');
     const selectLanguage = document.getElementById('selectLanguage');
     const selectNativeLang = document.getElementById('selectNativeLang');
     const selectAudioMode = document.getElementById('selectAudioMode');
@@ -372,7 +385,8 @@
     btnSettings.onclick = () => { 
       inputApiKey.value = apiKey; 
       selectStorageMode.value = storageMode;
-      selectTeacher.value = teacherGender; 
+      selectTeacher.value = teacherGender;
+      selectStudentGender.value = studentGender;
       selectLanguage.value = targetLanguage;
       selectNativeLang.value = nativeLang;
       selectAudioMode.value = audioMode;
@@ -383,7 +397,8 @@
     btnSaveKey.onclick = () => {
       apiKey = inputApiKey.value.trim(); 
       storageMode = selectStorageMode.value;
-      teacherGender = selectTeacher.value; 
+      teacherGender = selectTeacher.value;
+      studentGender = selectStudentGender.value;
       targetLanguage = selectLanguage.value;
       nativeLang = selectNativeLang.value;
       audioMode = selectAudioMode.value;
@@ -397,7 +412,8 @@
         localStorage.removeItem('gemini_api_key');
       }
 
-      localStorage.setItem('teacher_gender', teacherGender); 
+      localStorage.setItem('teacher_gender', teacherGender);
+      localStorage.setItem('student_gender', studentGender);
       localStorage.setItem('target_language', targetLanguage);
       localStorage.setItem('native_lang', nativeLang);
       localStorage.setItem('audio_mode', audioMode);
@@ -429,7 +445,7 @@
       alert('Вся память профиля полностью сброшена.');
     };
 
-    // --- СИСТЕМНЫЙ ПРОМПТ С СТРОГИМ ПОШАГОВЫМ ДИАЛОГОМ И ПАУЗАМИ В 2 СЕКУНДЫ ---
+    // --- СИСТЕМНЫЙ ПРОМПТ С ЖЕСТКИМ ПОЛОМ УЧЕНИКА И ЕСТЕСТВЕННЫМ ТЕМПОМ ---
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -438,8 +454,14 @@
       if (targetLanguage === 'english') { langName = 'английского'; langAdverb = 'по-английски'; }
       if (targetLanguage === 'spanish') { langName = 'испанского'; langAdverb = 'по-испански'; }
 
+      const studentGenderDirective = studentGender === 'female' 
+        ? `ПОЛ УЧЕНИКА (ГРАММАТИЧЕСКИЙ РОД): Ученик — ЖЕНЩИНА. Обращайся к ней СТРОГО в ЖЕНСКОМ роде («ты сказала», «ты повторила», «ты готова», «молодец, справилась»).`
+        : `ПОЛ УЧЕНИКА (ГРАММАТИЧЕСКИЙ РОД): Ученик — МУЖЧИНА. Обращайся к нему СТРОГО в МУЖСКОМ роде («ты сказал», «ты повторил», «ты готов», «молодец, справился»). КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО обращаться в женском роде («повторила», «сказала», «справилась»)! Во всех репликах на русском, украинском и изучаемом языке согласуй формы глаголов и прилагательных строго с МУЖСКИМ родом ученика.`;
+
       const originalPrompt = `Ты — ${tName}, ${tRole} ${langName} языка. Твой голос — ${teacherGender === 'male' ? 'приятный мужской' : 'мягкий женский'}.
 Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель. Веди диалог плавно, реплика за репликой. НЕ задавай несколько вопросов подряд.
+
+${studentGenderDirective}
 
 СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ (НЕ ОЗВУЧИВАЙ ЭТО, ИСПОЛЬЗУЙ ДЛЯ ДИАЛОГА):
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMemory || 'Пока ничего неизвестно.'}
@@ -448,11 +470,11 @@
 ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
 Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
 
-ГЛАВНЫЙ АЛГОРИТМ ИЗУЧЕНИЯ ФРАЗ (АВТОРСКАЯ МЕТОДИКА — СТРОГИЙ ПОРЯДОК И ПАУЗЫ):
+ГЛАВНЫЙ АЛГОРИТМ ИЗУЧЕНИЯ ФРАЗ (АВТОРСКАЯ МЕТОДИКА — СТРОГИЙ ПОРЯДОК И ТЕМП):
 Когда ты знакомишь ученика с новой фразой или словом, ты ОБЯЗАН следовать строгому трехшаговому алгоритму:
 1. СНАЧАЛА скажи смысл фразы на РОДНОМ языке ученика (на русском/украинском). Чтобы ученик сразу понял контекст.
    Пример: «Давай разучим полезную фразу: "Я хотел бы выпить кофе"».
-2. ЗАТЕМ произнеси эту фразу на изучаемом языке (${langAdverb}) РОВНО ДВА РАЗА: медленно, четко, с ОБЯЗАТЕЛЬНОЙ ФИЗИЧЕСКОЙ ПАУЗОЙ В 2 СЕКУНДЫ ПОЛНОГО МОЛЧАНИЯ между первым и вторым повтором (не сливай их в одну скороговорку, дай слуху ученика зафиксировать звучание!). Запрещено произносить слово «пауза» вслух — сделай реальную тишину в 2 секунды между фразами.
+2. ЗАТЕМ произнеси эту фразу на изучаемом языке (${langAdverb}) РОВНО ДВА РАЗА: медленно, четко. Между первым и вторым повтором просто сделай вдох молчания и выдержи естественную тишину (не части и не склеивай слова в скороговорку). Ни в коем случае не произноси вслух служебные слова или подсказки!
 3. В САМОМ КОНЦЕ скажи ученику: «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ!
 КАТЕГОРИЧЕСКИЙ ЗАПРЕТ: Никогда не ставь перевод на русский язык в конец реплики перед повтором ученика! Последним звуком в ушах ученика должна звучать только речь ${langAdverb}!
 
@@ -479,8 +501,8 @@
 1. ПЕРВЫЙ УРОК (если профиль пуст): Тепло поздоровайся ${langAdverb}. Уточни имя и уровень. Замолчи.
 2. ПОВТОРНЫЕ УРОКИ:
 - ХОД 1 (ТОЛЬКО ПРИВЕТСТВИЕ И SMALL TALK): Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН дружеский вопрос о делах/настроении ${langAdverb} БЕЗ перевода на русский/украинский. И СРАЗУ ЗАМОЛКНИ! Никаких проверок слов и тем уроков в этой реплике! Жди ответа!
-- ХОД 2 (АНАЛИЗ ОТВЕТА + СИГНАЛ ПЕРЕХОДА К ПОВТОРЕНИЮ + ВОПРОС 1): Внимательно выслушай, что ответил ученик. Живо и тепло отреагируй на его слова ${langAdverb} (например: «Здорово, я рада!», «Отлично!»). ЗАТЕМ дай явный сигнал-мостик перехода на родном языке ученика: «Отлично! Перед новой темой давай разомнемся и вспомним пару слов с прошлого занятия». Сделай секундную паузу и задай ВОПРОС 1 (слово из прошлого урока) строго по методике проверки. И СРАЗУ ЗАМОЛКНИ!
-- ХОД 3 (АНАЛИЗ ОТВЕТА 1 + ВОПРОС 2): Проанализируй ответ ученика. Похвали или поправь. ЗАТЕМ задай ВОПРОС 2 (слово обязательно из [БАНКА ОШИБОК И ЗАКРЕПЛЕНИЯ] в обратном направлении проверки). И СРАЗУ ЗАМОЛКНИ!
+- ХОД 2 (АНАЛИЗ ОТВЕТА + СИГНАЛ ПЕРЕХОДА К ПОВТОРЕНИЮ + ВОПРОС 1): Внимательно выслушай, что ответил ученик. Живо и тепло отреагируй на его слова ${langAdverb} (например: «Здорово, я рада!», «Отлично!»). ЗАТЕМ дай явный сигнал-мостик перехода на родном языке ученика: «Отлично! Перед новой темой давай разомнемся и вспомним пару слов с прошлого занятия». Выдержи небольшую тишину и задай ВОПРОС 1 (слово из прошлого урока) строго по методике проверки. И СРАЗУ ЗАМОЛКНИ!
+- ХОД 3 (АНАЛИЗ ОТВЕТА 1 + ВОПРОС 2): Проанализируй ответ ученика. Похвали или поправь (помня, что ученик — ${studentGender === 'female' ? 'женщина' : 'мужчина'}). ЗАТЕМ задай ВОПРОС 2 (слово обязательно из [БАНКА ОШИБОК И ЗАКРЕПЛЕНИЯ] в обратном направлении проверки). И СРАЗУ ЗАМОЛКНИ!
 - ХОД 4 (АНАЛИЗ ОТВЕТА 2 + МОСТИК К ТЕМЕ УРОКА): Оцени ответ. Сделай переход к теме: напомни тему, которую намечали ранее, или обязательно спроси ученика: «Или, может быть, у тебя есть свое пожелание, какую тему разберем сегодня?». Дождись выбора темы учеником!
 3. ЗАВЕРШЕНИЕ УРОКА (ИТОГ И МОСТИК НА БУДУЩЕЕ): Наступает ТОЛЬКО при системной подсказке о финале времени (менее 2 мин). Действуй строго по шагам:
 1) Задай 2 контрольных вопроса по сегодняшнему материалу двусторонней методикой.
@@ -517,8 +539,8 @@ ${settingLanguageDirective}
 КРЕАТИВНОСТЬ И ЗАПРЕТ НА «КОФЕЙНЫЙ КРУГ»:
 Запрещено зацикливаться на заказе кофе! Чередуй темы связными мини-курсами по несколько уроков: транспорт, покупка билетов, отель, аренда авто, врач, покупки, спорт, погода, а также системную грамматику (артикли, времена глаголов, множественное число).
 
-КАТЕГОРИЧЕСКИЙ ЗАПРЕТ НА ОЗВУЧИВАНИЕ РЕМАРОК:
-Никогда не произноси вслух слова «пауза», «тишина», «секунд», «перевод», текст в скобках или правила. Твоя речь — это исключительно живые слова диалога.`;
+КАТЕГОРИЧЕСКИЙ ЗАПРЕТ НА ОЗВУЧИВАНИЕ РЕМАРОК И МЕТА-СЛОВ:
+Категорически запрещено произносить вслух слова «пауза», «одна-две секунды», «секунд», «тишина», «повтор», «перевод», знаки препинания, кавычки или цитировать служебные инструкции! Если требуется выдержать паузу — просто физически молчи. Твоя речь — это исключительно живые слова диалога.`;
 
       return originalPrompt + additions;
     }
@@ -712,9 +734,12 @@ ${settingLanguageDirective}
         statusText.innerText = "Репетитор слушает и думает...";
 
         const minutesLeft = Math.ceil(lessonSecondsRemaining / 60);
+        const genderNoteUk = studentGender === 'female' ? "Звертайся у ЖІНОЧОМУ роді (ти сказала, повторила)." : "Звертайся у ЧОЛОВІЧОМУ роді (ти сказав, повторив).";
+        const genderNoteRu = studentGender === 'female' ? "Обращайся в ЖЕНСКОМ роде (ты сказала, повторила)." : "Обращайся в МУЖСКОМ роде (ты сказал, повторил).";
+
         let promptText = nativeLang === 'uk' 
-          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! НЕ задавай кілька питань одразу! Якщо пояснюєш нову фразу — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з ПАУЗОЮ 2 СЕКУНДИ між ними, 3) Команда «Повтори» і тиша!]`
-          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет. ВНИМАНИЕ: Оцени и проанализируй мою реплику! НЕ задавай несколько вопросов сразу! Если даешь новую фразу — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке с ПАУЗОЙ 2 СЕКУНДЫ между ними, 3) Команда «Повтори» и тишина!]`;
+          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! ${genderNoteUk} Якщо пояснюєш нову фразу — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з тишею між ними, 3) Команда «Повтори» і мовчання! НЕ вимовляй слово «пауза»!]`
+          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет. ВНИМАНИЕ: Оцени и проанализируй мою реплику! ${genderNoteRu} Если даешь новую фразу — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке с тишиной между ними, 3) Команда «Повтори» и молчание! НЕ произноси слово «пауза»!]`;
           
         if (isTimeWarningPending) {
           promptText += nativeLang === 'uk'
@@ -872,16 +897,18 @@ ${settingLanguageDirective}
 
            let helloWord = targetLanguage === 'french' ? 'Bonjour' : (targetLanguage === 'english' ? 'Hello' : '¡Hola');
            const hasCurrentLangMemory = langMemory && langMemory.trim() !== '' && langMemory !== 'Чистый лист.' && langMemory !== 'Чистий аркуш.' && langMemory !== 'Чистый лист (урок 1).';
-           
+           const genderInstructionUk = studentGender === 'female' ? "Звертайся у ЖІНОЧОМУ роді." : "Звертайся у ЧОЛОВІЧОМУ роді.";
+           const genderInstructionRu = studentGender === 'female' ? "Обращайся в ЖЕНСКОМ роде." : "Обращайся в МУЖСКОМ роде.";
+
            let startPrompt = '';
            if (nativeLang === 'ru') {
              startPrompt = !hasCurrentLangMemory 
-               ? `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')} и спроси только имя и уровень БЕЗ перевода на русский. СРАЗУ ЗАМОЛКНИ!]`
-               : `${helloWord}! [ИНСТРУКЦИЯ К ХОДУ 1: Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН вопрос о делах или настроении на изучаемом языке БЕЗ перевода. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой реплике проверять слова или объявлять темы! Задай вопрос о делах и СРАЗУ ЗАМОЛКНИ, жди ответа ученика!]`;
+               ? `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')} и спроси только имя и уровень БЕЗ перевода на русский. ${genderInstructionRu} СРАЗУ ЗАМОЛКНИ!]`
+               : `${helloWord}! [ИНСТРУКЦИЯ К ХОДУ 1: Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН вопрос о делах или настроении на изучаемом языке БЕЗ перевода. ${genderInstructionRu} КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой реплике проверять слова или объявлять темы! Задай вопрос о делах и СРАЗУ ЗАМОЛКНИ, жди ответа ученика!]`;
            } else if (nativeLang === 'uk') {
              startPrompt = !hasCurrentLangMemory 
-               ? `${helloWord}! [ІНСТРУКЦІЯ: Привітайся мовою вивчення і запитай тільки ім'я та рівень БЕЗ перекладу. ВІДРАЗУ ЗАМОВКНИ!]`
-               : `${helloWord}! [ІНСТРУКЦІЯ ДО ХОДУ 1: Привітайся на ім'я. Задай ЛИШЕ ОДНЕ питання про справи або настрій мовою вивчення БЕЗ перекладу. КАТЕГОРИЧНО ЗАБОРОНЕНО у цій репліці перевіряти слова або оголошувати теми! Задай питання про справи і ВІДРАЗУ ЗАМОВКНИ, чекай відповіді учня!]`;
+               ? `${helloWord}! [ІНСТРУКЦІЯ: Привітайся мовою вивчення і запитай тільки ім'я та рівень БЕЗ перекладу. ${genderInstructionUk} ВІДРАЗУ ЗАМОВКНИ!]`
+               : `${helloWord}! [ІНСТРУКЦІЯ ДО ХОДУ 1: Привітайся на ім'я. Задай ЛИШЕ ОДНЕ питання про справи або настрій мовою вивчення БЕЗ перекладу. ${genderInstructionUk} КАТЕГОРИЧНО ЗАБОРОНЕНО у цій репліці перевіряти слова або оголошувати теми! Задай питання про справи і ВІДРАЗУ ЗАМОВКНИ, чекай відповіді учня!]`;
            } else {
              startPrompt = `${helloWord}! [ИНСТРУКЦИЯ К ХОДУ 1: Поздоровайся и задай ТОЛЬКО ОДИН вопрос о делах/настроении. СРАЗУ ЗАМОЛКНИ!]`;
            }
