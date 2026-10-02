@@ -14,7 +14,7 @@
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
                  img-src 'self' https://images.unsplash.com data:; 
                  media-src 'self' blob:;">
-  <title>AI Language Tutor v3.7.1</title>
+  <title>AI Language Tutor v3.8.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     
@@ -58,7 +58,7 @@
     .header-title { font-weight: 600; font-size: 1.05rem; }
     .profile-badge { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
 
-    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
     .timer-badge { 
       font-size: 0.9rem; 
       font-weight: 700; 
@@ -85,6 +85,20 @@
       position: relative;
     }
 
+    .progress-pill {
+      display: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+
     .avatar-wrapper {
       position: relative;
       width: 190px;
@@ -100,7 +114,7 @@
       height: 100%;
       border-radius: 50%;
       background: radial-gradient(circle, rgba(56, 189, 248, 0.45) 0%, rgba(37, 99, 235, 0) 70%);
-      transition: transform 0.15s ease-out, opacity 0.15s ease-out;
+      transition: transform 0.12s ease-out, opacity 0.12s ease-out;
       transform: scale(1);
       opacity: 0.3;
       z-index: 1;
@@ -202,6 +216,8 @@
     </header>
 
     <main>
+      <div class="progress-pill" id="progressPill">Блок 1 • Разминка и фразы 1–5</div>
+
       <div class="avatar-wrapper">
         <div class="avatar-halo" id="avatarHalo"></div>
         <div class="avatar-card" id="avatarCard">
@@ -292,6 +308,7 @@
     const avatarHalo = document.getElementById('avatarHalo');
     const profileBadge = document.getElementById('profileBadge');
     const timerBadge = document.getElementById('timerBadge');
+    const progressPill = document.getElementById('progressPill');
     const headerTitle = document.getElementById('headerTitle');
     const modalSettings = document.getElementById('modalSettings');
     const btnSettings = document.getElementById('btnSettings');
@@ -408,7 +425,7 @@
       alert('Вся память профиля полностью сброшена.');
     };
 
-    // --- СИСТЕМНЫЙ ПРОМПТ С ТОЧНОЙ АВТОРСКОЙ МЕТОДИКОЙ ---
+    // --- СИСТЕМНЫЙ ПРОМПТ С СОХРАНЕНИЕМ ВСЕХ КЛЮЧЕВЫХ БЛОКОВ И ТОЧЕЧНОЙ ХИРУРГИЕЙ ---
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -417,7 +434,6 @@
       if (targetLanguage === 'english') { langName = 'английского'; langAdverb = 'по-английски'; }
       if (targetLanguage === 'spanish') { langName = 'испанского'; langAdverb = 'по-испански'; }
 
-      // Сохранены все разделы оригинала, а противоречащее правило перевода заменено на вашу методику
       const originalPrompt = `Ты — ${tName}, ${tRole} ${langName} языка. Твой голос — ${teacherGender === 'male' ? 'приятный мужской' : 'мягкий женский'}.
 Твоя главная черта — искреннее дружелюбие, теплота и естественность. Общайся как хороший друг, а не как строгий робот-учитель. Веди диалог плавно, реплика за репликой. НЕ задавай несколько вопросов подряд.
 
@@ -449,12 +465,15 @@
 
 ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
 
+СТРАНОВЕДЕНИЕ И КУЛЬТУРНЫЙ КОНТЕКСТ:
+Органично вплетай в фразы и диалоги живые культурные и бытовые реалии страны изучаемого языка (для Франции — особенности французского этикета, регионов, привычек, кулинарии, транспорта; для Англии — британская вежливость, идиомы; для Испании — особенности общения, распорядок дня). Ученик должен учить живой язык реальной жизни, а не абстрактные книжные фразы.
+
 КАК ВЕСТИ УРОК (ЕСТЕСТВЕННО И ПЛАВНО):
 1. ПЕРВЫЙ УРОК: Тепло поздоровайся ${langAdverb}. Уточни имя и уровень.
 2. ПОВТОРНЫЕ УРОКИ:
-- Приветствие: Радостно поздоровайся по имени (из Памяти). 
-- ПРОВЕРКА ПРОШЛОГО УРОКА: СРАЗУ ПОСЛЕ ПРИВЕТСТВИЯ ОБЯЗАТЕЛЬНО задай 2 коротких тестовых вопроса по ПРОШЛОЙ теме (из блока ПРОГРЕСС). Дождись ответа.
-- План: Выслушав ответ, предложи 2 варианта новой темы.
+- Приветствие и Small Talk: Радостно поздоровайся по имени (из Памяти). Начни с 1-2 непринужденных реплик ${langAdverb} (дела, настроение, семья, питомец из Памяти) БЕЗ перевода на русский/украинский и БЕЗ внезапных проверок в лоб! Дождись ответа ученика.
+- ПРОВЕРКА ПРОШЛОГО УРОКА: Только ПОСЛЕ завершения приветственного small talk плавно переходи к повторению: задай 2 контрольных вопроса по ПРОШЛОЙ теме (из блока ПРОГРЕСС) строго по двусторонней методике. Дождись ответа.
+- План: Выслушав ответ, предложи 2 варианта новой темы сегодняшнего урока (избегая повторов).
 3. ЗАВЕРШЕНИЕ УРОКА (ТЕСТ): Когда ученик просит завершить урок или время подходит к концу, ПЕРЕД ТЕМ как попрощаться, ОБЯЗАТЕЛЬНО задай 2 контрольных вопроса по материалу, который вы обсудили СЕГОДНЯ. Только после ответа ученика прощайся.`;
 
       let settingLanguageDirective = '';
@@ -479,7 +498,7 @@ ${settingLanguageDirective}
 - Направление 2 (С иностранного на родной): Назови другое слово ${langAdverb}, а ученик должен перевести его на свой родной язык («А что означает слово ...?»).
 
 БАЗОВЫЕ ДЕЖУРНЫЕ ФРАЗЫ БЕЗ ДУБЛЯЖА:
-Дежурные фразы общения («Привет», «Как дела?», «До скорого», «Очень хорошо») звучат ТОЛЬКО ${langAdverb} БЕЗ перевода на русский!
+Дежурные фразы общения («Привет», «Как дела?», «До скорого», «Очень хорошо») звучат ТОЛЬКО ${langAdverb} БЕЗ перевода на русский/украинский!
 
 КРЕАТИВНОСТЬ И ЗАПРЕТ НА «КОФЕЙНЫЙ КРУГ»:
 Запрещено зацикливаться на заказе кофе! Чередуй темы связными мини-курсами по несколько уроков: транспорт, покупка билетов, отель, аренда авто, врач, покупки, спорт, погода, а также системную грамматику (артикли, времена глаголов, множественное число).
@@ -496,9 +515,11 @@ ${settingLanguageDirective}
     let mediaStream = null;
     let sourceNode = null;
     let biquadFilter = null;
+    let dummyGain = null;
     let audioWorkletNode = null;
     let playbackContext = null;
     let scheduledPlayTime = 0;
+    let wakeLock = null;
     
     let isSessionActive = false;
     let isSetupComplete = false; 
@@ -515,35 +536,61 @@ ${settingLanguageDirective}
     let activeAudioSources = [];
     let isHeadsetConnected = false;
 
+    // Сэмпл-точный ресемплер и кольцевой буфер 64мс (1024 сэмпла)
     const workletCode = `
       class PCMProcessor extends AudioWorkletProcessor {
         constructor() {
           super();
           this.targetSampleRate = 16000;
+          this.bufferSize = 1024;
+          this.pcmBuffer = new Int16Array(this.bufferSize);
+          this.bufferIndex = 0;
+          this.phase = 0;
         }
         process(inputs, outputs, parameters) {
           const input = inputs[0];
           if (input && input.length > 0) {
             const channelData = input[0];
             const sampleRateRatio = sampleRate / this.targetSampleRate;
-            const newLength = Math.floor(channelData.length / sampleRateRatio);
-            const pcm16 = new Int16Array(newLength);
             
             let sum = 0;
-            for (let i = 0; i < newLength; i++) {
-              let originalIndex = Math.floor(i * sampleRateRatio);
-              let s = Math.max(-1, Math.min(1, channelData[originalIndex]));
-              pcm16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+            while (this.phase < channelData.length) {
+              const idx = Math.floor(this.phase);
+              const s = Math.max(-1, Math.min(1, channelData[idx]));
               sum += s * s;
+              this.pcmBuffer[this.bufferIndex++] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+              
+              if (this.bufferIndex >= this.bufferSize) {
+                const rms = Math.sqrt(sum / this.bufferSize);
+                const bufferToSend = this.pcmBuffer.slice(0, this.bufferSize).buffer;
+                this.port.postMessage({ pcm: bufferToSend, rms: rms }, [bufferToSend]);
+                this.bufferIndex = 0;
+                sum = 0;
+              }
+              this.phase += sampleRateRatio;
             }
-            let rms = Math.sqrt(sum / (newLength || 1));
-            this.port.postMessage({ pcm: pcm16.buffer, rms: rms }, [pcm16.buffer]);
+            this.phase -= channelData.length;
           }
           return true;
         }
       }
       registerProcessor('pcm-processor', PCMProcessor);
     `;
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+        }
+      } catch (err) {}
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        try { wakeLock.release(); } catch(e) {}
+        wakeLock = null;
+      }
+    }
 
     async function checkAudioOutputs() {
       try {
@@ -580,6 +627,12 @@ ${settingLanguageDirective}
         await audioContext.audioWorklet.addModule(workletUrl);
         audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm-processor');
         
+        // Гарантия против гибернации узла в Safari
+        dummyGain = audioContext.createGain();
+        dummyGain.gain.value = 0;
+        audioWorkletNode.connect(dummyGain);
+        dummyGain.connect(audioContext.destination);
+
         audioWorkletNode.port.onmessage = (event) => {
           if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
           
@@ -621,6 +674,13 @@ ${settingLanguageDirective}
         };
       }
       
+      if (sourceNode) {
+        try { sourceNode.disconnect(); } catch(e) {}
+      }
+      if (biquadFilter) {
+        try { biquadFilter.disconnect(); } catch(e) {}
+      }
+
       sourceNode = audioContext.createMediaStreamSource(mediaStream);
       biquadFilter = audioContext.createBiquadFilter();
       biquadFilter.type = "lowpass";
@@ -633,7 +693,6 @@ ${settingLanguageDirective}
 
     btnAction.onclick = () => { isSessionActive ? stopSession() : startSession(); };
 
-    // Точная директива для кнопки: заставляет репетитора соблюдать ваш трехшаговый алгоритм
     btnEndTurn.onclick = () => {
       if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory) {
         isWaitingForResponse = true;
@@ -642,13 +701,13 @@ ${settingLanguageDirective}
 
         const minutesLeft = Math.ceil(lessonSecondsRemaining / 60);
         let promptText = nativeLang === 'uk' 
-          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває повні 15 хвилин, не прощайся!] Оціни мою відповідь. Наступну фразу давай строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою, 3) Команда «Повтори» і тиша!`
-          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет полные 15 минут, не прощайся!] Оцени мой ответ. Следующую фразу давай строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке, 3) Команда «Повтори» и тишина!`;
+          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває повні 15 хвилин (15 фраз), не прощайся!] Оціни мою репліку. Якщо розбираємо помилку — продовжуй алгоритм. Якщо даєш наступну фразу — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою, 3) Команда «Повтори» і тиша!`
+          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет полные 15 минут (15 фраз), не прощайся!] Оцени мою реплику. Если разбираем ошибку — продолжай алгоритм. Если даешь следующую фразу — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке, 3) Команда «Повтори» и тишина!`;
           
         if (isTimeWarningPending) {
           promptText += nativeLang === 'uk'
-            ? " [СИСТЕМНА ПІДКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (менше 2 хв). Проведи фінальну двосторонню перевірку і підведи підсумки!]"
-            : " [СИСТЕМНАЯ ПОДСКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (меньше 2 мин). Проведи финальную двустороннюю проверку и подводи итоги!]";
+            ? " [СИСТЕМНА ПІДКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (менше 2 хв). Проведи фінальну двосторонню перевірку 2 слів і підведи підсумки!]"
+            : " [СИСТЕМНАЯ ПОДСКАЗКА: ВРЕМЯ УРОКА ВЫХОДИТ (меньше 2 мин). Проведи финальную двустороннюю проверку 2 слов и подводи итоги!]";
           isTimeWarningPending = false;
         }
 
@@ -687,6 +746,7 @@ ${settingLanguageDirective}
       lessonSecondsRemaining = 15 * 60;
       isTimeWarningPending = false;
       timerBadge.style.display = "block";
+      progressPill.style.display = "inline-block";
       timerBadge.classList.remove('timer-warning');
       updateTimerBadge();
 
@@ -694,6 +754,14 @@ ${settingLanguageDirective}
       lessonTimerInterval = setInterval(() => {
         lessonSecondsRemaining--;
         updateTimerBadge();
+
+        if (lessonSecondsRemaining > 10 * 60) {
+          progressPill.innerText = "Блок 1 • Разминка и фразы 1–5";
+        } else if (lessonSecondsRemaining > 5 * 60) {
+          progressPill.innerText = "Блок 2 • Практика и фразы 6–10";
+        } else {
+          progressPill.innerText = "Блок 3 • Закрепление и фразы 11–15";
+        }
 
         if (lessonSecondsRemaining === 120) {
           timerBadge.classList.add('timer-warning');
@@ -711,6 +779,7 @@ ${settingLanguageDirective}
     function stopLessonTimer() {
       clearInterval(lessonTimerInterval);
       timerBadge.style.display = "none";
+      progressPill.style.display = "none";
       isTimeWarningPending = false;
     }
 
@@ -741,6 +810,7 @@ ${settingLanguageDirective}
       if (!mediaStream) await initMicrophone();
       if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
 
+      await requestWakeLock();
       connectWebSocket();
     }
 
@@ -795,13 +865,13 @@ ${settingLanguageDirective}
            if (nativeLang === 'ru') {
              startPrompt = !hasCurrentLangMemory 
                ? `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')} и спроси имя и уровень БЕЗ перевода на русский. Замолчи!]`
-               : `${helloWord}! [ИНСТРУКЦИЯ: Радостно поздоровайся по имени ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')}, спроси как дела ТОЛЬКО на изучаемом языке БЕЗ перевода. Затем проведи двустороннюю проверку слов. Рассчитывай на большой урок из 15 фраз! Замолчи!]`;
+               : `${helloWord}! [ИНСТРУКЦИЯ: Радостно поздоровайся по имени ${targetLanguage === 'french' ? 'по-французски' : (targetLanguage === 'english' ? 'по-английски' : 'по-испански')}, начни дружеский small talk ТОЛЬКО на изучаемом языке БЕЗ перевода и БЕЗ внезапных тестов в лоб. Рассчитывай на большой урок из 15 фраз! Замолчи!]`;
            } else if (nativeLang === 'uk') {
              startPrompt = !hasCurrentLangMemory 
                ? `${helloWord}! [ІНСТРУКЦІЯ: Привітайся мовою вивчення і запитай ім'я та рівень БЕЗ перекладу. Замовкни!]`
-               : `${helloWord}! [ІНСТРУКЦІЯ: Привітайся на ім'я мовою вивчення, поцікався справами ТІЛЬКИ мовою вивчення БЕЗ перекладу. Проведи двосторонню перевірку слів. Розраховуй на великий урок із 15 фраз! Замовкни!]`;
+               : `${helloWord}! [ІНСТРУКЦІЯ: Привітайся на ім'я мовою вивчення, почни дружній small talk ТІЛЬКИ мовою вивчення БЕЗ перекладу та БЕЗ раптових тестів у лоб. Розраховуй на великий урок із 15 фраз! Замовкни!]`;
            } else {
-             startPrompt = `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся на изучаемом языке и начни разминку. Урок рассчитан на 15 фраз!]`;
+             startPrompt = `${helloWord}! [ИНСТРУКЦИЯ: Поздоровайся на изучаемом языке и начни дружеский small talk. Урок рассчитан на 15 фраз!]`;
            }
            
            socket.send(JSON.stringify({ clientContent: { turns: [{ role: "user", parts: [{ text: startPrompt }] }], turnComplete: true } }));
@@ -839,7 +909,7 @@ ${settingLanguageDirective}
 
           if (isExtractingMemory && memorySavedSuccessfully) {
             clearTimeout(stopSessionTimeoutId);
-            finalizeStop();
+            setTimeout(() => finalizeStop(), 300);
             return;
           }
         }
@@ -847,7 +917,7 @@ ${settingLanguageDirective}
         if (isExtractingMemory && responseData.serverContent?.turnComplete) {
           if (memorySavedSuccessfully) {
             clearTimeout(stopSessionTimeoutId);
-            finalizeStop();
+            setTimeout(() => finalizeStop(), 300);
             return;
           }
         }
@@ -877,8 +947,8 @@ ${settingLanguageDirective}
         
         if (responseData.serverContent?.turnComplete) { 
           clearTimeout(watchdogTimer);
-          isBotSpeaking = false;
           if (activeAudioSources.length === 0) {
+            isBotSpeaking = false;
             avatarCard.classList.remove('speaking');
             btnInterrupt.style.display = "none";
             if (!isWaitingForResponse && isSessionActive) {
@@ -925,6 +995,7 @@ ${settingLanguageDirective}
       stopSessionTimeoutId = null;
       stopLessonTimer();
       stopBotSpeech();
+      releaseWakeLock();
 
       if (mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
@@ -933,6 +1004,10 @@ ${settingLanguageDirective}
       if (sourceNode) {
         try { sourceNode.disconnect(); } catch(e) {}
         sourceNode = null;
+      }
+      if (biquadFilter) {
+        try { biquadFilter.disconnect(); } catch(e) {}
+        biquadFilter = null;
       }
       if (audioContext && audioContext.state === 'running') {
         try { audioContext.suspend(); } catch(e) {}
@@ -992,12 +1067,17 @@ ${settingLanguageDirective}
       source.onended = () => { 
         activeAudioSources = activeAudioSources.filter(s => s !== source); 
         if (activeAudioSources.length === 0) {
-          isBotSpeaking = false;
-          avatarCard.classList.remove('speaking');
-          btnInterrupt.style.display = "none";
-          if (!isWaitingForResponse && isSessionActive) {
-            statusText.innerText = "Ваша очередь говорить...";
-          }
+          // Защитный акустический интервал 200 мс для рассеивания эха в комнате
+          setTimeout(() => {
+            if (activeAudioSources.length === 0 && isSessionActive) {
+              isBotSpeaking = false;
+              avatarCard.classList.remove('speaking');
+              btnInterrupt.style.display = "none";
+              if (!isWaitingForResponse) {
+                statusText.innerText = "Ваша очередь говорить...";
+              }
+            }
+          }, 200);
         }
       };
     }
