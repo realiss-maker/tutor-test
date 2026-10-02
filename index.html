@@ -14,7 +14,7 @@
                  connect-src 'self' wss://generativelanguage.googleapis.com blob:; 
                  img-src 'self' https://images.unsplash.com data:; 
                  media-src 'self' blob:;">
-  <title>AI Language Tutor v3.12.0</title>
+  <title>AI Language Tutor v3.13.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
     
@@ -238,7 +238,7 @@
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
         <h3 style="margin: 0; text-align: left;">Настройки</h3>
-        <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">v3.12.0</span>
+        <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">v3.13.0</span>
       </div>
       
       <label>Google AI Studio API Key:</label>
@@ -299,7 +299,7 @@
       <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
       <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
-      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;">AI Tutor v3.12.0 • Auto-Gender & Lifelong Memory Engine</div>
+      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;">AI Tutor v3.13.0 • Full-Phrase Context & Deep Memory Engine</div>
     </div>
   </div>
 
@@ -446,7 +446,7 @@
       alert('Вся память профиля полностью сброшена.');
     };
 
-    // --- СИСТЕМНЫЙ ПРОМПТ С АВТООПРЕДЕЛЕНИЕМ ПОЛА И НАКОПИТЕЛЬНОЙ ПАМЯТЬЮ О ЖИЗНИ ---
+    // --- СИСТЕМНЫЙ ПРОМПТ С СБОРКОЙ ВСЕЙ ФРАЗЫ И СТРОГИМ ЗАПРЕТОМ ПОВТОРОВ ---
     function getSystemInstruction() {
       const tName = getTeacherName();
       const tRole = teacherGender === 'male' ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
@@ -492,13 +492,14 @@ ${genderDirective}
 АДАПТИВНОСТЬ:
 Ученик устно управляет уроком. Просит меньше переводить — прекрати автоперевод. Просит разыграть сценку — играй роль.
 
-ИСПРАВЛЕНИЕ ОШИБОК (ДЕТАЛЬНЫЙ АЛГОРИТМ):
+ИСПРАВЛЕНИЕ ОШИБОК (ДЕТАЛЬНЫЙ АЛГОРИТМ И СБОРКА ВСЕЙ ФРАЗЫ):
 В 50% случаев мягко останавливай при ошибках. Действуй строго по шагам:
-1. Назови конкретное слово или фразу, которую ученик произнес неправильно.
-2. Объясни, в чем ошибка, и четко произнеси правильный вариант ${langAdverb}.
-3. Попроси ученика повторить именно это слово/фразу командой «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой же реплике хвалить ученика («молодец», «отлично») или продолжать речь! Твоя реплика ОБЯЗАНА закончиться словом «Повтори», после чего ты обязана молчать и ждать ответа ученика в следующем ходе.
-4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни, как нужно правильно произносить, и попроси повторить еще раз.
+1. Назови конкретное слово или звук, который ученик произнес неправильно.
+2. Объясни, в чем ошибка, и четко произнеси правильный вариант слова ${langAdverb}.
+3. Попроси ученика повторить именно это проблемное слово командой «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой же реплике продолжать речь или хвалить ученика! Твоя реплика ОБЯЗАНА закончиться словом «Повтори», после чего ты обязана молчать и ждать ответа ученика в следующем ходе.
+4. Если ученик повторяет с ошибкой (2-я попытка и далее), снова объясни артикуляцию и попроси повторить еще раз (до 5 попыток).
 5. Если после 5 попыток не получается произнести идеально, мягко скажи, что результат пока не идеален, и вы повторите это в следующий раз (обязательно внеси это слово в [БАНК ОШИБОК] для будущих уроков).
+6. ОБЯЗАТЕЛЬНАЯ СБОРКА ВСЕЙ ФРАЗЫ ЦЕЛИКОМ (ФИНАЛЬНЫЙ ШАГ): Как только проблемное слово успешно отработано и произнесено правильно (или после 5 попыток), КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО сразу переходить к следующей фразе урока! Ты ОБЯЗАНА вернуть ученика к исходной фразе: «Отлично! А теперь давай закрепим и повторим всю фразу целиком». Произнеси всю фразу на иностранном языке и скажи: «Повтори» — И СРАЗУ ЗАМОЛКНИ! Только после того как ученик повторит ВСЮ исходную фразу целиком вместе с исправленным словом, разрешено двигаться дальше по уроку!
 
 ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
 
@@ -540,8 +541,9 @@ ${settingLanguageDirective}
 ОБЪЕМ УРОКА — 15 ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
 1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз и слов (3 блока по 5 фраз)!
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить фразы вроде «это последнее слово», «на этом всё», «заканчиваем», пока не пройдены все 15 фраз или пока не поступит системная подсказка о финале времени!
-3. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО давать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] под видом нового материала! Если слово уже есть в памяти — ученик его знает, изучай НОВЫЕ выражения.
-4. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные 15 минут!
+3. СТРОЖАЙШИЙ ЗАПРЕТ НА ПОВТОРЕНИЕ: Категорически запрещено брать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] или слова, которые ТОЛЬКО ЧТО проверялись на разминке текущего урока (например, если на разминке проверялось слово «суд / tribunal»), и преподавать их заново под видом новых!
+4. ПРИНЦИП УГЛУБЛЕНИЯ ТЕМЫ: Если ученик изучает профессиональную или бытовую тему, запрещено топтаться на базовых существительных первого урока. Обучай СЛЕДУЮЩИМ, более глубоким жизненным фразам и действиям (например, не просто «адвокат/суд», а «составить договор», «заседание суда перенесено на завтра», «клиент ожидает в офисе», «подать жалобу», «ознакомиться с материалами дела»).
+5. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные 15 минут!
 
 ДВУСТОРОННЯЯ МЕТОДИКА КОНТРОЛЬНЫХ ВОПРОСОВ (ПРОВЕРКА БЕЗ ПОДСКАЗОК):
 Категорически запрещено просто называть слово на иностранном языке и просить его повторить — это подсказка, а не проверка!
@@ -760,8 +762,8 @@ ${settingLanguageDirective}
         }
 
         let promptText = nativeLang === 'uk' 
-          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! ${genderHint} Якщо пояснюєш нову фразу — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з тишею між ними, 3) Команда «Повтори» і мовчання! НЕ вимовляй слово «пауза»!]`
-          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет. ВНИМАНИЕ: Оцени и проанализируй мою реплику! ${genderHint} Если даешь новую фразу — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке с тишиной между ними, 3) Команда «Повтори» и молчание! НЕ произноси слово «пауза»!]`;
+          ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! ${genderHint} Якщо виправляєш помилку: після відпрацювання слова ОБОВ'ЯЗКОВО попроси повторити ВСЮ фразу цілком! Якщо нова фраза — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з тишею між ними, 3) Команда «Повтори» і мовчання! НЕ вимовляй слово «пауза»!]`
+          : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет. ВНИМАНИЕ: Оцени и проанализируй мою реплику! ${genderHint} Если исправляешь ошибку: после отработки слова ОБЯЗАТЕЛЬНО попроси повторить ВСЮ фразу целиком! Если новая фраза — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке с тишиной между ними, 3) Команда «Повтори» и молчание! НЕ произноси слово «пауза»!]`;
           
         if (isTimeWarningPending) {
           promptText += nativeLang === 'uk'
@@ -1006,7 +1008,8 @@ ${settingLanguageDirective}
         
         if (responseData.serverContent?.turnComplete) { 
           clearTimeout(watchdogTimer);
-          if (activeAudioSources.length === 0) {
+          const isAudioDone = activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime);
+          if (isAudioDone) {
             isBotSpeaking = false;
             avatarCard.classList.remove('speaking');
             btnInterrupt.style.display = "none";
@@ -1033,6 +1036,7 @@ ${settingLanguageDirective}
       };
     }
 
+    // Мягкое завершение с гарантированным ожиданием конца реплики прощания (до 10 секунд)
     function stopSession(forceImmediate = false) {
       if (!isSessionActive) return;
       isExtractingMemory = true;
@@ -1070,16 +1074,19 @@ ${langDirective}
           clearTimeout(stopSessionTimeoutId);
           stopSessionTimeoutId = setTimeout(() => {
             finalizeStop("Урок и накопительный прогресс сохранены.");
-          }, 6500);
+          }, 7500);
         } else {
           finalizeStop("Урок завершен.");
         }
       };
 
-      if (!forceImmediate && (activeAudioSources.length > 0 || isBotSpeaking)) {
+      const isAudioStillPlaying = activeAudioSources.length > 0 || isBotSpeaking || (playbackContext && scheduledPlayTime > playbackContext.currentTime);
+
+      if (!forceImmediate && isAudioStillPlaying) {
         statusText.innerText = "Репетитор договаривает...";
         const waitAudio = setInterval(() => {
-          if (activeAudioSources.length === 0 && !isBotSpeaking) {
+          const isCompletelyFinished = activeAudioSources.length === 0 && !isBotSpeaking && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime);
+          if (isCompletelyFinished) {
             clearInterval(waitAudio);
             proceedToSave();
           }
@@ -1087,7 +1094,7 @@ ${langDirective}
         setTimeout(() => {
           clearInterval(waitAudio);
           proceedToSave();
-        }, 5000);
+        }, 10000);
       } else {
         stopBotSpeech();
         proceedToSave();
@@ -1140,10 +1147,12 @@ ${langDirective}
         updateUI();
       };
 
-      if (activeAudioSources.length > 0) {
+      const isAudioPending = activeAudioSources.length > 0 || (playbackContext && scheduledPlayTime > playbackContext.currentTime);
+      if (isAudioPending) {
         statusText.innerText = "Завершение реплики...";
         const drainCheckInterval = setInterval(() => {
-          if (activeAudioSources.length === 0) {
+          const isDone = activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime);
+          if (isDone) {
             clearInterval(drainCheckInterval);
             completeCleanup();
           }
@@ -1151,7 +1160,7 @@ ${langDirective}
         setTimeout(() => {
           clearInterval(drainCheckInterval);
           completeCleanup();
-        }, 3500);
+        }, 10000); // Расширенный 10-секундный буфер
       } else {
         completeCleanup();
       }
@@ -1187,7 +1196,7 @@ ${langDirective}
       activeAudioSources.push(source); 
       source.onended = () => { 
         activeAudioSources = activeAudioSources.filter(s => s !== source); 
-        if (activeAudioSources.length === 0) {
+        if (activeAudioSources.length === 0 && playbackContext.currentTime >= scheduledPlayTime) {
           setTimeout(() => {
             if (activeAudioSources.length === 0 && isSessionActive) {
               isBotSpeaking = false;
