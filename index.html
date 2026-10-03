@@ -315,8 +315,8 @@
 
       <label for="selectStorageMode">Режим хранения ключа:</label>
       <select id="selectStorageMode">
-        <option value="local">Сохранить на этом устройстве (localStorage)</option>
-        <option value="session">Только на время сессии (sessionStorage)</option>
+        <option value="local">На этом устройстве</option>
+        <option value="session">Только на время сессии</option>
       </select>
 
       <div style="display: flex; gap: 10px;">
@@ -337,9 +337,9 @@
         <div style="flex: 1;">
           <label for="selectStudentGender">Пол ученика (обращение):</label>
           <select id="selectStudentGender">
-            <option value="auto">Автоопределение (по имени и речи)</option>
-            <option value="male">Мужской («ты сказал, повторил»)</option>
-            <option value="female">Женский («ты сказала, повторила»)</option>
+            <option value="auto">Определить самому</option>
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
           </select>
         </div>
         <div style="flex: 1;">
@@ -354,33 +354,33 @@
 
       <label for="selectAudioMode">Аудио-режим:</label>
       <select id="selectAudioMode">
-        <option value="auto">Автодетекция (Гарнитура / Динамик)</option>
-        <option value="half">Полудуплекс (динамик без эха)</option>
-        <option value="full">Свободный дуплекс (для наушников)</option>
+        <option value="auto">Авто (наушники / динамик)</option>
+        <option value="half">Динамик (микрофон ждёт)</option>
+        <option value="full">Наушники (можно перебивать)</option>
       </select>
 
       <label for="selectStrict">Проверка вашего произношения:</label>
       <select id="selectStrict">
-        <option value="strict">Строгая (репетитор не хвалит за неточный повтор)</option>
-        <option value="normal">Мягкая (исправляет только явные ошибки)</option>
+        <option value="strict">Строгая</option>
+        <option value="normal">Мягкая</option>
       </select>
 
       <label for="selectVad">Пауза перед ответом репетитора:</label>
       <select id="selectVad">
-        <option value="default">Стандартная (как раньше)</option>
-        <option value="patient">Терпеливая (не перебивает, когда вы думаете)</option>
-        <option value="very">Очень терпеливая (для начинающих)</option>
+        <option value="default">Стандартная</option>
+        <option value="patient">Терпеливая</option>
+        <option value="very">Очень терпеливая</option>
       </select>
 
       <label for="selectCaptions">Текст реплик (субтитры):</label>
       <select id="selectCaptions">
-        <option value="off">Выключен (только звук)</option>
-        <option value="on">Показывать, что сказали вы и репетитор</option>
+        <option value="off">Выключены</option>
+        <option value="on">Показывать</option>
       </select>
 
       <label for="selectModel">Модель Gemini Live:</label>
       <select id="selectModel"></select>
-      <div class="hint">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель.</div>
+      <div class="hint">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель. «Определить самому» — пол ученика определяется по имени и речи.</div>
 
       <button class="btn-save" id="btnSaveKey">Сохранить настройки</button>
 
@@ -418,9 +418,9 @@
   const WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 
   const MODELS = [
-    { id: 'gemini-2.5-flash-native-audio-latest', label: 'Gemini 2.5 Native Audio (как раньше)' },
-    { id: 'gemini-2.5-flash-native-audio-preview-12-2025', label: 'Gemini 2.5 Native Audio · фиксированная версия' },
-    { id: 'gemini-3.8-live', label: 'Gemini 3.8 Live (новая, экспериментально)' }
+    { id: 'gemini-2.5-flash-native-audio-latest', label: 'Gemini 2.5 Native Audio' },
+    { id: 'gemini-2.5-flash-native-audio-preview-12-2025', label: 'Gemini 2.5 · фиксированная' },
+    { id: 'gemini-3.8-live', label: 'Gemini 3.8 Live (новая)' }
   ];
 
   // Названия разделов памяти — единый источник (раньше в трёх местах писались по-разному)
@@ -1562,8 +1562,16 @@ ${langDirective}
     setTimeout(() => finalizeStop('Урок и прогресс сохранены.'), 300);
   }
 
+  // Модель иногда «проговаривает» служебные токены (<ctrl46>, <noise>) в расшифровке — на экране им не место
+  function cleanCaption(text) {
+    return String(text || '').replace(/<\/?(?:ctrl\d+|noise|silence)[^>]*>/gi, '').replace(/\s{2,}/g, ' ');
+  }
+
   function pushCaption(kind, text) {
-    if (cfg.captions !== 'on' || !text) return;
+    if (cfg.captions !== 'on') return;
+    if (isExtractingMemory) return;          // пока идёт сохранение итогов — субтитры не нужны
+    text = cleanCaption(text);
+    if (!text.trim()) return;
     if (kind === 'tutor') {
       if (captionNewTurn) { capTutor.textContent = ''; captionNewTurn = false; }
       capTutor.textContent = (capTutor.textContent + text).slice(-320);
