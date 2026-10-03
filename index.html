@@ -359,6 +359,12 @@
         <option value="full">Свободный дуплекс (для наушников)</option>
       </select>
 
+      <label for="selectStrict">Проверка вашего произношения:</label>
+      <select id="selectStrict">
+        <option value="strict">Строгая (репетитор не хвалит за неточный повтор)</option>
+        <option value="normal">Мягкая (исправляет только явные ошибки)</option>
+      </select>
+
       <label for="selectVad">Пауза перед ответом репетитора:</label>
       <select id="selectVad">
         <option value="default">Стандартная (как раньше)</option>
@@ -483,7 +489,8 @@
     audio: store.get('audio_mode', 'auto'),
     model: store.get('model_id', MODELS[0].id),
     vad: store.get('vad_mode', 'default'),
-    captions: store.get('captions', 'off')
+    captions: store.get('captions', 'off'),
+    strict: store.get('strict_mode', 'strict')
   };
   if (!LANGS[cfg.lang]) cfg.lang = 'french';
   if (!MODELS.some(m => m.id === cfg.model)) cfg.model = MODELS[0].id;
@@ -499,7 +506,7 @@
   const landmarkImage = $('landmarkImage'), avatarEmoji = $('avatarEmoji');
   const inputApiKey = $('inputApiKey'), selectStorageMode = $('selectStorageMode'), selectTeacher = $('selectTeacher');
   const selectStudentGender = $('selectStudentGender'), selectLanguage = $('selectLanguage'), selectNativeLang = $('selectNativeLang');
-  const selectAudioMode = $('selectAudioMode'), selectVad = $('selectVad'), selectCaptions = $('selectCaptions'), selectModel = $('selectModel');
+  const selectAudioMode = $('selectAudioMode'), selectVad = $('selectVad'), selectStrict = $('selectStrict'), selectCaptions = $('selectCaptions'), selectModel = $('selectModel');
   const memInfo = $('memInfo');
   const inputImportFile = $('inputImportFile');
   document.querySelectorAll('.js-version').forEach(el => { el.textContent = 'v' + APP_VERSION; });
@@ -617,6 +624,7 @@
   let isHeadsetConnected = false, headsetChecked = false;
   let micLevel = 0, haloLevel = 0;
   let captionNewTurn = true;
+  let lastAudioChunkAt = 0, stuckInterval = null;
 
   /* ---------- UI ---------- */
   function updateAudioChip() {
@@ -661,7 +669,7 @@
     inputApiKey.value = apiKey;
     selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
     selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectAudioMode.value = cfg.audio;
-    selectVad.value = cfg.vad; selectCaptions.value = cfg.captions; selectModel.value = cfg.model;
+    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; selectModel.value = cfg.model;
     refreshMemInfo();
     modalSettings.style.display = 'flex';
   }
@@ -674,14 +682,14 @@
     apiKey = inputApiKey.value.trim();
     cfg.keyMode = selectStorageMode.value; cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
     cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.audio = selectAudioMode.value;
-    cfg.vad = selectVad.value; cfg.captions = selectCaptions.value; cfg.model = selectModel.value;
+    cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; cfg.model = selectModel.value;
 
     let ok = store.set('api_storage_mode', cfg.keyMode);
     if (cfg.keyMode === 'local') { ok = store.set('gemini_api_key', apiKey) && ok; sstore.remove('gemini_api_key'); }
     else { sstore.set('gemini_api_key', apiKey); store.remove('gemini_api_key'); }
     store.set('teacher_gender', cfg.teacher); store.set('student_gender', cfg.student); store.set('target_language', cfg.lang);
     store.set('native_lang', cfg.native); store.set('audio_mode', cfg.audio); store.set('model_id', cfg.model);
-    store.set('vad_mode', cfg.vad); store.set('captions', cfg.captions);
+    store.set('vad_mode', cfg.vad); store.set('captions', cfg.captions); store.set('strict_mode', cfg.strict);
 
     updateUI();
     closeSettings();
@@ -823,7 +831,7 @@ ${genderDirective}
 Ученик устно управляет уроком. Просит меньше переводить — прекрати автоперевод. Просит разыграть сценку — играй роль.
 
 ИСПРАВЛЕНИЕ ОШИБОК (ДЕТАЛЬНЫЙ АЛГОРИТМ И СБОРКА ВСЕЙ ФРАЗЫ):
-В 50% случаев мягко останавливай при ошибках. Действуй строго по шагам:
+Проверяй КАЖДЫЙ повтор ученика и останавливай его при каждой ошибке — не выборочно. Действуй строго по шагам:
 1. Назови конкретное слово или звук, который ученик произнес неправильно.
 2. Объясни, в чем ошибка, и четко произнеси правильный вариант слова ${langAdverb}.
 3. Попроси ученика повторить именно это проблемное слово командой «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО в этой же реплике продолжать речь или хвалить ученика! Твоя реплика ОБЯЗАНА закончиться словом «Повтори», после чего ты ${ob} молчать и ждать ответа ученика в следующем ходе.
@@ -864,9 +872,21 @@ ${genderDirective}
       settingLanguageDirective = `\nУТОЧНЕННЯ НАЛАШТУВАННЯ МОВИ: У налаштуваннях обрано УКРАЇНСЬКУ МОВУ. Усі пояснення давай строго українською мовою.`;
     }
 
+    const heard = male ? 'слышал' : 'слышала';
+    const strictBlock = cfg.strict === 'strict'
+      ? `ПРОВЕРКА ПОВТОРЕНИЯ УЧЕНИКА (ТЫ — ВНИМАТЕЛЬНЫЙ ЭКЗАМЕНАТОР, А НЕ ПОДДАКИВАТЕЛЬ):
+1. После КАЖДОГО повтора ученика сначала молча сравни услышанное с эталоном по трём признакам: (а) набор слов — все ли слова на месте и именно те; (б) отдельные звуки — особенно те, что трудны для носителя русского/украинского (гласные, носовые, «р», межзубные, «h», двойные согласные и т.п.); (в) ударение, интонация и связывание слов. Только потом отвечай.
+2. Исходи из того, что неточность есть, пока не убедился в обратном. Хвалить («отлично», «молодец», «правильно», «верно», «супер») можно ТОЛЬКО если все три признака совпали с эталоном. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО хвалить за старание, за «почти», за то, что ученик просто что-то сказал.
+3. Если ученик пропустил или заменил слово, сказал не ту фразу, ответил на родном языке, промолчал или звук был неразборчив — это НЕ правильный повтор. Скажи об этом прямо и по-доброму («Я ${heard} вот так, а нужно вот так») и действуй по алгоритму исправления ошибок.
+4. Даже когда повтор хороший, в похвале назови одну КОНКРЕТНУЮ удачную деталь (например, носовой звук или связывание) — это доказывает, что ты действительно слушал(а), а не соглашаешься по привычке.
+5. Если не уверен(а), что расслышал(а) правильно, — НЕ хвали: попроси повторить ещё раз.`
+      : `ПРОВЕРКА ПОВТОРЕНИЯ УЧЕНИКА: слушай повтор внимательно. Явные ошибки (не те слова, пропущенное слово, грубо искажённый звук) обязательно исправляй по алгоритму исправления ошибок. Хвалить можно только за то, что действительно получилось.`;
+
     const additions = `
 
 ${settingLanguageDirective}
+
+${strictBlock}
 
 ОБЪЕМ УРОКА — 15 ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
 1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз и слов (3 блока по 5 фраз)!
@@ -920,6 +940,11 @@ ${settingLanguageDirective}
       ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! ${genderHint} Якщо виправляєш помилку: після відпрацювання слова ОБОВ'ЯЗКОВО попроси повторити ВСЮ фразу цілком! Якщо не вийшло — скажи: «ми повторимо це трохи пізніше» (НЕ використовуй слова «банк помилок»)! Якщо нова фраза — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з тишею між ними, 3) Команда «Повтори» і мовчання! НЕ вимовляй слово «пауза»! ПРИ ПЕРЕВІРЦІ ЗНАНЬ: НЕ підказуй і НЕ кажи відповідь ${SAM}, доки я не скажу, що не пам'ятаю!]`
       : `[СИСТЕМНО: Осталось еще ${minutesLeft} мин. Урок идет. ВНИМАНИЕ: Оцени и проанализируй мою реплику! ${genderHint} Если исправляешь ошибку: после отработки слова ОБЯЗАТЕЛЬНО попроси повторить ВСЮ фразу целиком! Если не получилось — скажи: «мы повторим это чуть-чуть позже» (НЕ используй слова «банк ошибок»)! Если новая фраза — строго по правилу: 1) Смысл на родном языке, 2) ДВАЖДЫ медленно на изучаемом языке с тишиной между ними, 3) Команда «Повтори» и молчание! НЕ произноси слово «пауза»! ПРИ ПРОВЕРКЕ ЗНАНИЙ: НЕ подсказывай и НЕ говори ответ ${SAM}, пока я не скажу, что не помню!]`;
 
+    if (cfg.strict === 'strict') {
+      text += cfg.native === 'uk'
+        ? ' [ПЕРЕВІР мій повтор суворо: якщо є хоч найменша неточність у словах, звуках чи наголосі — НЕ хвали, а виправ за алгоритмом.]'
+        : ' [ПРОВЕРЬ мой повтор строго: если есть хоть малейшая неточность в словах, звуках или ударении — НЕ хвали, а исправь по алгоритму.]';
+    }
     if (isTimeWarningPending && !isTimeWarningSent) {
       text += ' ' + timeWarningText();
       isTimeWarningSent = true;
@@ -1202,6 +1227,22 @@ ${langDirective}
     });
   }
 
+  // Страховка: сервер иногда не присылает turnComplete (или присылает с большой задержкой).
+  // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
+  function releaseBotIfStuck() {
+    if (!isSessionActive || !isBotSpeaking) return;
+    if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
+    if (activeAudioSources.length > 0) return;
+    if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
+    if (Date.now() - lastAudioChunkAt < 1800) return;
+    isServerTurnActive = false;
+    isBotSpeaking = false;
+    avatarCard.classList.remove('speaking');
+    btnInterrupt.style.display = 'none';
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
+    if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
+  }
+
   function checkBotSpeakingEnded() {
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
@@ -1310,7 +1351,7 @@ ${langDirective}
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
-    if (wasGenerating) suppressAudioFor(2500);   // «хвост» старой реплики не должен проиграться
+    if (wasGenerating) suppressAudioFor(1200);   // «хвост» старой реплики не должен проиграться
     setStatus(st('thinking'));
     sendText(endTurnPromptText(), true);
 
@@ -1325,7 +1366,7 @@ ${langDirective}
     if (!isBotSpeaking && !isServerTurnActive) return;
     stopBotSpeech();
     isWaitingForResponse = false;
-    suppressAudioFor(usesRealtimeText() ? 8000 : 2500);
+    suppressAudioFor(1200);
     sendText('[СИСТЕМНО: Реплика была прервана учеником. Не комментируй это вслух: просто выслушай ученика и отреагируй на его слова.]', false);
     setStatus(st('listening'));
   };
@@ -1384,6 +1425,8 @@ ${langDirective}
 
     await requestWakeLock();
     startLevelLoop();
+    clearInterval(stuckInterval);
+    stuckInterval = setInterval(releaseBotIfStuck, 400);
     connectWebSocket(false);
   }
 
@@ -1589,6 +1632,7 @@ ${langDirective}
           interruptedPending = false;
           receivedAudioThisTurn = true;
           isServerTurnActive = true;
+          lastAudioChunkAt = Date.now();
           playPcmChunk(part.inlineData.data);
           if (!isBotSpeaking) {
             isBotSpeaking = true;
@@ -1598,6 +1642,11 @@ ${langDirective}
           }
         }
       }
+    }
+
+    if (sc.generationComplete) {
+      isServerTurnActive = false;
+      checkBotSpeakingEnded();
     }
 
     if (sc.turnComplete) {
@@ -1727,6 +1776,7 @@ ${langDirective}
     if (audioContext && audioContext.state === 'running') { try { audioContext.suspend(); } catch (e) {} }
     if (playbackContext && playbackContext.state === 'running') { try { playbackContext.suspend(); } catch (e) {} }
     stopLevelLoop();
+    clearInterval(stuckInterval); stuckInterval = null;
 
     isSessionActive = false; isSetupComplete = false; isExtractingMemory = false; isWaitingForResponse = false;
     isStopping = false; isFinalizing = false; lessonStarted = false;
