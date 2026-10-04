@@ -9,7 +9,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0f172a">
 
-  <!-- v3.17.0: убран 'unsafe-eval' (не используется), добавлены object-src/base-uri -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' blob: data:;
                  connect-src 'self' wss://generativelanguage.googleapis.com;
@@ -19,7 +18,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>AI Language Tutor v3.17.0</title>
+  <title>AI Language Tutor v3.18.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -178,8 +177,9 @@
       display: none;
       margin-top: 14px;
       width: 100%;
-      max-height: 120px;
-      overflow: hidden;
+      max-height: 140px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
       text-align: left;
       font-size: 0.92rem;
       line-height: 1.4;
@@ -188,6 +188,11 @@
       border-radius: 12px;
       padding: 10px 12px;
     }
+    /* Кастомный скроллбар для субтитров */
+    .captions::-webkit-scrollbar { width: 4px; }
+    .captions::-webkit-scrollbar-track { background: transparent; }
+    .captions::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 4px; }
+
     .captions .cap-user { color: #94a3b8; margin-bottom: 4px; }
     .captions .cap-tutor { color: #f1f5f9; }
 
@@ -410,17 +415,16 @@
   'use strict';
 
   /* ==========================================================================
-     AI Language Tutor v3.17.0  (монолит, без сборки)
-     Изменения относительно v3.16.0 — см. отчёт аудита. Главное:
-       • сессия >15 мин больше не обрывается (contextWindowCompression + sessionResumption + авто-переподключение)
-       • «Данные сохранены» говорится только если они реально сохранены; есть откат памяти
-       • исправлены гонки (async onmessage, двойной proceedToSave/completeCleanup, смена языка посреди урока)
-       • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
+     AI Language Tutor v3.18.1  (монолит, без сборки)
+     Изменения относительно v3.18.0:
+       • Улучшение UX субтитров: окно .captions теперь поддерживает скроллинг (overflow-y: auto)
+       • Автопрокрутка: добавлен автоскролл вниз при добавлении новых субтитров.
+       • Лимит текста: обрезка (slice) увеличена с 320 до 1500 символов, чтобы длинные лекции не удалялись.
      ========================================================================== */
 
-  const APP_VERSION = '3.17.0';
+  const APP_VERSION = '3.18.1';
   const LESSON_SEC = 15 * 60;
-  const MAX_RECONNECT = 3;
+  const MAX_RECONNECT = 5;
   const WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 
   const MODELS = [
@@ -429,7 +433,6 @@
     { id: 'gemini-3.8-live', label: 'Gemini 3.8 Live (новая)' }
   ];
 
-  // Названия разделов памяти — единый источник (раньше в трёх местах писались по-разному)
   const SEC_LOG = '[ЖУРНАЛ УРОКОВ]';
   const SEC_VOC = '[НАКОПИТЕЛЬНЫЙ СЛОВАРЬ]';
   const SEC_ERR = '[БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ]';
@@ -460,20 +463,19 @@
     german: {
       ru: 'Немецкий', label: 'Deutsch', gen: 'немецкого', adv: 'по-немецки', hello: 'Hallo', emoji: '🥨',
       teachers: { female: { full: 'Ханна (Hanna)', short: 'Hanna' }, male: { full: 'Лукас (Lukas)', short: 'Lukas' } },
-      photo: 'https://images.unsplash.com/photo-1664980294789-a4650a3bb0e1?auto=format&fit=crop&w=400&q=75',   // Бранденбургские ворота, Берлин
-      bg: 'https://images.unsplash.com/photo-1552553302-9211bf7f7053?auto=format&fit=crop&w=1280&q=70',       // панорама Берлина
+      photo: 'https://images.unsplash.com/photo-1664980294789-a4650a3bb0e1?auto=format&fit=crop&w=400&q=75',
+      bg: 'https://images.unsplash.com/photo-1552553302-9211bf7f7053?auto=format&fit=crop&w=1280&q=70',
       grad: 'linear-gradient(160deg,#0f172a,#2b2f3a)'
     },
     italian: {
       ru: 'Итальянский', label: 'Italiano', gen: 'итальянского', adv: 'по-итальянски', hello: 'Ciao', emoji: '🍕',
       teachers: { female: { full: 'Джулия (Giulia)', short: 'Giulia' }, male: { full: 'Марко (Marco)', short: 'Marco' } },
-      photo: 'https://images.unsplash.com/photo-1514896856000-91cb6de818e0?auto=format&fit=crop&w=400&q=75',   // Колизей, Рим
-      bg: 'https://images.unsplash.com/photo-1725623903410-296fdc9e2ea8?auto=format&fit=crop&w=1280&q=70',     // Колизей вечером
+      photo: 'https://images.unsplash.com/photo-1514896856000-91cb6de818e0?auto=format&fit=crop&w=400&q=75',
+      bg: 'https://images.unsplash.com/photo-1725623903410-296fdc9e2ea8?auto=format&fit=crop&w=1280&q=70',
       grad: 'linear-gradient(160deg,#0f172a,#14402b)'
     }
   };
 
-  /* ---------- Безопасное хранилище (Safari private mode и переполнение квоты не должны ронять приложение) ---------- */
   const store = {
     get(k, d = '') { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
@@ -487,7 +489,6 @@
   function readJSON(k, d) { try { const v = JSON.parse(store.get(k, '')); return v === null || v === undefined ? d : v; } catch (e) { return d; } }
   function getStoredApiKey() { return sstore.get('gemini_api_key') || store.get('gemini_api_key') || ''; }
 
-  /* ---------- Настройки ---------- */
   const cfg = {
     keyMode: store.get('api_storage_mode', 'local'),
     teacher: store.get('teacher_gender', 'female'),
@@ -504,7 +505,6 @@
   if (!MODELS.some(m => m.id === cfg.model)) cfg.model = MODELS[0].id;
   let apiKey = getStoredApiKey();
 
-  /* ---------- Элементы ---------- */
   const $ = id => document.getElementById(id);
   const btnAction = $('btnAction'), btnEndTurn = $('btnEndTurn'), btnInterrupt = $('btnInterrupt');
   const statusText = $('statusText'), avatarCard = $('avatarCard'), avatarHalo = $('avatarHalo');
@@ -526,7 +526,6 @@
     const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; selectModel.appendChild(o);
   });
 
-  /* ---------- Тексты статусов (ru / uk) ---------- */
   const STR = {
     listening: ['Слушаю вас...', 'Слухаю вас...'],
     speaking: ['Репетитор говорит...', 'Репетитор говорить...'],
@@ -549,7 +548,6 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), ms);
   }
 
-  /* ---------- Память ---------- */
   const EMPTY_MEM = ['Чистый лист.', 'Чистий аркуш.', 'Чистый лист (урок 1).'];
   const isEmptyMem = s => !s || s.trim() === '' || EMPTY_MEM.includes(s.trim());
   const memKey = l => `memory_${l}`;
@@ -557,7 +555,6 @@
   const getLangMem = (l = cfg.lang) => store.get(memKey(l), '');
   const todayStr = () => new Date().toISOString().slice(0, 10);
 
-  // Защита от «усыхания»: если модель вернула память заметно короче старой — ничего не теряем, а дописываем.
   function guardShrink(oldText, newText) {
     const o = (oldText || '').trim();
     if (o.length > 300 && newText.length < o.length * 0.6) {
@@ -586,7 +583,6 @@
     return l.length > 0;
   }
 
-  /* ---------- Статистика уроков (считает приложение, а не ИИ) ---------- */
   const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; };
   function computeStats() {
     const arr = readJSON('lesson_log', []);
@@ -610,7 +606,6 @@
       `<span class="stat-chip">⏱ ${s.minutes} мин</span>`;
   }
 
-  /* ---------- Прочие переменные состояния ---------- */
   let socket = null;
   let audioContext = null, mediaStream = null, sourceNode = null, lpFilter1 = null, lpFilter2 = null, dummyGain = null, audioWorkletNode = null;
   let playbackContext = null, playbackGain = null, analyser = null, analyserBuf = null;
@@ -634,7 +629,6 @@
   let captionNewTurn = true;
   let lastAudioChunkAt = 0, stuckInterval = null;
 
-  /* ---------- UI ---------- */
   function updateAudioChip() {
     const mode = currentAudioMode();
     let chip;
@@ -706,7 +700,6 @@
     else toast('Настройки сохранены.');
   };
 
-  /* ---------- Экспорт / импорт ---------- */
   $('btnExportMemory').onclick = () => {
     const data = {
       version: APP_VERSION,
@@ -786,16 +779,12 @@
     toast('Весь профиль сброшен.');
   };
 
-  /* ==========================================================================
-     Системный промпт (методика сохранена; правки — только где был логический конфликт, см. отчёт)
-     ========================================================================== */
   function getSystemInstruction(lang, globalMem, langMem) {
     const L = LANGS[lang];
     const male = cfg.teacher === 'male';
     const tName = L.teachers[cfg.teacher].full;
     const tRole = male ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
     const langName = L.gen, langAdverb = L.adv;
-    // Грамматический род репетитора (раньше промпт был «женским» даже для мужского голоса)
     const OB = male ? 'ОБЯЗАН' : 'ОБЯЗАНА';
     const ob = male ? 'обязан' : 'обязана';
     const RADA = male ? 'рад' : 'рада';
@@ -829,7 +818,6 @@ ${genderDirective}
 ГЛАВНЫЙ АЛГОРИТМ ИЗУЧЕНИЯ ФРАЗ (АВТОРСКАЯ МЕТОДИКА — СТРОГИЙ ПОРЯДОК И ТЕМП):
 Когда ты знакомишь ученика с новой фразой или словом, ты ${OB} следовать строгому трехшаговому алгоритму:
 1. СНАЧАЛА скажи смысл фразы на РОДНОМ языке ученика (на русском/украинском). Чтобы ученик сразу понял контекст.
-   Пример: «Давай разучим полезную фразу: "Подскажите, пожалуйста, где находится вокзал?"».
 2. ЗАТЕМ произнеси эту фразу на изучаемом языке (${langAdverb}) РОВНО ДВА РАЗА: медленно, четко. Между первым и вторым повтором просто сделай вдох молчания и выдержи естественную тишину (не части и не склеивай слова в скороговорку). Ни в коем случае не произноси вслух служебные слова или подсказки!
 3. В САМОМ КОНЦЕ скажи ученику: «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ!
 КАТЕГОРИЧЕСКИЙ ЗАПРЕТ: Никогда не ставь перевод на русский язык в конец реплики перед повтором ученика! Последним звуком в ушах ученика должна звучать только речь ${langAdverb}!
@@ -896,7 +884,7 @@ ${settingLanguageDirective}
 ${strictBlock}
 
 ОБЪЕМ УРОКА — 15 ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
-1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз и слов (3 блока по 5 фраз)!
+1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз (3 блока по 5 фраз), ЛИБО немедленно при поступлении системной подсказки о финале времени, даже если план не выполнен!
 2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить фразы вроде «это последнее слово», «на этом всё», «заканчиваем», пока не пройдены все 15 фраз или пока не поступит системная подсказка о финале времени!
 3. СТРОЖАЙШИЙ ЗАПРЕТ НА ПОВТОРЕНИЕ: Категорически запрещено брать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] или слова, которые ТОЛЬКО ЧТО проверялись на разминке текущего урока, и преподавать их заново под видом новых!
 4. ПРИНЦИП УГЛУБЛЕНИЯ ТЕМЫ: Если ученик изучает профессиональную или бытовую тему, запрещено топтаться на базовых существительных первого урока. Обучай СЛЕДУЮЩИМ, более глубоким жизненным фразам и действиям (например, не просто «гостиница/номер», а «забронировать номер на две ночи», «у нас сломался кондиционер», «во сколько завтрак», «можно продлить проживание на один день»).
@@ -927,7 +915,6 @@ ${strictBlock}
     return originalPrompt + additions;
   }
 
-  /* Все тексты «служебных» реплик собраны в функции (раньше дублировались по 2–3 раза) */
   function timeWarningText() {
     return cfg.native === 'uk'
       ? '[СИСТЕМНА ПІДКАЗКА: ЧАС УРОКУ ДОБІГАЄ КІНЦЯ (менше 2 хв). Проведи фінальну двосторонню перевірку 2 слів, підведи підсумки, узгодь тему на наступний урок і тепло попрощайся без обривів!]'
@@ -941,7 +928,7 @@ ${strictBlock}
     let genderHint;
     if (cfg.student === 'female') genderHint = cfg.native === 'uk' ? 'Звертайся у ЖІНОЧОМУ роді.' : 'Обращайся в ЖЕНСКОМ роде.';
     else if (cfg.student === 'male') genderHint = cfg.native === 'uk' ? 'Звертайся у ЧОЛОВІЧОМУ роді.' : 'Обращайся в МУЖСКОМ роде.';
-    else genderHint = cfg.native === 'uk' ? 'Узгоджуй форми роду відповідно до статі учня з пам’яті/імені.' : 'Согласуй формы рода соответственно полу ученика из памяти/имени.';
+    else genderHint = cfg.native === 'uk' ? 'Узгоджуй форми роду відповідно до статі учня з пам’яті/імені.' : 'Согласуй формы рода відповідно полу ученика из памяти/имени.';
 
     let text = cfg.native === 'uk'
       ? `[СИСТЕМНО: Залишилося ще ${minutesLeft} хв. Урок триває. УВАГА: Оціни та проаналізуй мою репліку! ${genderHint} Якщо виправляєш помилку: після відпрацювання слова ОБОВ'ЯЗКОВО попроси повторити ВСЮ фразу цілком! Якщо не вийшло — скажи: «ми повторимо це трохи пізніше» (НЕ використовуй слова «банк помилок»)! Якщо нова фраза — строго за правилом: 1) Зміст рідною мовою, 2) ДВІЧІ повільно іноземною мовою з тишею між ними, 3) Команда «Повтори» і мовчання! НЕ вимовляй слово «пауза»! ПРИ ПЕРЕВІРЦІ ЗНАНЬ: НЕ підказуй і НЕ кажи відповідь ${SAM}, доки я не скажу, що не пам'ятаю!]`
@@ -1002,9 +989,6 @@ ${langDirective}
 Вызови saveStudentProfile с полными объединенными данными. Голосом ничего не говори!]`;
   }
 
-  /* ==========================================================================
-     Аудио: вход (микрофон → AudioWorklet 16 кГц)
-     ========================================================================== */
   const workletCode = `
     class PCMProcessor extends AudioWorkletProcessor {
       constructor() {
@@ -1015,7 +999,7 @@ ${langDirective}
         this.bufferIndex = 0;
         this.phase = 0;
         this.last = 0;
-        this.sumSq = 0;   // накопитель RMS живёт между вызовами process() (раньше обнулялся каждый квант)
+        this.sumSq = 0;
       }
       process(inputs) {
         const input = inputs[0];
@@ -1026,7 +1010,7 @@ ${langDirective}
           while (this.phase < len) {
             const i = Math.floor(this.phase);
             const frac = this.phase - i;
-            const s0 = i > 0 ? ch[i - 1] : this.last;   // линейная интерполяция вместо «ближайшего отсчёта»
+            const s0 = i > 0 ? ch[i - 1] : this.last;
             let s = s0 + (ch[i] - s0) * frac;
             s = s > 1 ? 1 : (s < -1 ? -1 : s);
             this.sumSq += s * s;
@@ -1058,26 +1042,23 @@ ${langDirective}
 
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && isSessionActive) {
-      await requestWakeLock();
+      try { await requestWakeLock(); } catch(e){}
       if (playbackContext && playbackContext.state === 'suspended') { try { await playbackContext.resume(); } catch (e) {} }
       if (audioContext && audioContext.state === 'suspended') { try { await audioContext.resume(); } catch (e) {} }
     }
   });
 
-  // Не даём случайно закрыть вкладку посреди урока (прогресс урока ещё не записан)
   window.addEventListener('beforeunload', e => {
     if (isSessionActive) { e.preventDefault(); e.returnValue = ''; }
   });
 
-  // Детектор гарнитуры. Раньше подстрока «ear» совпадала с «earpiece/Headset earpiece» (встроенный динамик телефона)
-  // и «head» — с встроенными «Headphones» ноутбуков, из-за чего включался полный дуплекс на громкой связи (эхо, самоперебивание).
   async function detectHeadset() {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
       const devices = await navigator.mediaDevices.enumerateDevices();
       const GOOD = /(bluetooth|airpods|buds|headphone|headset|наушник|гарнитур|beats|jabra|bose|wh-1000|wf-1000)/i;
       const BAD = /(earpiece|speakerphone|speaker|built-?in|internal|встроенн|динамик|разговорн)/i;
-      if (devices.some(d => d.label)) {   // до выдачи разрешения на микрофон браузер скрывает названия устройств
+      if (devices.some(d => d.label)) {
         isHeadsetConnected = devices.some(d =>
           (d.kind === 'audiooutput' || d.kind === 'audioinput') && GOOD.test(d.label || '') && !BAD.test(d.label || ''));
         headsetChecked = true;
@@ -1125,7 +1106,7 @@ ${langDirective}
       try { await audioContext.audioWorklet.addModule(workletUrl); } finally { URL.revokeObjectURL(workletUrl); }
       audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm-processor');
       dummyGain = audioContext.createGain();
-      dummyGain.gain.value = 0;               // «тихий терминатор» против усыпления графа в Safari
+      dummyGain.gain.value = 0;
       audioWorkletNode.connect(dummyGain);
       dummyGain.connect(audioContext.destination);
       audioWorkletNode.port.onmessage = onMicChunk;
@@ -1133,15 +1114,11 @@ ${langDirective}
 
     [sourceNode, lpFilter1, lpFilter2].forEach(n => { if (n) { try { n.disconnect(); } catch (e) {} } });
     sourceNode = audioContext.createMediaStreamSource(mediaStream);
-    // Антиалиасинг: два каскадных биквада (Баттерворт 4-го порядка) вместо одного 2-го порядка на 7.5 кГц
     lpFilter1 = audioContext.createBiquadFilter(); lpFilter1.type = 'lowpass'; lpFilter1.frequency.value = 7000; lpFilter1.Q.value = 0.5412;
     lpFilter2 = audioContext.createBiquadFilter(); lpFilter2.type = 'lowpass'; lpFilter2.frequency.value = 7000; lpFilter2.Q.value = 1.3065;
     sourceNode.connect(lpFilter1); lpFilter1.connect(lpFilter2); lpFilter2.connect(audioWorkletNode);
   }
 
-  /* ==========================================================================
-     Аудио: выход (воспроизведение 24 кГц, jitter-буфер, пульсация нимба)
-     ========================================================================== */
   function ensurePlayback() {
     if (playbackContext) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -1174,7 +1151,7 @@ ${langDirective}
     source.connect(playbackGain);
 
     const currentTime = playbackContext.currentTime;
-    if (scheduledPlayTime < currentTime) scheduledPlayTime = currentTime + 0.12;   // jitter-буфер 120 мс
+    if (scheduledPlayTime < currentTime) scheduledPlayTime = currentTime + 0.12;
     source.start(scheduledPlayTime);
     scheduledPlayTime += audioBuffer.duration;
 
@@ -1185,7 +1162,6 @@ ${langDirective}
     };
   }
 
-  // Единственный «писатель» анимации нимба: речь репетитора (по выходному сигналу) или голос ученика (по микрофону)
   function levelLoop() {
     let target = 0;
     if (isBotSpeaking && analyser) {
@@ -1223,7 +1199,6 @@ ${langDirective}
     return activeAudioSources.length > 0 || isBotSpeaking || (playbackContext && scheduledPlayTime > playbackContext.currentTime);
   }
 
-  // Ждёт, пока доиграет речь (максимум maxMs). Возвращает Promise, поэтому «дважды» уже не выполнится.
   function waitPlaybackDrain(maxMs) {
     return new Promise(resolve => {
       const t0 = performance.now();
@@ -1234,8 +1209,6 @@ ${langDirective}
     });
   }
 
-  // Страховка: сервер иногда не присылает turnComplete (или присылает с большой задержкой).
-  // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
   function releaseBotIfStuck() {
     if (!isSessionActive || !isBotSpeaking) return;
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
@@ -1246,7 +1219,10 @@ ${langDirective}
     isBotSpeaking = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
-    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+      setStatus(st('yourTurn'));
+      try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
+    }
     if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
   }
 
@@ -1254,23 +1230,23 @@ ${langDirective}
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 200 мс
+      botSpeechDrainTimeout = setTimeout(() => {
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
           isBotSpeaking = false;
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
-          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
+          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+            setStatus(st('yourTurn'));
+            try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
+          }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
       }, 200);
     }
   }
 
-  /* ==========================================================================
-     Таймер урока (по меткам времени: не «плывёт» при троттлинге вкладки в фоне)
-     ========================================================================== */
   function remainingSeconds() { return Math.max(0, Math.ceil((lessonEndsAt - Date.now()) / 1000)); }
   function updateTimerBadge() {
     const r = remainingSeconds();
@@ -1295,9 +1271,10 @@ ${langDirective}
       else if (r > 5 * 60) progressPill.textContent = 'Блок 2 • Практика и фразы 6–10';
       else progressPill.textContent = 'Блок 3 • Закрепление и фразы 11–15';
 
-      if (r <= 120 && !isTimeWarningSent && !isTimeWarningPending) {   // раньше было ===120 и могло «проскочить»
+      if (r <= 120 && !isTimeWarningSent && !isTimeWarningPending) {
         timerBadge.classList.add('timer-warning');
         isTimeWarningPending = true;
+        try { if (navigator.vibrate) navigator.vibrate([100, 50, 100]); } catch(e){}
         if (!isBotSpeaking && !isWaitingForResponse && isSetupComplete) sendAutomaticTimeWarning();
       }
 
@@ -1323,9 +1300,6 @@ ${langDirective}
     sendText(timeWarningText(), true);
   }
 
-  /* ==========================================================================
-     Отправка текста модели (для моделей 3.x текст идёт через realtimeInput, для 2.5 — через clientContent)
-     ========================================================================== */
   function usesRealtimeText() { return /^(models\/)?gemini-3/.test(cfg.model); }
 
   function sendText(text, respond) {
@@ -1346,7 +1320,6 @@ ${langDirective}
   }
   function clearSuppress() { suppressIncomingAudio = false; clearTimeout(suppressTimer); }
 
-  /* ---------- Кнопки урока ---------- */
   btnAction.onclick = () => {
     if (isFinalizing || isStopping) return;
     isSessionActive ? stopSession(true) : startSession();
@@ -1358,29 +1331,31 @@ ${langDirective}
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
-    if (wasGenerating) suppressAudioFor(1200);   // «хвост» старой реплики не должен проиграться
+    if (wasGenerating) suppressAudioFor(1200);
+    try { if (navigator.vibrate) navigator.vibrate(40); } catch(e){}
     setStatus(st('thinking'));
     sendText(endTurnPromptText(), true);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
-      if (isWaitingForResponse) { isWaitingForResponse = false; setStatus(st('yourTurn')); }
+      if (isWaitingForResponse) {
+        isWaitingForResponse = false;
+        setStatus(st('yourTurn'));
+        try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
+      }
     }, 10000);
   };
 
-  // Кнопка ✋ теперь действительно прерывает: раньше глушился только локальный звук, а сервер продолжал присылать остаток реплики.
   btnInterrupt.onclick = () => {
     if (!isBotSpeaking && !isServerTurnActive) return;
     stopBotSpeech();
     isWaitingForResponse = false;
     suppressAudioFor(1200);
+    try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
     sendText('[СИСТЕМНО: Реплика была прервана учеником. Не комментируй это вслух: просто выслушай ученика и отреагируй на его слова.]', false);
     setStatus(st('listening'));
   };
 
-  /* ==========================================================================
-     Старт сессии и WebSocket
-     ========================================================================== */
   function micErrorMessage(err) {
     const n = err && err.name;
     if (n === 'NotAllowedError' || n === 'SecurityError') return 'Доступ к микрофону запрещён. Разрешите его в настройках браузера и повторите.';
@@ -1414,7 +1389,6 @@ ${langDirective}
     }
 
     sessionId++;
-    // Снимок настроек и памяти на момент старта: смена языка/настроек не может «перепутать» запись памяти
     sessionLang = cfg.lang;
     sessionGlobalMem = getGlobalMem();
     sessionLangMem = getLangMem(sessionLang);
@@ -1460,7 +1434,6 @@ ${langDirective}
           }
         }]
       }],
-      // Без этих двух полей аудио-сессия Live API обрывается примерно на 15-й минуте (а урок = 15 минут + сохранение)
       sessionResumption: resume && resumeHandle ? { handle: resumeHandle } : {},
       contextWindowCompression: { slidingWindow: {} }
     };
@@ -1490,7 +1463,7 @@ ${langDirective}
     const mySession = sessionId;
     setStatus(isResume ? st('reconnecting') : st('connecting'));
     const ws = new WebSocket(`${WS_BASE}?key=${encodeURIComponent(apiKey)}`);
-    ws.binaryType = 'arraybuffer';   // синхронный разбор: раньше async-await на Blob мог переставить сообщения местами
+    ws.binaryType = 'arraybuffer';
     socket = ws;
     const decoder = new TextDecoder('utf-8');
 
@@ -1509,7 +1482,7 @@ ${langDirective}
       try { handleServerMessage(msg); } catch (err) { console.error('Message handler error', err); }
     };
 
-    ws.onerror = e => { console.warn('WebSocket error:', e); };   // за error всегда следует close — обрабатываем там
+    ws.onerror = e => { console.warn('WebSocket error:', e); };
 
     ws.onclose = e => {
       if (ws !== socket || mySession !== sessionId) return;
@@ -1526,9 +1499,10 @@ ${langDirective}
         reconnectAttempts++;
         setStatus(st('reconnecting'));
         clearTimeout(reconnectTimer);
+        const backoffMs = 1000 * Math.pow(1.5, reconnectAttempts);
         reconnectTimer = setTimeout(() => {
           if (isSessionActive && !isFinalizing && mySession === sessionId) connectWebSocket(true);
-        }, 500 * reconnectAttempts);
+        }, backoffMs);
         return;
       }
       finalizeStop(isExtractingMemory
@@ -1551,7 +1525,6 @@ ${langDirective}
           if (ok) memoryCommitted = true;
           respondToToolCall(call, { status: ok ? 'success' : 'error', note: ok ? undefined : 'lang_memory пуст' });
         } else {
-          // Вызов посреди урока (запрещён промптом) больше не перезаписывает память
           console.warn('saveStudentProfile вызван вне финала — проигнорирован');
           respondToToolCall(call, { status: 'ignored', note: 'Не вызывай функцию во время урока. Продолжай урок.' });
         }
@@ -1569,23 +1542,24 @@ ${langDirective}
     setTimeout(() => finalizeStop('Урок и прогресс сохранены.'), 300);
   }
 
-  // Модель иногда «проговаривает» служебные токены (<ctrl46>, <noise>) в расшифровке — на экране им не место
   function cleanCaption(text) {
     return String(text || '').replace(/<\/?(?:ctrl\d+|noise|silence)[^>]*>/gi, '').replace(/\s{2,}/g, ' ');
   }
 
   function pushCaption(kind, text) {
     if (cfg.captions !== 'on') return;
-    if (isExtractingMemory) return;          // пока идёт сохранение итогов — субтитры не нужны
+    if (isExtractingMemory) return;
     text = cleanCaption(text);
     if (!text.trim()) return;
     if (kind === 'tutor') {
       if (captionNewTurn) { capTutor.textContent = ''; captionNewTurn = false; }
-      capTutor.textContent = (capTutor.textContent + text).slice(-320);
+      capTutor.textContent = (capTutor.textContent + text).slice(-1500);
     } else {
       if (!capUser.dataset.fresh || capUser.dataset.fresh === '1') { capUser.textContent = ''; capUser.dataset.fresh = '0'; }
-      capUser.textContent = ('Вы: ' + (capUser.textContent.replace(/^Вы: /, '') + text)).slice(-200);
+      capUser.textContent = ('Вы: ' + (capUser.textContent.replace(/^Вы: /, '') + text)).slice(-500);
     }
+    // Автопрокрутка вниз при поступлении нового текста
+    captionsBox.scrollTop = captionsBox.scrollHeight;
   }
 
   function onSetupComplete() {
@@ -1593,7 +1567,7 @@ ${langDirective}
     isSetupComplete = true;
     reconnectAttempts = 0;
 
-    if (lessonStarted) {   // это восстановленное соединение: урок продолжается с того же места
+    if (lessonStarted) {
       isWaitingForResponse = false;
       if (isExtractingMemory) { if (!memoryCommitted) sendMemoryDirective(); }
       else setStatus(st('listening'));
@@ -1613,7 +1587,6 @@ ${langDirective}
 
   function handleServerMessage(msg) {
     if ('setupComplete' in msg) { onSetupComplete(); return; }
-
     if (msg.goAway) console.info('goAway: сервер скоро закроет соединение, timeLeft =', msg.goAway.timeLeft);
 
     if (msg.sessionResumptionUpdate) {
@@ -1630,18 +1603,17 @@ ${langDirective}
     if (sc.inputTranscription && sc.inputTranscription.text) pushCaption('user', sc.inputTranscription.text);
     if (sc.outputTranscription && sc.outputTranscription.text) pushCaption('tutor', sc.outputTranscription.text);
 
-    // Сервер сообщил, что реплика прервана (наша «Я всё сказал» / ✋ / голос в режиме наушников)
     if (sc.interrupted) {
       stopBotSpeech();
       clearSuppress();
-      interruptedPending = true;   // следом придёт turnComplete ПРЕРВАННОЙ реплики — он не означает конец нового ответа
+      interruptedPending = true;
       if (!isWaitingForResponse && !isExtractingMemory) { clearTimeout(watchdogTimer); setStatus(st('listening')); }
     }
 
     if (sc.modelTurn && sc.modelTurn.parts) {
       for (const part of sc.modelTurn.parts) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
-          if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
+          if (isExtractingMemory || suppressIncomingAudio) continue;
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           interruptedPending = false;
@@ -1674,14 +1646,13 @@ ${langDirective}
 
       if (!wasInterruptedTurn) {
         clearTimeout(watchdogTimer);
-        // Пустой ход (модель ничего не сказала) раньше навсегда оставлял микрофон закрытым в полудуплексе
         if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
           isWaitingForResponse = false;
           setStatus(st('yourTurn'));
+          try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
         }
         receivedAudioThisTurn = false;
 
-        // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
         if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
           saveNudges++;
           sendText('[СИСТЕМНО: Не отвечай голосом. Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory и lang_memory.]', true);
@@ -1692,9 +1663,6 @@ ${langDirective}
     }
   }
 
-  /* ==========================================================================
-     Завершение урока и сохранение памяти
-     ========================================================================== */
   function armSaveTimeout(ms) {
     clearTimeout(saveTimeoutId);
     saveTimeoutId = setTimeout(() => {
@@ -1707,7 +1675,7 @@ ${langDirective}
     if (!socket || socket.readyState !== WebSocket.OPEN || !isSetupComplete) return false;
     setStatus(st('saving'));
     sendText(memoryPromptText(), true);
-    armSaveTimeout(25000);   // было 7.5 с: при росте памяти модель просто не успевала «договорить» вызов функции
+    armSaveTimeout(25000);
     return true;
   }
 
@@ -1726,7 +1694,7 @@ ${langDirective}
       stopBotSpeech();
     } else if (isAudioStillPlaying() || isServerTurnActive) {
       setStatus(st('finishing'));
-      await waitPlaybackDrain(10000);   // Graceful Audio Drain Buffer
+      await waitPlaybackDrain(10000);
       if (mySession !== sessionId || isFinalizing) return;
     }
 
@@ -1734,14 +1702,13 @@ ${langDirective}
     if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
       sendMemoryDirective();
     } else if (resumeHandle && lessonStarted) {
-      armSaveTimeout(30000);   // соединение переподключается; директива уйдёт сразу после setupComplete
+      armSaveTimeout(30000);
     } else {
       finalizeStop(lessonStarted ? 'Связи нет — итоги урока сохранить не удалось.' : 'Урок завершён.');
     }
   }
 
   function addFallbackNote(sec) {
-    // Если ИИ не смог сохранить итоги, фиксируем хотя бы сам факт урока, чтобы память не «потеряла» занятие молча
     if (sec < 90) return;
     const old = getLangMem(sessionLang);
     store.set(memKey(sessionLang) + '__prev', old);
@@ -1781,13 +1748,12 @@ ${langDirective}
 
     stopBotSpeech();
     const ws = socket;
-    socket = null;                         // обработчики старого сокета после этого ничего не делают
+    socket = null;
     if (ws) { try { ws.close(); } catch (e) {} }
 
     if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
     [sourceNode, lpFilter1, lpFilter2].forEach(n => { if (n) { try { n.disconnect(); } catch (e) {} } });
     sourceNode = lpFilter1 = lpFilter2 = null;
-    // iOS: контексты никогда не close(), только suspend()/resume()
     if (audioContext && audioContext.state === 'running') { try { audioContext.suspend(); } catch (e) {} }
     if (playbackContext && playbackContext.state === 'running') { try { playbackContext.suspend(); } catch (e) {} }
     stopLevelLoop();
@@ -1806,8 +1772,7 @@ ${langDirective}
     updateUI();
   }
 
-  /* ---------- Установка на экран телефона (PWA) ---------- */
-  const btnInstall = $('btnInstall'), installHint = $('installHint');
+  const btnInstall = $('btnInstall'), installHint =$('installHint');
   let deferredInstall = null;
   const isStandalone = () => {
     try { return !!(navigator.standalone || (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; }
@@ -1838,7 +1803,6 @@ ${langDirective}
     window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e)); });
   }
 
-  /* ---------- Старт ---------- */
   updateUI();
   if (!apiKey) setStatus('Нажмите ⚙ и вставьте ключ Google AI Studio, затем «Начать урок»');
   </script>
