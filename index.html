@@ -2,23 +2,25 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="AI Tutor">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0f172a">
+  <meta name="description" content="Голосовой ИИ-репетитор иностранных языков на базе Gemini Live">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
+  <!-- v3.17.0: убран 'unsafe-eval' (не используется), добавлены object-src/base-uri -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' blob: data:;
                  connect-src 'self' wss://generativelanguage.googleapis.com;
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" type="image/png" href="icon-192.png">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>AI Language Tutor v3.19.1</title>
+  <title>AI Language Tutor v3.18.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -177,9 +179,8 @@
       display: none;
       margin-top: 14px;
       width: 100%;
-      max-height: 140px;
-      overflow-y: auto;
-      scroll-behavior: smooth;
+      max-height: 120px;
+      overflow: hidden;
       text-align: left;
       font-size: 0.92rem;
       line-height: 1.4;
@@ -188,10 +189,6 @@
       border-radius: 12px;
       padding: 10px 12px;
     }
-    .captions::-webkit-scrollbar { width: 4px; }
-    .captions::-webkit-scrollbar-track { background: transparent; }
-    .captions::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.4); border-radius: 4px; }
-
     .captions .cap-user { color: #94a3b8; margin-bottom: 4px; }
     .captions .cap-tutor { color: #f1f5f9; }
 
@@ -227,7 +224,7 @@
 
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); justify-content: center; align-items: center; padding: 20px; z-index: 50; }
     .modal-content { background: #1e293b; padding: 22px; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 0.9rem; width: 100%; }
+    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; width: 100%; }   /* 16px — иначе iOS приближает страницу при фокусе */
     .modal-content label { font-size: 0.82rem; color: #94a3b8; margin-bottom: -5px; text-align: left; }
     .modal-content button { padding: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
     .modal-content a { color: #38bdf8; font-size: 0.8rem; text-align: left; }
@@ -308,22 +305,19 @@
 
   <div class="toast" id="toast" role="status"></div>
 
-  <div class="modal" id="modalSettings">
+  <div class="modal" id="modalSettings" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-        <h3 id="lblSettingsTitle" style="margin: 0; text-align: left;">Настройки</h3>
+        <h3 id="settingsTitle" style="margin: 0; text-align: left;">Настройки</h3>
         <span class="js-version" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;"></span>
       </div>
 
-      <button type="button" class="btn-backup" id="btnInstall" style="display:none; background:#7c3aed;">📲 Установить как приложение</button>
-      <div class="hint" id="installHint" style="display:none; color: #f59e0b;"></div>
-
-      <label id="lblKey" for="inputApiKey">API ключ Google AI Studio:</label>
-      <input type="password" id="inputApiKey" placeholder="Вставьте ключ сюда"
+      <label for="inputApiKey">Google AI Studio API Key:</label>
+      <input type="password" id="inputApiKey" placeholder="AIzaSy..."
              autocomplete="off" spellcheck="false" autocapitalize="off">
-      <a id="linkGetUrl" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно)</a>
+      <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно, в Google AI Studio)</a>
 
-      <label id="lblKeyMode" for="selectStorageMode">Режим хранения ключа:</label>
+      <label for="selectStorageMode">Режим хранения ключа:</label>
       <select id="selectStorageMode">
         <option value="local">На этом устройстве</option>
         <option value="session">Только на время сессии</option>
@@ -331,11 +325,11 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label id="lblTarget" for="selectLanguage">Изучаемый язык:</label>
+          <label for="selectLanguage">Изучаемый язык:</label>
           <select id="selectLanguage"></select>
         </div>
         <div style="flex: 1;">
-          <label id="lblVoice" for="selectTeacher">Голос репетитора:</label>
+          <label for="selectTeacher">Голос репетитора:</label>
           <select id="selectTeacher">
             <option value="female">Женский</option>
             <option value="male">Мужской</option>
@@ -345,7 +339,7 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label id="lblGender" for="selectStudentGender">Пол ученика (обращение):</label>
+          <label for="selectStudentGender">Пол ученика (обращение):</label>
           <select id="selectStudentGender">
             <option value="auto">Определить самому</option>
             <option value="male">Мужской</option>
@@ -353,10 +347,10 @@
           </select>
         </div>
         <div style="flex: 1;">
-          <label id="lblNative" for="selectNativeLang">Язык объяснений:</label>
+          <label for="selectNativeLang">Язык объяснений:</label>
           <select id="selectNativeLang">
-            <option value="uk">Українська</option>
             <option value="ru">Русский</option>
+            <option value="uk">Українська</option>
             <option value="auto">Автоопределение</option>
           </select>
         </div>
@@ -364,49 +358,55 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label id="lblUiLang" for="selectUiLang">Язык интерфейса:</label>
-          <select id="selectUiLang">
-            <option value="uk">Українська</option>
-            <option value="ru">Русский</option>
-            <option value="fr">Français</option>
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="de">Deutsch</option>
-            <option value="it">Italiano</option>
+          <label for="selectLevel">Ваш уровень:</label>
+          <select id="selectLevel">
+            <option value="auto">Определить по памяти</option>
+            <option value="A0">С нуля (A0)</option>
+            <option value="A1">A1</option>
+            <option value="A2">A2</option>
+            <option value="B1">B1</option>
+            <option value="B2">B2</option>
           </select>
         </div>
         <div style="flex: 1;">
-          <label id="lblAudio" for="selectAudioMode">Аудио-режим:</label>
-          <select id="selectAudioMode">
-            <option value="auto">Авто (наушники/динамик)</option>
-            <option value="half">Динамик (микрофон ждет)</option>
-            <option value="full">Наушники (можно перебивать)</option>
+          <label for="selectMinutes">Длина урока:</label>
+          <select id="selectMinutes">
+            <option value="10">10 минут</option>
+            <option value="15">15 минут</option>
+            <option value="20">20 минут</option>
           </select>
         </div>
       </div>
 
-      <label id="lblStrict" for="selectStrict">Проверка вашего произношения:</label>
+      <label for="selectAudioMode">Аудио-режим:</label>
+      <select id="selectAudioMode">
+        <option value="auto">Авто (наушники / динамик)</option>
+        <option value="half">Динамик (микрофон ждёт)</option>
+        <option value="full">Наушники (можно перебивать)</option>
+      </select>
+
+      <label for="selectStrict">Проверка вашего произношения:</label>
       <select id="selectStrict">
         <option value="strict">Строгая</option>
         <option value="normal">Мягкая</option>
       </select>
 
-      <label id="lblVad" for="selectVad">Пауза перед ответом репетитора:</label>
+      <label for="selectVad">Пауза перед ответом репетитора:</label>
       <select id="selectVad">
         <option value="default">Стандартная</option>
         <option value="patient">Терпеливая</option>
         <option value="very">Очень терпеливая</option>
       </select>
 
-      <label id="lblCap" for="selectCaptions">Текст реплик (субтитры):</label>
+      <label for="selectCaptions">Текст реплик (субтитры):</label>
       <select id="selectCaptions">
         <option value="off">Выключены</option>
         <option value="on">Показывать</option>
       </select>
 
-      <label id="lblModel" for="selectModel">Модель Gemini Live:</label>
+      <label for="selectModel">Модель Gemini Live:</label>
       <select id="selectModel"></select>
-      <div class="hint" id="hintText">Если урок не стартует — выберите другую модель.</div>
+      <div class="hint">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель. «Определить самому» — пол ученика определяется по имени и речи.</div>
 
       <button class="btn-save" id="btnSaveKey">Сохранить настройки</button>
 
@@ -418,10 +418,11 @@
       </div>
       <input type="file" id="inputImportFile" accept=".json" style="display: none;">
 
-      <button class="btn-reset-current" id="btnUndoMemory">↩ Откатить последнее сохранение</button>
+      <button class="btn-reset-current" id="btnUndoMemory">↩ Откатить последнее сохранение памяти</button>
       <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
-      <button class="btn-reset-all" id="btnResetAllMemory">Сбросить ВСЮ память (все языки)</button>
+      <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
+      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
     </div>
   </div>
 
@@ -429,16 +430,18 @@
   'use strict';
 
   /* ==========================================================================
-     AI Language Tutor v3.19.1  (монолит, без сборки)
-     Исправления: 
-       • Устранена ошибка пустых выпадающих списков (восстановлена полная HTML-структура опций).
-       • Добавлен перевод метки «Хранение ключа» (lblKeyMode).
-       • Скрыта кнопка «Установить» в in-app браузерах Android (Viber/Telegram) с подсказкой открыть в Chrome.
+     AI Language Tutor v3.18.0  (монолит, без сборки)
+     v3.18.0: подключены manifest/service worker/иконки (PWA), исправлен импорт (форма затирала импортированные настройки),
+     проверка записи памяти, восстановление микрофона, уровень и длина урока, напоминание о резервной копии, доступность.
+     Изменения относительно v3.16.0 — см. отчёт аудита. Главное:
+       • сессия >15 мин больше не обрывается (contextWindowCompression + sessionResumption + авто-переподключение)
+       • «Данные сохранены» говорится только если они реально сохранены; есть откат памяти
+       • исправлены гонки (async onmessage, двойной proceedToSave/completeCleanup, смена языка посреди урока)
+       • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.19.1';
-  const LESSON_SEC = 15 * 60;
-  const MAX_RECONNECT = 5;
+  const APP_VERSION = '3.18.0';
+  const MAX_RECONNECT = 3;
   const WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 
   const MODELS = [
@@ -447,6 +450,7 @@
     { id: 'gemini-3.8-live', label: 'Gemini 3.8 Live (новая)' }
   ];
 
+  // Названия разделов памяти — единый источник (раньше в трёх местах писались по-разному)
   const SEC_LOG = '[ЖУРНАЛ УРОКОВ]';
   const SEC_VOC = '[НАКОПИТЕЛЬНЫЙ СЛОВАРЬ]';
   const SEC_ERR = '[БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ]';
@@ -477,107 +481,18 @@
     german: {
       ru: 'Немецкий', label: 'Deutsch', gen: 'немецкого', adv: 'по-немецки', hello: 'Hallo', emoji: '🥨',
       teachers: { female: { full: 'Ханна (Hanna)', short: 'Hanna' }, male: { full: 'Лукас (Lukas)', short: 'Lukas' } },
-      photo: 'https://images.unsplash.com/photo-1664980294789-a4650a3bb0e1?auto=format&fit=crop&w=400&q=75',
-      bg: 'https://images.unsplash.com/photo-1552553302-9211bf7f7053?auto=format&fit=crop&w=1280&q=70',
+      photo: null, bg: null,
       grad: 'linear-gradient(160deg,#0f172a,#2b2f3a)'
     },
     italian: {
       ru: 'Итальянский', label: 'Italiano', gen: 'итальянского', adv: 'по-итальянски', hello: 'Ciao', emoji: '🍕',
       teachers: { female: { full: 'Джулия (Giulia)', short: 'Giulia' }, male: { full: 'Марко (Marco)', short: 'Marco' } },
-      photo: 'https://images.unsplash.com/photo-1514896856000-91cb6de818e0?auto=format&fit=crop&w=400&q=75',
-      bg: 'https://images.unsplash.com/photo-1725623903410-296fdc9e2ea8?auto=format&fit=crop&w=1280&q=70',
+      photo: null, bg: null,
       grad: 'linear-gradient(160deg,#0f172a,#14402b)'
     }
   };
 
-  /* ---------- I18N (Мультиязычный интерфейс) ---------- */
-  const I18N = {
-    uk: {
-      settingsTitle: 'Налаштування', lblKey: 'API ключ Google AI Studio:', lblKeyMode: 'Зберігання ключа:', optLocal: 'На цьому пристрої', optSession: 'Лише на сесію', lblTarget: 'Мова вивчення:', lblVoice: 'Голос репетитора:', optFemale: 'Жіночий', optMale: 'Чоловічий', lblGender: 'Стать учня:', optAutoGen: 'Визначити авто', lblNative: 'Мова пояснень:', optAutoNat: 'Автовизначення', lblUiLang: 'Мова інтерфейсу:', lblAudio: 'Аудіо-режим:', optAutoAud: 'Авто (Навушники / Динамік)', optHalf: 'Динамік (мікрофон чекає)', optFull: 'Навушники (можна перебивати)', lblStrict: 'Перевірка вимови:', optStrict: 'Сувора', optSoft: 'М\'яка', lblVad: 'Пауза перед відповіддю:', optDef: 'Стандартна', optPat: 'Терпляча', optVery: 'Дуже терпляча', lblCap: 'Субтитри:', optOff: 'Вимкнено', optOn: 'Увімкнено', lblModel: 'Модель Gemini Live:',
-      btnSave: 'Зберегти налаштування', btnExp: '📥 Експорт (JSON)', btnImp: '📤 Імпорт (JSON)', btnUndo: '↩ Відкотити пам\'ять', btnRstCur: 'Скинути поточну мову', btnRstAll: 'Скинути ВСЮ пам\'ять', btnClose: 'Закрити',
-      btnStart: 'Почати урок', btnStop: 'Завершити урок', btnInterrupt: 'Перебити / Досить ✋', btnTurn: 'Я все сказав ➔',
-      stList: 'Слухаю вас...', stSpeak: 'Репетитор говорить...', stThink: 'Готує відповідь...', stTurn: 'Ваша черга говорити...', stConn: 'З’єднання...', stReconn: 'Відновлення зв’язку...', stSave: 'Збереження...', stFin: 'Репетитор договорює...',
-      msgGetUrl: 'Де взяти ключ (безкоштовно)', msgInterrupted: 'Репліку перервано (почуто шум/голос)', msgTimeDone: 'Час вичерпано. Завершення...',
-      hintText: 'Якщо урок не стартує — виберіть іншу модель.',
-      memTemplate: 'Пам\'ять «{lang}»: {lKb} КБ • загальна: {gKb} КБ • локально',
-      prog1: 'Розминка 1–5', prog2: 'Практика 6–10', prog3: 'Закріплення 11–15',
-      profAct: 'Профіль активний', profNew: 'Новий курс', audAuto: 'авто', audHead: 'Навушники', audSpeak: 'Динамік', msgAskKey: 'Натисніть ⚙ і вставте ключ API',
-      hintIos: 'iPhone/iPad: відкрийте в Safari → «Поділитися» → «На екран Домашній».', hintInApp: 'Щоб встановити додаток, відкрийте посилання у звичайному браузері (Chrome).'
-    },
-    ru: {
-      settingsTitle: 'Настройки', lblKey: 'API ключ Google AI Studio:', lblKeyMode: 'Хранение ключа:', optLocal: 'На этом устройстве', optSession: 'Только на сессию', lblTarget: 'Изучаемый язык:', lblVoice: 'Голос репетитора:', optFemale: 'Женский', optMale: 'Мужской', lblGender: 'Пол ученика:', optAutoGen: 'Определить самому', lblNative: 'Язык объяснений:', optAutoNat: 'Автоопределение', lblUiLang: 'Язык интерфейса:', lblAudio: 'Аудио-режим:', optAutoAud: 'Авто (Наушники / Динамик)', optHalf: 'Динамик (микрофон ждет)', optFull: 'Наушники (перебивать)', lblStrict: 'Проверка произношения:', optStrict: 'Строгая', optSoft: 'Мягкая', lblVad: 'Пауза перед ответом:', optDef: 'Стандартная', optPat: 'Терпеливая', optVery: 'Очень терпеливая', lblCap: 'Субтитры:', optOff: 'Выключены', optOn: 'Включены', lblModel: 'Модель Gemini Live:',
-      btnSave: 'Сохранить настройки', btnExp: '📥 Экспорт (JSON)', btnImp: '📤 Импорт (JSON)', btnUndo: '↩ Откатить память', btnRstCur: 'Сбросить текущий язык', btnRstAll: 'Сбросить ВСЮ память', btnClose: 'Закрыть',
-      btnStart: 'Начать урок', btnStop: 'Завершить урок', btnInterrupt: 'Перебить / Хватит ✋', btnTurn: 'Я всё сказал ➔',
-      stList: 'Слушаю вас...', stSpeak: 'Репетитор говорит...', stThink: 'Готовит ответ...', stTurn: 'Ваша очередь говорить...', stConn: 'Соединение...', stReconn: 'Восстановление связи...', stSave: 'Сохранение...', stFin: 'Репетитор договаривает...',
-      msgGetUrl: 'Где взять ключ (бесплатно)', msgInterrupted: 'Реплика прервана (услышан шум/голос)', msgTimeDone: 'Время истекло. Завершение...',
-      hintText: 'Если урок не стартует — выберите другую модель.',
-      memTemplate: 'Память «{lang}»: {lKb} КБ • общая: {gKb} КБ • локально',
-      prog1: 'Разминка 1–5', prog2: 'Практика 6–10', prog3: 'Закрепление 11–15',
-      profAct: 'Профиль активен', profNew: 'Новый курс', audAuto: 'авто', audHead: 'Наушники', audSpeak: 'Динамик', msgAskKey: 'Нажмите ⚙ и вставьте ключ API',
-      hintIos: 'iPhone/iPad: откройте в Safari → «Поделиться» → «На экран Домой».', hintInApp: 'Чтобы установить приложение, откройте ссылку в обычном браузере (Chrome).'
-    },
-    en: {
-      settingsTitle: 'Settings', lblKey: 'Google AI Studio API Key:', lblKeyMode: 'Key storage:', optLocal: 'On this device', optSession: 'Session only', lblTarget: 'Target language:', lblVoice: 'Tutor voice:', optFemale: 'Female', optMale: 'Male', lblGender: 'Student gender:', optAutoGen: 'Auto-detect', lblNative: 'Explanation lang:', optAutoNat: 'Auto-detect', lblUiLang: 'Interface lang:', lblAudio: 'Audio mode:', optAutoAud: 'Auto (Headset/Speaker)', optHalf: 'Speaker (mic waits)', optFull: 'Headset (can interrupt)', lblStrict: 'Pronunciation check:', optStrict: 'Strict', optSoft: 'Soft', lblVad: 'Pause before answer:', optDef: 'Standard', optPat: 'Patient', optVery: 'Very patient', lblCap: 'Subtitles:', optOff: 'Off', optOn: 'On', lblModel: 'Gemini Live Model:',
-      btnSave: 'Save settings', btnExp: '📥 Export (JSON)', btnImp: '📤 Import (JSON)', btnUndo: '↩ Undo memory', btnRstCur: 'Reset current lang', btnRstAll: 'Reset ALL memory', btnClose: 'Close',
-      btnStart: 'Start lesson', btnStop: 'End lesson', btnInterrupt: 'Interrupt ✋', btnTurn: 'I am done ➔',
-      stList: 'Listening...', stSpeak: 'Tutor speaking...', stThink: 'Thinking...', stTurn: 'Your turn to speak...', stConn: 'Connecting...', stReconn: 'Reconnecting...', stSave: 'Saving...', stFin: 'Finishing...',
-      msgGetUrl: 'Get API key (Free)', msgInterrupted: 'Interrupted (noise/voice detected)', msgTimeDone: 'Time is up. Finishing...',
-      hintText: 'If lesson fails to start, choose another model.',
-      memTemplate: 'Memory "{lang}": {lKb} KB • global: {gKb} KB • local',
-      prog1: 'Warm-up 1–5', prog2: 'Practice 6–10', prog3: 'Review 11–15',
-      profAct: 'Profile active', profNew: 'New course', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Speaker', msgAskKey: 'Click ⚙ and paste API key',
-      hintIos: 'iPhone/iPad: open in Safari → "Share" → "Add to Home Screen".', hintInApp: 'To install the app, open this link in a standard browser (Chrome).'
-    },
-    fr: {
-      settingsTitle: 'Paramètres', lblKey: 'Clé API Google AI Studio:', lblKeyMode: 'Stockage de clé:', optLocal: 'Sur cet appareil', optSession: 'Session unique', lblTarget: 'Langue cible:', lblVoice: 'Voix du tuteur:', optFemale: 'Femme', optMale: 'Homme', lblGender: 'Genre de l\'élève:', optAutoGen: 'Détecter auto', lblNative: 'Langue d\'explication:', optAutoNat: 'Détecter auto', lblUiLang: 'Langue interface:', lblAudio: 'Mode audio:', optAutoAud: 'Auto (Casque/Haut-parleur)', optHalf: 'Haut-parleur (micro attend)', optFull: 'Casque (interrompre)', lblStrict: 'Contrôle prononciation:', optStrict: 'Strict', optSoft: 'Souple', lblVad: 'Pause avant réponse:', optDef: 'Standard', optPat: 'Patient', optVery: 'Très patient', lblCap: 'Sous-titres:', optOff: 'Désactivé', optOn: 'Activé', lblModel: 'Modèle Gemini Live:',
-      btnSave: 'Enregistrer', btnExp: '📥 Exporter (JSON)', btnImp: '📤 Importer (JSON)', btnUndo: '↩ Annuler dernière sauv.', btnRstCur: 'Réinitialiser langue', btnRstAll: 'Réinitialiser TOUT', btnClose: 'Fermer',
-      btnStart: 'Commencer leçon', btnStop: 'Terminer leçon', btnInterrupt: 'Interrompre ✋', btnTurn: 'J\'ai fini ➔',
-      stList: 'À l\'écoute...', stSpeak: 'Le tuteur parle...', stThink: 'Réflexion...', stTurn: 'À vous de parler...', stConn: 'Connexion...', stReconn: 'Reconnexion...', stSave: 'Sauvegarde...', stFin: 'Termine...',
-      msgGetUrl: 'Obtenir clé API (Gratuit)', msgInterrupted: 'Interrompu (bruit détecté)', msgTimeDone: 'Temps écoulé. Fin...',
-      hintText: 'Si la leçon ne démarre pas, changez de modèle.',
-      memTemplate: 'Mémoire "{lang}": {lKb} Ko • globale: {gKb} Ko • local',
-      prog1: 'Échauffement 1-5', prog2: 'Pratique 6-10', prog3: 'Révision 11-15',
-      profAct: 'Profil actif', profNew: 'Nouveau cours', audAuto: 'auto', audHead: 'Casque', audSpeak: 'Haut-parleur', msgAskKey: 'Cliquez ⚙ et collez clé API',
-      hintIos: 'iPhone/iPad: ouvrez dans Safari → "Partager" → "Sur l\'écran d\'accueil".', hintInApp: 'Pour installer, ouvrez ce lien dans un navigateur standard (Chrome).'
-    },
-    es: {
-      settingsTitle: 'Ajustes', lblKey: 'Clave API Google AI Studio:', lblKeyMode: 'Almacenamiento clave:', optLocal: 'En el dispositivo', optSession: 'Solo sesión', lblTarget: 'Idioma objetivo:', lblVoice: 'Voz del tutor:', optFemale: 'Mujer', optMale: 'Hombre', lblGender: 'Género del alumno:', optAutoGen: 'Detectar auto', lblNative: 'Idioma de explicación:', optAutoNat: 'Detectar auto', lblUiLang: 'Idioma interfaz:', lblAudio: 'Modo de audio:', optAutoAud: 'Auto (Auricular/Altavoz)', optHalf: 'Altavoz (mic espera)', optFull: 'Auricular (interrumpir)', lblStrict: 'Control pronunciación:', optStrict: 'Estricto', optSoft: 'Suave', lblVad: 'Pausa antes de respuesta:', optDef: 'Estándar', optPat: 'Paciente', optVery: 'Muy paciente', lblCap: 'Subtítulos:', optOff: 'No', optOn: 'Sí', lblModel: 'Modelo Gemini Live:',
-      btnSave: 'Guardar ajustes', btnExp: '📥 Exportar (JSON)', btnImp: '📤 Importar (JSON)', btnUndo: '↩ Deshacer memoria', btnRstCur: 'Reiniciar idioma', btnRstAll: 'Reiniciar TODO', btnClose: 'Cerrar',
-      btnStart: 'Empezar lección', btnStop: 'Terminar lección', btnInterrupt: 'Interrumpir ✋', btnTurn: 'He terminado ➔',
-      stList: 'Escuchando...', stSpeak: 'Tutor hablando...', stThink: 'Pensando...', stTurn: 'Tu turno para hablar...', stConn: 'Conectando...', stReconn: 'Reconectando...', stSave: 'Guardando...', stFin: 'Terminando...',
-      msgGetUrl: 'Obtener clave API (Gratis)', msgInterrupted: 'Interrumpido (ruido detectado)', msgTimeDone: 'Tiempo agotado. Fin...',
-      hintText: 'Si no inicia, elige otro modelo.',
-      memTemplate: 'Memoria "{lang}": {lKb} KB • global: {gKb} KB • local',
-      prog1: 'Calentamiento 1-5', prog2: 'Práctica 6-10', prog3: 'Repaso 11-15',
-      profAct: 'Perfil activo', profNew: 'Nuevo curso', audAuto: 'auto', audHead: 'Auricular', audSpeak: 'Altavoz', msgAskKey: 'Haz clic ⚙ y pega la clave API',
-      hintIos: 'iPhone/iPad: abre en Safari → "Compartir" → "Añadir a inicio".', hintInApp: 'Para instalar, abre este enlace en un navegador estándar (Chrome).'
-    },
-    de: {
-      settingsTitle: 'Einstellungen', lblKey: 'Google AI Studio API-Key:', lblKeyMode: 'Schlüsselspeicher:', optLocal: 'Auf diesem Gerät', optSession: 'Nur Sitzung', lblTarget: 'Zielsprache:', lblVoice: 'Stimme Tutor:', optFemale: 'Frau', optMale: 'Mann', lblGender: 'Schülergeschlecht:', optAutoGen: 'Auto-Erkennung', lblNative: 'Erklärungssprache:', optAutoNat: 'Auto-Erkennung', lblUiLang: 'UI-Sprache:', lblAudio: 'Audio-Modus:', optAutoAud: 'Auto (Headset/Lautsprecher)', optHalf: 'Lautsprecher (Mic wartet)', optFull: 'Headset (unterbrechen)', lblStrict: 'Ausspracheprüfung:', optStrict: 'Streng', optSoft: 'Sanft', lblVad: 'Pause vor Antwort:', optDef: 'Standard', optPat: 'Geduldig', optVery: 'Sehr geduldig', lblCap: 'Untertitel:', optOff: 'Aus', optOn: 'Ein', lblModel: 'Gemini Live Modell:',
-      btnSave: 'Speichern', btnExp: '📥 Exportieren (JSON)', btnImp: '📤 Importieren (JSON)', btnUndo: '↩ Speicher rückgängig', btnRstCur: 'Sprache zurücksetzen', btnRstAll: 'ALLES zurücksetzen', btnClose: 'Schließen',
-      btnStart: 'Lektion starten', btnStop: 'Lektion beenden', btnInterrupt: 'Unterbrechen ✋', btnTurn: 'Ich bin fertig ➔',
-      stList: 'Höre zu...', stSpeak: 'Tutor spricht...', stThink: 'Denkt nach...', stTurn: 'Du bist dran...', stConn: 'Verbinde...', stReconn: 'Verbinde neu...', stSave: 'Speichern...', stFin: 'Beenden...',
-      msgGetUrl: 'API-Key holen (Kostenlos)', msgInterrupted: 'Unterbrochen (Geräusch)', msgTimeDone: 'Zeit abgelaufen. Beende...',
-      hintText: 'Wenn es nicht startet, anderes Modell wählen.',
-      memTemplate: 'Speicher "{lang}": {lKb} KB • global: {gKb} KB • lokal',
-      prog1: 'Aufwärmen 1-5', prog2: 'Übung 6-10', prog3: 'Wiederholung 11-15',
-      profAct: 'Profil aktiv', profNew: 'Neuer Kurs', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Lautsprecher', msgAskKey: 'Klick ⚙ und API-Key einfügen',
-      hintIos: 'iPhone/iPad: in Safari öffnen → "Teilen" → "Zum Home-Bildschirm".', hintInApp: 'Zum Installieren Link im Standardbrowser (Chrome) öffnen.'
-    },
-    it: {
-      settingsTitle: 'Impostazioni', lblKey: 'Chiave API Google AI Studio:', lblKeyMode: 'Memoria chiave:', optLocal: 'Su questo disp.', optSession: 'Solo sessione', lblTarget: 'Lingua di studio:', lblVoice: 'Voce tutor:', optFemale: 'Donna', optMale: 'Uomo', lblGender: 'Genere studente:', optAutoGen: 'Rilevamento auto', lblNative: 'Lingua spiegazione:', optAutoNat: 'Rilevamento auto', lblUiLang: 'Lingua interfaccia:', lblAudio: 'Modalità audio:', optAutoAud: 'Auto (Cuffie/Altoparlante)', optHalf: 'Altoparlante (mic attende)', optFull: 'Cuffie (può interrompere)', lblStrict: 'Controllo pronuncia:', optStrict: 'Severo', optSoft: 'Morbido', lblVad: 'Pausa prima di risposta:', optDef: 'Standard', optPat: 'Paziente', optVery: 'Molto paziente', lblCap: 'Sottotitoli:', optOff: 'Spento', optOn: 'Acceso', lblModel: 'Modello Gemini Live:',
-      btnSave: 'Salva', btnExp: '📥 Esporta (JSON)', btnImp: '📤 Importa (JSON)', btnUndo: '↩ Annulla memoria', btnRstCur: 'Ripristina lingua', btnRstAll: 'Ripristina TUTTO', btnClose: 'Chiudi',
-      btnStart: 'Inizia lezione', btnStop: 'Termina lezione', btnInterrupt: 'Interrompi ✋', btnTurn: 'Ho finito ➔',
-      stList: 'Ascolto...', stSpeak: 'Il tutor parla...', stThink: 'Pensando...', stTurn: 'Tocca a te...', stConn: 'Connessione...', stReconn: 'Riconnessione...', stSave: 'Salvataggio...', stFin: 'Completamento...',
-      msgGetUrl: 'Ottieni chiave API (Gratis)', msgInterrupted: 'Interrotto (rumore rilevato)', msgTimeDone: 'Tempo scaduto. Fine...',
-      hintText: 'Se non si avvia, scegli un altro modello.',
-      memTemplate: 'Memoria "{lang}": {lKb} KB • globale: {gKb} KB • locale',
-      prog1: 'Riscaldamento 1-5', prog2: 'Pratica 6-10', prog3: 'Ripasso 11-15',
-      profAct: 'Profilo attivo', profNew: 'Nuovo corso', audAuto: 'auto', audHead: 'Cuffie', audSpeak: 'Altoparlante', msgAskKey: 'Clicca ⚙ e incolla chiave API',
-      hintIos: 'iPhone/iPad: apri in Safari → "Condividi" → "Aggiungi a Home".', hintInApp: 'Per installare, apri il link nel browser standard (Chrome).'
-    }
-  };
-
+  /* ---------- Безопасное хранилище (Safari private mode и переполнение квоты не должны ронять приложение) ---------- */
   const store = {
     get(k, d = '') { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
     set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } },
@@ -591,8 +506,8 @@
   function readJSON(k, d) { try { const v = JSON.parse(store.get(k, '')); return v === null || v === undefined ? d : v; } catch (e) { return d; } }
   function getStoredApiKey() { return sstore.get('gemini_api_key') || store.get('gemini_api_key') || ''; }
 
+  /* ---------- Настройки ---------- */
   const cfg = {
-    uiLang: store.get('ui_lang', 'uk'),
     keyMode: store.get('api_storage_mode', 'local'),
     teacher: store.get('teacher_gender', 'female'),
     student: store.get('student_gender', 'auto'),
@@ -602,13 +517,17 @@
     model: store.get('model_id', MODELS[0].id),
     vad: store.get('vad_mode', 'default'),
     captions: store.get('captions', 'off'),
-    strict: store.get('strict_mode', 'strict')
+    strict: store.get('strict_mode', 'strict'),
+    level: store.get('level_hint', 'auto'),
+    minutes: parseInt(store.get('lesson_minutes', '15'), 10) || 15
   };
   if (!LANGS[cfg.lang]) cfg.lang = 'french';
-  if (!I18N[cfg.uiLang]) cfg.uiLang = 'uk';
   if (!MODELS.some(m => m.id === cfg.model)) cfg.model = MODELS[0].id;
+  if (![10, 15, 20].includes(cfg.minutes)) cfg.minutes = 15;
+  if (!['auto', 'A0', 'A1', 'A2', 'B1', 'B2'].includes(cfg.level)) cfg.level = 'auto';
   let apiKey = getStoredApiKey();
 
+  /* ---------- Элементы ---------- */
   const $ = id => document.getElementById(id);
   const btnAction = $('btnAction'), btnEndTurn = $('btnEndTurn'), btnInterrupt = $('btnInterrupt');
   const statusText = $('statusText'), avatarCard = $('avatarCard'), avatarHalo = $('avatarHalo');
@@ -618,35 +537,52 @@
   const landmarkImage = $('landmarkImage'), avatarEmoji = $('avatarEmoji');
   const inputApiKey = $('inputApiKey'), selectStorageMode = $('selectStorageMode'), selectTeacher = $('selectTeacher');
   const selectStudentGender = $('selectStudentGender'), selectLanguage = $('selectLanguage'), selectNativeLang = $('selectNativeLang');
-  const selectUiLang = $('selectUiLang'), selectAudioMode = $('selectAudioMode'), selectVad = $('selectVad'), selectStrict = $('selectStrict'), selectCaptions = $('selectCaptions'), selectModel = $('selectModel');
+  const selectAudioMode = $('selectAudioMode'), selectVad = $('selectVad'), selectStrict = $('selectStrict'), selectCaptions = $('selectCaptions'), selectModel = $('selectModel');
   const memInfo = $('memInfo');
   const inputImportFile = $('inputImportFile');
+  const selectLevel = $('selectLevel'), selectMinutes = $('selectMinutes');
   document.querySelectorAll('.js-version').forEach(el => { el.textContent = 'v' + APP_VERSION; });
 
-  function t(key) { return I18N[cfg.uiLang]?.[key] || I18N['uk'][key]; }
-
   Object.keys(LANGS).forEach(k => {
-    const o = document.createElement('option'); o.value = k; o.textContent = LANGS[k].label; selectLanguage.appendChild(o);
+    const o = document.createElement('option'); o.value = k; o.textContent = LANGS[k].ru; selectLanguage.appendChild(o);
   });
   MODELS.forEach(m => {
     const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; selectModel.appendChild(o);
   });
 
-  function setStatus(textKey) { statusText.textContent = I18N[cfg.uiLang]?.[textKey] || textKey; }
+  /* ---------- Тексты статусов (ru / uk) ---------- */
+  const STR = {
+    listening: ['Слушаю вас...', 'Слухаю вас...'],
+    speaking: ['Репетитор говорит...', 'Репетитор говорить...'],
+    thinking: ['Репетитор готовит ответ...', 'Репетитор готує відповідь...'],
+    yourTurn: ['Ваша очередь говорить...', 'Ваша черга говорити...'],
+    connecting: ['Соединение с сервером...', 'З’єднання із сервером...'],
+    reconnecting: ['Связь прервалась, восстанавливаю...', 'Зв’язок перервано, відновлюю...'],
+    saving: ['Сохранение прогресса...', 'Збереження прогресу...'],
+    finishing: ['Репетитор договаривает...', 'Репетитор договорює...']
+  };
+  const st = k => STR[k][cfg.native === 'uk' ? 1 : 0];
+  function setStatus(text) { statusText.textContent = text; }
 
   let toastTimer = null;
   function toast(msg, ms = 3400) {
-    const el = $('toast'); el.textContent = msg; el.classList.add('show');
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), ms);
+    const el = $('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), ms);
   }
 
+  /* ---------- Память ---------- */
   const EMPTY_MEM = ['Чистый лист.', 'Чистий аркуш.', 'Чистый лист (урок 1).'];
   const isEmptyMem = s => !s || s.trim() === '' || EMPTY_MEM.includes(s.trim());
   const memKey = l => `memory_${l}`;
   const getGlobalMem = () => store.get('global_memory', '');
   const getLangMem = (l = cfg.lang) => store.get(memKey(l), '');
-  const todayStr = () => new Date().toISOString().slice(0, 10);
+  // локальная дата (toISOString давал UTC — вечером в Европе это «вчера»)
+  const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
+  // Защита от «усыхания»: если модель вернула память заметно короче старой — ничего не теряем, а дописываем.
   function guardShrink(oldText, newText) {
     const o = (oldText || '').trim();
     if (o.length > 300 && newText.length < o.length * 0.6) {
@@ -655,28 +591,39 @@
     return { text: newText, shrunk: false };
   }
 
+  // v3.18.0: запись проверяется. Раньше при нехватке места/приватном режиме приложение всё равно говорило «прогресс сохранён».
+  function putWithRetry(k, v) { return store.set(k, v) || (store.remove(k + '__prev'), store.set(k, v)); }
+
   function commitMemory(args, lang) {
     const g = typeof args.global_memory === 'string' ? args.global_memory.trim() : '';
     const l = typeof args.lang_memory === 'string' ? args.lang_memory.trim() : '';
-    let shrunk = false;
+    let shrunk = false, writeFailed = false;
     if (g) {
-      const old = getGlobalMem(); store.set('global_memory__prev', old);
-      const r = guardShrink(old, g); shrunk = shrunk || r.shrunk; store.set('global_memory', r.text);
+      const old = getGlobalMem();
+      store.set('global_memory__prev', old);
+      const r = guardShrink(old, g); shrunk = shrunk || r.shrunk;
+      if (!putWithRetry('global_memory', r.text)) writeFailed = true;
     }
     if (l) {
-      const old = getLangMem(lang); store.set(memKey(lang) + '__prev', old);
-      const r = guardShrink(old, l); shrunk = shrunk || r.shrunk; store.set(memKey(lang), r.text);
+      const old = getLangMem(lang);
+      store.set(memKey(lang) + '__prev', old);
+      const r = guardShrink(old, l); shrunk = shrunk || r.shrunk;
+      if (!putWithRetry(memKey(lang), r.text)) writeFailed = true;
     }
-    return l.length > 0;
+    if (writeFailed) toast('Не удалось записать память в браузер (нет места или приватный режим). Сделайте экспорт в настройках ⚙.', 8000);
+    else if (shrunk) toast('Память сохранена в безопасном режиме: новая запись была короче старой, поэтому она добавлена, а не заменила.', 6000);
+    return l.length > 0 && !writeFailed;
   }
 
+  /* ---------- Статистика уроков (считает приложение, а не ИИ) ---------- */
   const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; };
   function computeStats() {
     const arr = readJSON('lesson_log', []);
     const lessonsLang = arr.filter(x => x.l === cfg.lang).length;
     const minutes = Math.round(arr.reduce((a, x) => a + (x.s || 0), 0) / 60);
     const days = new Set(arr.map(x => dayKey(x.t)));
-    let streak = 0; const d = new Date();
+    let streak = 0;
+    const d = new Date();
     if (!days.has(dayKey(d))) d.setDate(d.getDate() - 1);
     while (days.has(dayKey(d))) { streak++; d.setDate(d.getDate() - 1); }
     return { total: arr.length, lessonsLang, minutes, streak };
@@ -685,10 +632,18 @@
     if (isSessionActive) { statsRow.style.display = 'none'; return; }
     const s = computeStats();
     statsRow.style.display = 'flex';
-    if (s.total === 0) { statsRow.innerHTML = `<span class="stat-chip">🙂</span>`; return; }
-    statsRow.innerHTML = `<span class="stat-chip">🔥 ${s.streak}</span><span class="stat-chip">📚 ${LANGS[cfg.lang].label}: ${s.lessonsLang}</span><span class="stat-chip">⏱ ${s.minutes}</span>`;
+    if (s.total === 0) { statsRow.innerHTML = '<span class="stat-chip">Уроков пока нет — начнём? 🙂</span>'; return; }
+    // Память живёт только в браузере: напоминаем про резервную копию, если уроков уже много, а копии давно не было
+    const lastBackup = parseInt(store.get('last_backup', '0'), 10) || 0;
+    const needBackup = s.total >= 5 && Date.now() - lastBackup > 14 * 86400000;
+    statsRow.innerHTML =
+      `<span class="stat-chip">🔥 Серия: ${s.streak} дн.</span>` +
+      `<span class="stat-chip">📚 ${LANGS[cfg.lang].ru}: ${s.lessonsLang}</span>` +
+      `<span class="stat-chip">⏱ ${s.minutes} мин</span>` +
+      (needBackup ? '<span class="stat-chip">💾 Сделайте резервную копию (⚙)</span>' : '');
   }
 
+  /* ---------- Прочие переменные состояния ---------- */
   let socket = null;
   let audioContext = null, mediaStream = null, sourceNode = null, lpFilter1 = null, lpFilter2 = null, dummyGain = null, audioWorkletNode = null;
   let playbackContext = null, playbackGain = null, analyser = null, analyserBuf = null;
@@ -712,121 +667,55 @@
   let captionNewTurn = true;
   let lastAudioChunkAt = 0, stuckInterval = null;
 
-  function currentAudioMode() { return cfg.audio === 'auto' ? (isHeadsetConnected ? 'full' : 'half') : cfg.audio; }
-
-  const btnInstall = $('btnInstall'), installHint = $('installHint');
-  let deferredInstall = null;
-  const isStandalone = () => {
-    try { return !!(navigator.standalone || (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; }
-  };
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredInstall = e;
-    if (!isStandalone()) btnInstall.style.display = 'block';
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstall = null; btnInstall.style.display = 'none';
-    toast('Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.', 6000);
-  });
-  btnInstall.onclick = async () => {
-    if (!deferredInstall) return;
-    try { deferredInstall.prompt(); await deferredInstall.userChoice; } catch (e) {}
-    deferredInstall = null; btnInstall.style.display = 'none';
-  };
-
-  function showInstallHint() {
-    const ua = String(navigator.userAgent || '');
-    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    const inApp = /Viber|Telegram|Instagram|FBAN|Line/i.test(ua);
-    if (!isStandalone()) {
-      if (ios) {
-        installHint.style.display = 'block';
-        installHint.textContent = t('hintIos');
-      } else if (inApp) {
-        installHint.style.display = 'block';
-        installHint.textContent = t('hintInApp');
-      } else {
-        installHint.style.display = 'none';
-      }
-    } else {
-      installHint.style.display = 'none';
-    }
-  }
-
-  function applyTranslation() {
-    btnAction.textContent = isSessionActive ? t('btnStop') : t('btnStart');
-    btnInterrupt.textContent = t('btnInterrupt');
-    btnEndTurn.textContent = t('btnTurn');
-    $('lblSettingsTitle').textContent = t('settingsTitle');
-    $('lblKey').textContent = t('lblKey');
-    $('lblKeyMode').textContent = t('lblKeyMode');
-    selectStorageMode.options[0].text = t('optLocal'); selectStorageMode.options[1].text = t('optSession');
-    $('lblTarget').textContent = t('lblTarget');
-    $('lblVoice').textContent = t('lblVoice');
-    selectTeacher.options[0].text = t('optFemale'); selectTeacher.options[1].text = t('optMale');
-    $('lblGender').textContent = t('lblGender');
-    selectStudentGender.options[0].text = t('optAutoGen'); selectStudentGender.options[1].text = t('optMale'); selectStudentGender.options[2].text = t('optFemale');
-    $('lblNative').textContent = t('lblNative');
-    selectNativeLang.options[2].text = t('optAutoNat');
-    $('lblUiLang').textContent = t('lblUiLang');
-    $('lblAudio').textContent = t('lblAudio');
-    selectAudioMode.options[0].text = t('optAutoAud'); selectAudioMode.options[1].text = t('optHalf'); selectAudioMode.options[2].text = t('optFull');
-    $('lblStrict').textContent = t('lblStrict');
-    selectStrict.options[0].text = t('optStrict'); selectStrict.options[1].text = t('optSoft');
-    $('lblVad').textContent = t('lblVad');
-    selectVad.options[0].text = t('optDef'); selectVad.options[1].text = t('optPat'); selectVad.options[2].text = t('optVery');
-    $('lblCap').textContent = t('lblCap');
-    selectCaptions.options[0].text = t('optOff'); selectCaptions.options[1].text = t('optOn');
-    $('lblModel').textContent = t('lblModel');
-    $('btnSaveKey').textContent = t('btnSave');
-    $('btnExportMemory').textContent = t('btnExp');
-    $('btnImportMemory').textContent = t('btnImp');
-    $('btnUndoMemory').textContent = t('btnUndo');
-    $('btnResetCurrentLang').textContent = t('btnRstCur');
-    $('btnResetAllMemory').textContent = t('btnRstAll');
-    $('btnCloseModal').textContent = t('btnClose');
-    $('linkGetUrl').textContent = t('msgGetUrl');
-    $('hintText').textContent = t('hintText');
-    showInstallHint();
-  }
-
+  /* ---------- UI ---------- */
   function updateAudioChip() {
     const mode = currentAudioMode();
     let chip;
-    if (cfg.audio === 'auto' && !headsetChecked) chip = `🎧/🔈 ${t('audAuto')}`;
-    else chip = mode === 'full' ? `🎧 ${t('audHead')}` : `🔈 ${t('audSpeak')}`;
+    if (cfg.audio === 'auto' && !headsetChecked) chip = '🎧/🔈 авто';
+    else chip = mode === 'full' ? '🎧 Наушники' : '🔈 Динамик';
     return chip;
   }
 
   function updateUI() {
-    applyTranslation();
     const L = LANGS[cfg.lang];
     const hasProgress = !isEmptyMem(getLangMem());
-    profileBadge.textContent = (hasProgress ? t('profAct') : t('profNew')) + ' • ' + updateAudioChip();
+    profileBadge.textContent = (hasProgress ? 'Профиль активен' : 'Новый курс') + ' • ' + updateAudioChip();
     headerTitle.textContent = `${L.teachers[cfg.teacher].short} • ${L.label}`;
 
     avatarEmoji.textContent = L.emoji;
     if (L.photo) {
-      avatarEmoji.style.display = 'none'; landmarkImage.style.display = 'block';
+      avatarEmoji.style.display = 'none';
+      landmarkImage.style.display = 'block';
       if (landmarkImage.getAttribute('src') !== L.photo) landmarkImage.src = L.photo;
     } else {
-      landmarkImage.style.display = 'none'; avatarEmoji.style.display = 'flex';
+      landmarkImage.style.display = 'none';
+      avatarEmoji.style.display = 'flex';
     }
-    document.body.style.backgroundImage = L.bg ? `linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.98)), url('${L.bg}')` : L.grad;
+    document.body.style.backgroundImage = L.bg
+      ? `linear-gradient(rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.98)), url('${L.bg}')`
+      : L.grad;
     renderStats();
   }
   landmarkImage.onerror = () => { landmarkImage.style.display = 'none'; avatarEmoji.style.display = 'flex'; };
 
+  function currentAudioMode() { return cfg.audio === 'auto' ? (isHeadsetConnected ? 'full' : 'half') : cfg.audio; }
+
   function kb(s) { return (new Blob([s || '']).size / 1024).toFixed(1); }
   function refreshMemInfo() {
-    memInfo.textContent = t('memTemplate').replace('{lang}', LANGS[cfg.lang].label).replace('{lKb}', kb(getLangMem())).replace('{gKb}', kb(getGlobalMem()));
+    memInfo.textContent = `Память «${LANGS[cfg.lang].ru}»: ${kb(getLangMem())} КБ • общая: ${kb(getGlobalMem())} КБ • хранится только в этом браузере`;
+  }
+
+  function syncSettingsForm() {
+    selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
+    selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectAudioMode.value = cfg.audio;
+    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; selectModel.value = cfg.model;
+    selectLevel.value = cfg.level; selectMinutes.value = String(cfg.minutes);
   }
 
   function openSettings() {
-    if (isSessionActive || isFinalizing) return;
+    if (isSessionActive || isFinalizing) { toast('Настройки доступны, когда урок завершён.'); return; }
     inputApiKey.value = apiKey;
-    selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
-    selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectUiLang.value = cfg.uiLang; selectAudioMode.value = cfg.audio;
-    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; selectModel.value = cfg.model;
+    syncSettingsForm();
     refreshMemInfo();
     modalSettings.style.display = 'flex';
   }
@@ -834,85 +723,131 @@
   $('btnSettings').onclick = openSettings;
   $('btnCloseModal').onclick = closeSettings;
   modalSettings.addEventListener('click', e => { if (e.target === modalSettings) closeSettings(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalSettings.style.display === 'flex') closeSettings(); });
 
   $('btnSaveKey').onclick = () => {
     apiKey = inputApiKey.value.trim();
     cfg.keyMode = selectStorageMode.value; cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
-    cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.uiLang = selectUiLang.value; cfg.audio = selectAudioMode.value;
+    cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.audio = selectAudioMode.value;
     cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; cfg.model = selectModel.value;
+    cfg.level = selectLevel.value; cfg.minutes = parseInt(selectMinutes.value, 10) || 15;
 
     let ok = store.set('api_storage_mode', cfg.keyMode);
     if (cfg.keyMode === 'local') { ok = store.set('gemini_api_key', apiKey) && ok; sstore.remove('gemini_api_key'); }
     else { sstore.set('gemini_api_key', apiKey); store.remove('gemini_api_key'); }
     store.set('teacher_gender', cfg.teacher); store.set('student_gender', cfg.student); store.set('target_language', cfg.lang);
-    store.set('native_lang', cfg.native); store.set('ui_lang', cfg.uiLang); store.set('audio_mode', cfg.audio); store.set('model_id', cfg.model);
+    store.set('native_lang', cfg.native); store.set('audio_mode', cfg.audio); store.set('model_id', cfg.model);
     store.set('vad_mode', cfg.vad); store.set('captions', cfg.captions); store.set('strict_mode', cfg.strict);
+    store.set('level_hint', cfg.level); store.set('lesson_minutes', String(cfg.minutes));
 
-    updateUI(); closeSettings();
-    if (!ok) toast(t('hintText'), 5000);
+    updateUI();
+    closeSettings();
+    if (!ok) toast('Не удалось записать настройки в браузер (приватный режим или нет места).', 5000);
+    else if (!apiKey) toast('Настройки сохранены, но ключ API пустой — без него урок не начнётся.', 5000);
+    else if (!/^AIza/.test(apiKey)) toast('Настройки сохранены. Ключ выглядит необычно: ключи Google AI Studio начинаются с «AIza».', 6000);
+    else toast('Настройки сохранены.');
   };
 
+  /* ---------- Экспорт / импорт ---------- */
   $('btnExportMemory').onclick = () => {
     const data = {
-      version: APP_VERSION, exportDate: new Date().toISOString(), global_memory: getGlobalMem(),
-      teacher_gender: cfg.teacher, student_gender: cfg.student, native_lang: cfg.native, ui_lang: cfg.uiLang, target_language: cfg.lang,
-      audio_mode: cfg.audio, vad_mode: cfg.vad, captions: cfg.captions, lesson_log: readJSON('lesson_log', [])
+      version: APP_VERSION,
+      exportDate: new Date().toISOString(),
+      global_memory: getGlobalMem(),
+      teacher_gender: cfg.teacher, student_gender: cfg.student, native_lang: cfg.native, target_language: cfg.lang,
+      audio_mode: cfg.audio, vad_mode: cfg.vad, captions: cfg.captions, strict_mode: cfg.strict,
+      level_hint: cfg.level, lesson_minutes: cfg.minutes,
+      lesson_log: readJSON('lesson_log', [])
     };
     Object.keys(LANGS).forEach(l => { data[memKey(l)] = getLangMem(l); });
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = `ai_tutor_backup_${todayStr()}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    store.set('last_backup', String(Date.now()));
+    renderStats();
+    toast('Резервная копия скачана (ключ API в неё не входит).');
   };
 
   $('btnImportMemory').onclick = () => { inputImportFile.value = ''; inputImportFile.click(); };
+
   inputImportFile.onchange = e => {
-    const file = e.target.files[0]; if (!file) return;
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 3 * 1024 * 1024) { toast('Файл слишком большой для резервной копии.'); return; }
     const reader = new FileReader();
     reader.onload = ev => {
       try {
         const data = JSON.parse(ev.target.result);
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('bad format');
+        if (!confirm('Импорт заменит текущую память теми данными, что есть в файле. Продолжить?')) return;
         const putStr = (k, v) => { if (typeof v === 'string') { const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.set(k, v); } };
         putStr('global_memory', data.global_memory);
         Object.keys(LANGS).forEach(l => putStr(memKey(l), data[memKey(l)]));
         if (['male', 'female'].includes(data.teacher_gender)) { cfg.teacher = data.teacher_gender; store.set('teacher_gender', cfg.teacher); }
         if (['auto', 'male', 'female'].includes(data.student_gender)) { cfg.student = data.student_gender; store.set('student_gender', cfg.student); }
         if (['ru', 'uk', 'auto'].includes(data.native_lang)) { cfg.native = data.native_lang; store.set('native_lang', cfg.native); }
-        if (I18N[data.ui_lang]) { cfg.uiLang = data.ui_lang; store.set('ui_lang', cfg.uiLang); }
         if (LANGS[data.target_language]) { cfg.lang = data.target_language; store.set('target_language', cfg.lang); }
-        if (Array.isArray(data.lesson_log)) store.set('lesson_log', JSON.stringify(data.lesson_log.filter(x => x && typeof x.t === 'number').slice(-500)));
+        if (['auto', 'half', 'full'].includes(data.audio_mode)) { cfg.audio = data.audio_mode; store.set('audio_mode', cfg.audio); }
+        if (['default', 'patient', 'very'].includes(data.vad_mode)) { cfg.vad = data.vad_mode; store.set('vad_mode', cfg.vad); }
+        if (['off', 'on'].includes(data.captions)) { cfg.captions = data.captions; store.set('captions', cfg.captions); }
+        if (['strict', 'normal'].includes(data.strict_mode)) { cfg.strict = data.strict_mode; store.set('strict_mode', cfg.strict); }
+        if (['auto', 'A0', 'A1', 'A2', 'B1', 'B2'].includes(data.level_hint)) { cfg.level = data.level_hint; store.set('level_hint', cfg.level); }
+        if ([10, 15, 20].includes(data.lesson_minutes)) { cfg.minutes = data.lesson_minutes; store.set('lesson_minutes', String(cfg.minutes)); }
+        if (Array.isArray(data.lesson_log)) {
+          store.set('lesson_log', JSON.stringify(data.lesson_log.filter(x => x && typeof x.t === 'number').slice(-500)));
+        }
+        syncSettingsForm();   // иначе в открытой форме остаются старые значения, и кнопка «Сохранить» затёрла бы импортированные
         updateUI(); refreshMemInfo();
-      } catch (err) {}
+        toast('Память профиля импортирована из файла.');
+      } catch (err) {
+        toast('Ошибка чтения файла. Проверьте, что это резервная копия в формате JSON.', 5000);
+      }
     };
     reader.readAsText(file);
   };
 
   $('btnUndoMemory').onclick = () => {
-    const kLang = memKey(cfg.lang);
+    const kLang = memKey(cfg.lang);   // откат затрагивает текущий язык и общую базу о жизни
     const prevLang = store.get(kLang + '__prev', null), prevGlobal = store.get('global_memory__prev', null);
+    if (prevLang === null && prevGlobal === null) { toast('Предыдущей версии памяти пока нет.'); return; }
+    if (!confirm('Вернуть память к состоянию перед последним сохранением? Текущая версия станет «предыдущей».')) return;
     if (prevLang !== null) { const cur = getLangMem(); store.set(kLang, prevLang); store.set(kLang + '__prev', cur); }
     if (prevGlobal !== null) { const cur = getGlobalMem(); store.set('global_memory', prevGlobal); store.set('global_memory__prev', cur); }
     updateUI(); refreshMemInfo();
+    toast('Память возвращена к предыдущей версии.');
   };
 
   $('btnResetCurrentLang').onclick = () => {
-    const k = memKey(cfg.lang); const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.remove(k);
+    if (!confirm('Сбросить историю и прогресс для текущего языка?')) return;
+    const k = memKey(cfg.lang);
+    const old = store.get(k, ''); if (old) store.set(k + '__prev', old);
+    store.remove(k);
     updateUI(); refreshMemInfo(); closeSettings();
+    toast('Прогресс текущего языка очищен (можно откатить кнопкой «Откатить...»).');
   };
 
   $('btnResetAllMemory').onclick = () => {
+    if (!confirm('ВНИМАНИЕ: Удалить ВСЕ данные профиля и прогресс по всем языкам?')) return;
     Object.keys(LANGS).forEach(l => { const k = memKey(l); const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.remove(k); });
-    const og = getGlobalMem(); if (og) store.set('global_memory__prev', og); store.remove('global_memory');
+    const og = getGlobalMem(); if (og) store.set('global_memory__prev', og);
+    store.remove('global_memory');
     updateUI(); refreshMemInfo(); closeSettings();
+    toast('Весь профиль сброшен.');
   };
 
+  /* ==========================================================================
+     Системный промпт (методика сохранена; правки — только где был логический конфликт, см. отчёт)
+     ========================================================================== */
   function getSystemInstruction(lang, globalMem, langMem) {
     const L = LANGS[lang];
     const male = cfg.teacher === 'male';
     const tName = L.teachers[cfg.teacher].full;
     const tRole = male ? 'эмпатичный и теплый преподаватель' : 'эмпатичная и теплая преподавательница';
     const langName = L.gen, langAdverb = L.adv;
+    // Грамматический род репетитора (раньше промпт был «женским» даже для мужского голоса)
     const OB = male ? 'ОБЯЗАН' : 'ОБЯЗАНА';
     const ob = male ? 'обязан' : 'обязана';
     const RADA = male ? 'рад' : 'рада';
@@ -940,12 +875,13 @@ ${genderDirective}
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMem || 'Пока ничего неизвестно.'}
 [НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА (НЕ СТИРАТЬ, ИСПОЛЬЗОВАТЬ ДЛЯ ИНТЕРВАЛЬНОГО ПОВТОРЕНИЯ)]: ${langMem || 'Чистый лист (урок 1).'}
 
-ЖЕСТКОЕ ПРАВИЛО ВТОРОГО ЯЗЫКА:
-Если ученик говорит с тобой на УКРАИНСКОМ языке, давай пояснения СТРОГО НА УКРАИНСКОМ. Если на русском — на русском.
+ПРАВИЛО ЯЗЫКА ПОЯСНЕНИЙ:
+Язык пояснений определяет настройка приложения (см. «УТОЧНЕНИЕ НАСТРОЙКИ ЯЗЫКА» ниже). Только если настройка — автоопределение: когда ученик говорит на УКРАИНСКОМ — давай пояснения СТРОГО НА УКРАИНСКОМ, когда на русском — на русском.
 
 ГЛАВНЫЙ АЛГОРИТМ ИЗУЧЕНИЯ ФРАЗ (АВТОРСКАЯ МЕТОДИКА — СТРОГИЙ ПОРЯДОК И ТЕМП):
 Когда ты знакомишь ученика с новой фразой или словом, ты ${OB} следовать строгому трехшаговому алгоритму:
 1. СНАЧАЛА скажи смысл фразы на РОДНОМ языке ученика (на русском/украинском). Чтобы ученик сразу понял контекст.
+   Пример: «Давай разучим полезную фразу: "Подскажите, пожалуйста, где находится вокзал?"».
 2. ЗАТЕМ произнеси эту фразу на изучаемом языке (${langAdverb}) РОВНО ДВА РАЗА: медленно, четко. Между первым и вторым повтором просто сделай вдох молчания и выдержи естественную тишину (не части и не склеивай слова в скороговорку). Ни в коем случае не произноси вслух служебные слова или подсказки!
 3. В САМОМ КОНЦЕ скажи ученику: «Повтори» (или «Теперь ты») — И СРАЗУ ЗАМОЛКНИ!
 КАТЕГОРИЧЕСКИЙ ЗАПРЕТ: Никогда не ставь перевод на русский язык в конец реплики перед повтором ученика! Последним звуком в ушах ученика должна звучать только речь ${langAdverb}!
@@ -1005,18 +941,25 @@ ${genderDirective}
 5. Если не уверен(а), что расслышал(а) правильно, — НЕ хвали: попроси повторить ещё раз.`
       : `ПРОВЕРКА ПОВТОРЕНИЯ УЧЕНИКА: слушай повтор внимательно. Явные ошибки (не те слова, пропущенное слово, грубо искажённый звук) обязательно исправляй по алгоритму исправления ошибок. Хвалить можно только за то, что действительно получилось.`;
 
+    const perBlock = Math.max(3, Math.round(cfg.minutes / 3));
+    const totalPhrases = perBlock * 3;
+    const levelBlock = cfg.level === 'auto' ? '' :
+      `УРОВЕНЬ УЧЕНИКА (задан в настройках): ${cfg.level === 'A0' ? 'A0 — с нуля' : cfg.level}. Подбирай лексику, грамматику и скорость речи именно под этот уровень (для A0 начинай с самых простых бытовых фраз и говори медленнее). Если память о прошлых уроках противоречит — доверяй настройке.`;
+
     const additions = `
 
 ${settingLanguageDirective}
 
 ${strictBlock}
 
-ОБЪЕМ УРОКА — 15 ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
-1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из 15 практических фраз (3 блока по 5 фраз), ЛИБО немедленно при поступлении системной подсказки о финале времени, даже если план не выполнен!
-2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить фразы вроде «это последнее слово», «на этом всё», «заканчиваем», пока не пройдены все 15 фраз или пока не поступит системная подсказка о финале времени!
+${levelBlock}
+
+ОБЪЕМ УРОКА — ${totalPhrases} ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
+1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема из ${totalPhrases} практических фраз и слов (3 блока по ${perBlock} фраз) ИЛИ при системной подсказке о финале времени — что наступит раньше!
+2. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО говорить фразы вроде «это последнее слово», «на этом всё», «заканчиваем», пока не пройдены все ${totalPhrases} фраз или пока не поступит системная подсказка о финале времени!
 3. СТРОЖАЙШИЙ ЗАПРЕТ НА ПОВТОРЕНИЕ: Категорически запрещено брать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] или слова, которые ТОЛЬКО ЧТО проверялись на разминке текущего урока, и преподавать их заново под видом новых!
 4. ПРИНЦИП УГЛУБЛЕНИЯ ТЕМЫ: Если ученик изучает профессиональную или бытовую тему, запрещено топтаться на базовых существительных первого урока. Обучай СЛЕДУЮЩИМ, более глубоким жизненным фразам и действиям (например, не просто «гостиница/номер», а «забронировать номер на две ночи», «у нас сломался кондиционер», «во сколько завтрак», «можно продлить проживание на один день»).
-5. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные 15 минут!
+5. Если разобран один блок из 3-5 слов по текущей ситуации — не останавливайся! СРАЗУ плавно переходи к следующей практической ситуации или теме. Урок длится полные ${cfg.minutes} минут!
 
 ДВУСТОРОННЯЯ МЕТОДИКА КОНТРОЛЬНЫХ ВОПРОСОВ (ПРОВЕРКА БЕЗ ПОДСКАЗОК И САМООТВЕТОВ):
 Категорически запрещено просто называть слово на иностранном языке и просить его повторить — это подсказка, а не проверка!
@@ -1043,6 +986,7 @@ ${strictBlock}
     return originalPrompt + additions;
   }
 
+  /* Все тексты «служебных» реплик собраны в функции (раньше дублировались по 2–3 раза) */
   function timeWarningText() {
     return cfg.native === 'uk'
       ? '[СИСТЕМНА ПІДКАЗКА: ЧАС УРОКУ ДОБІГАЄ КІНЦЯ (менше 2 хв). Проведи фінальну двосторонню перевірку 2 слів, підведи підсумки, узгодь тему на наступний урок і тепло попрощайся без обривів!]'
@@ -1117,6 +1061,9 @@ ${langDirective}
 Вызови saveStudentProfile с полными объединенными данными. Голосом ничего не говори!]`;
   }
 
+  /* ==========================================================================
+     Аудио: вход (микрофон → AudioWorklet 16 кГц)
+     ========================================================================== */
   const workletCode = `
     class PCMProcessor extends AudioWorkletProcessor {
       constructor() {
@@ -1127,7 +1074,7 @@ ${langDirective}
         this.bufferIndex = 0;
         this.phase = 0;
         this.last = 0;
-        this.sumSq = 0;
+        this.sumSq = 0;   // накопитель RMS живёт между вызовами process() (раньше обнулялся каждый квант)
       }
       process(inputs) {
         const input = inputs[0];
@@ -1138,7 +1085,7 @@ ${langDirective}
           while (this.phase < len) {
             const i = Math.floor(this.phase);
             const frac = this.phase - i;
-            const s0 = i > 0 ? ch[i - 1] : this.last;
+            const s0 = i > 0 ? ch[i - 1] : this.last;   // линейная интерполяция вместо «ближайшего отсчёта»
             let s = s0 + (ch[i] - s0) * frac;
             s = s > 1 ? 1 : (s < -1 ? -1 : s);
             this.sumSq += s * s;
@@ -1170,23 +1117,27 @@ ${langDirective}
 
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState === 'visible' && isSessionActive) {
-      try { await requestWakeLock(); } catch(e){}
+      await requestWakeLock();
       if (playbackContext && playbackContext.state === 'suspended') { try { await playbackContext.resume(); } catch (e) {} }
       if (audioContext && audioContext.state === 'suspended') { try { await audioContext.resume(); } catch (e) {} }
+      ensureMicAlive();
     }
   });
 
+  // Не даём случайно закрыть вкладку посреди урока (прогресс урока ещё не записан)
   window.addEventListener('beforeunload', e => {
     if (isSessionActive) { e.preventDefault(); e.returnValue = ''; }
   });
 
+  // Детектор гарнитуры. Раньше подстрока «ear» совпадала с «earpiece/Headset earpiece» (встроенный динамик телефона)
+  // и «head» — с встроенными «Headphones» ноутбуков, из-за чего включался полный дуплекс на громкой связи (эхо, самоперебивание).
   async function detectHeadset() {
     try {
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
       const devices = await navigator.mediaDevices.enumerateDevices();
       const GOOD = /(bluetooth|airpods|buds|headphone|headset|наушник|гарнитур|beats|jabra|bose|wh-1000|wf-1000)/i;
       const BAD = /(earpiece|speakerphone|speaker|built-?in|internal|встроенн|динамик|разговорн)/i;
-      if (devices.some(d => d.label)) {
+      if (devices.some(d => d.label)) {   // до выдачи разрешения на микрофон браузер скрывает названия устройств
         isHeadsetConnected = devices.some(d =>
           (d.kind === 'audiooutput' || d.kind === 'audioinput') && GOOD.test(d.label || '') && !BAD.test(d.label || ''));
         headsetChecked = true;
@@ -1226,6 +1177,7 @@ ${langDirective}
     mediaStream = await navigator.mediaDevices.getUserMedia({
       audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
     });
+    mediaStream.getAudioTracks().forEach(t => { t.onended = () => setTimeout(ensureMicAlive, 800); });
     await detectHeadset();
 
     if (!audioWorkletNode) {
@@ -1234,7 +1186,7 @@ ${langDirective}
       try { await audioContext.audioWorklet.addModule(workletUrl); } finally { URL.revokeObjectURL(workletUrl); }
       audioWorkletNode = new AudioWorkletNode(audioContext, 'pcm-processor');
       dummyGain = audioContext.createGain();
-      dummyGain.gain.value = 0;
+      dummyGain.gain.value = 0;               // «тихий терминатор» против усыпления графа в Safari
       audioWorkletNode.connect(dummyGain);
       dummyGain.connect(audioContext.destination);
       audioWorkletNode.port.onmessage = onMicChunk;
@@ -1242,11 +1194,32 @@ ${langDirective}
 
     [sourceNode, lpFilter1, lpFilter2].forEach(n => { if (n) { try { n.disconnect(); } catch (e) {} } });
     sourceNode = audioContext.createMediaStreamSource(mediaStream);
+    // Антиалиасинг: два каскадных биквада (Баттерворт 4-го порядка) вместо одного 2-го порядка на 7.5 кГц
     lpFilter1 = audioContext.createBiquadFilter(); lpFilter1.type = 'lowpass'; lpFilter1.frequency.value = 7000; lpFilter1.Q.value = 0.5412;
     lpFilter2 = audioContext.createBiquadFilter(); lpFilter2.type = 'lowpass'; lpFilter2.frequency.value = 7000; lpFilter2.Q.value = 1.3065;
     sourceNode.connect(lpFilter1); lpFilter1.connect(lpFilter2); lpFilter2.connect(audioWorkletNode);
   }
 
+  // v3.18.0: если микрофон «умер» посреди урока (звонок, отключили гарнитуру, свернули приложение) — пробуем включить заново
+  let micRecovering = false;
+  async function ensureMicAlive() {
+    if (!isSessionActive || isFinalizing || micRecovering) return;
+    const tr = mediaStream && mediaStream.getAudioTracks()[0];
+    if (tr && tr.readyState === 'live') return;
+    micRecovering = true;
+    try {
+      if (mediaStream) mediaStream.getTracks().forEach(t => t.stop());
+      mediaStream = null;
+      await initMicrophone();
+      toast('Микрофон восстановлен.');
+    } catch (err) {
+      toast(micErrorMessage(err) + ' Завершите урок и начните заново.', 7000);
+    } finally { micRecovering = false; }
+  }
+
+  /* ==========================================================================
+     Аудио: выход (воспроизведение 24 кГц, jitter-буфер, пульсация нимба)
+     ========================================================================== */
   function ensurePlayback() {
     if (playbackContext) return;
     const AC = window.AudioContext || window.webkitAudioContext;
@@ -1279,7 +1252,7 @@ ${langDirective}
     source.connect(playbackGain);
 
     const currentTime = playbackContext.currentTime;
-    if (scheduledPlayTime < currentTime) scheduledPlayTime = currentTime + 0.12;
+    if (scheduledPlayTime < currentTime) scheduledPlayTime = currentTime + 0.12;   // jitter-буфер 120 мс
     source.start(scheduledPlayTime);
     scheduledPlayTime += audioBuffer.duration;
 
@@ -1290,6 +1263,7 @@ ${langDirective}
     };
   }
 
+  // Единственный «писатель» анимации нимба: речь репетитора (по выходному сигналу) или голос ученика (по микрофону)
   function levelLoop() {
     let target = 0;
     if (isBotSpeaking && analyser) {
@@ -1327,6 +1301,7 @@ ${langDirective}
     return activeAudioSources.length > 0 || isBotSpeaking || (playbackContext && scheduledPlayTime > playbackContext.currentTime);
   }
 
+  // Ждёт, пока доиграет речь (максимум maxMs). Возвращает Promise, поэтому «дважды» уже не выполнится.
   function waitPlaybackDrain(maxMs) {
     return new Promise(resolve => {
       const t0 = performance.now();
@@ -1337,20 +1312,19 @@ ${langDirective}
     });
   }
 
+  // Страховка: сервер иногда не присылает turnComplete (или присылает с большой задержкой).
+  // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
   function releaseBotIfStuck() {
     if (!isSessionActive || !isBotSpeaking) return;
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
     if (activeAudioSources.length > 0) return;
     if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
-    if (Date.now() - lastAudioChunkAt < 3000) return;
+    if (Date.now() - lastAudioChunkAt < 1800) return;
     isServerTurnActive = false;
     isBotSpeaking = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
-    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
-      setStatus('stTurn');
-      try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
-    }
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
     if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
   }
 
@@ -1358,23 +1332,23 @@ ${langDirective}
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {
+      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 200 мс
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
           isBotSpeaking = false;
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
-          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
-            setStatus('stTurn');
-            try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
-          }
+          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
       }, 200);
     }
   }
 
+  /* ==========================================================================
+     Таймер урока (по меткам времени: не «плывёт» при троттлинге вкладки в фоне)
+     ========================================================================== */
   function remainingSeconds() { return Math.max(0, Math.ceil((lessonEndsAt - Date.now()) / 1000)); }
   function updateTimerBadge() {
     const r = remainingSeconds();
@@ -1383,7 +1357,7 @@ ${langDirective}
   }
 
   function startLessonTimer() {
-    lessonEndsAt = Date.now() + LESSON_SEC * 1000;
+    lessonEndsAt = Date.now() + cfg.minutes * 60 * 1000;
     isTimeWarningPending = false; isTimeWarningSent = false;
     timerBadge.style.display = 'block';
     progressPill.style.display = 'inline-block';
@@ -1395,20 +1369,20 @@ ${langDirective}
       const r = remainingSeconds();
       updateTimerBadge();
 
-      if (r > 10 * 60) progressPill.textContent = t('prog1');
-      else if (r > 5 * 60) progressPill.textContent = t('prog2');
-      else progressPill.textContent = t('prog3');
+      const totalSec = cfg.minutes * 60;   // подписи без номеров фраз: модель не знает «номер блока», а темп у каждого ученика свой
+      if (r > totalSec * 2 / 3) progressPill.textContent = 'Блок 1 • Разминка и новые фразы';
+      else if (r > totalSec / 3) progressPill.textContent = 'Блок 2 • Практика и диалоги';
+      else progressPill.textContent = 'Блок 3 • Закрепление и итоги';
 
-      if (r <= 120 && !isTimeWarningSent && !isTimeWarningPending) {
+      if (r <= 120 && !isTimeWarningSent && !isTimeWarningPending) {   // раньше было ===120 и могло «проскочить»
         timerBadge.classList.add('timer-warning');
         isTimeWarningPending = true;
-        try { if (navigator.vibrate) navigator.vibrate([100, 50, 100]); } catch(e){}
         if (!isBotSpeaking && !isWaitingForResponse && isSetupComplete) sendAutomaticTimeWarning();
       }
 
       if (r <= 0) {
         clearInterval(lessonTimerInterval);
-        setStatus('msgTimeDone');
+        setStatus('Время урока истекло. Завершение...');
         stopSession(false);
       }
     }, 500);
@@ -1428,6 +1402,9 @@ ${langDirective}
     sendText(timeWarningText(), true);
   }
 
+  /* ==========================================================================
+     Отправка текста модели (для моделей 3.x текст идёт через realtimeInput, для 2.5 — через clientContent)
+     ========================================================================== */
   function usesRealtimeText() { return /^(models\/)?gemini-3/.test(cfg.model); }
 
   function sendText(text, respond) {
@@ -1448,6 +1425,7 @@ ${langDirective}
   }
   function clearSuppress() { suppressIncomingAudio = false; clearTimeout(suppressTimer); }
 
+  /* ---------- Кнопки урока ---------- */
   btnAction.onclick = () => {
     if (isFinalizing || isStopping) return;
     isSessionActive ? stopSession(true) : startSession();
@@ -1459,31 +1437,29 @@ ${langDirective}
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
-    if (wasGenerating) suppressAudioFor(1200);
-    try { if (navigator.vibrate) navigator.vibrate(40); } catch(e){}
-    setStatus('stThink');
+    if (wasGenerating) suppressAudioFor(1200);   // «хвост» старой реплики не должен проиграться
+    setStatus(st('thinking'));
     sendText(endTurnPromptText(), true);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
-      if (isWaitingForResponse) {
-        isWaitingForResponse = false;
-        setStatus('stTurn');
-        try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
-      }
+      if (isWaitingForResponse) { isWaitingForResponse = false; setStatus(st('yourTurn')); }
     }, 10000);
   };
 
+  // Кнопка ✋ теперь действительно прерывает: раньше глушился только локальный звук, а сервер продолжал присылать остаток реплики.
   btnInterrupt.onclick = () => {
     if (!isBotSpeaking && !isServerTurnActive) return;
     stopBotSpeech();
     isWaitingForResponse = false;
     suppressAudioFor(1200);
-    try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
     sendText('[СИСТЕМНО: Реплика была прервана учеником. Не комментируй это вслух: просто выслушай ученика и отреагируй на его слова.]', false);
-    setStatus('stList');
+    setStatus(st('listening'));
   };
 
+  /* ==========================================================================
+     Старт сессии и WebSocket
+     ========================================================================== */
   function micErrorMessage(err) {
     const n = err && err.name;
     if (n === 'NotAllowedError' || n === 'SecurityError') return 'Доступ к микрофону запрещён. Разрешите его в настройках браузера и повторите.';
@@ -1495,28 +1471,30 @@ ${langDirective}
   async function startSession() {
     if (isSessionActive || isFinalizing) return;
     apiKey = getStoredApiKey();
-    if (!apiKey) { toast(t('msgAskKey'), 4000); openSettings(); return; }
+    if (!apiKey) { toast('Сначала вставьте ключ Google AI Studio в настройках ⚙'); openSettings(); return; }
+    if (navigator.onLine === false) { toast('Нет подключения к интернету. Урок требует связи с Google.', 5000); setStatus('Нет интернета'); return; }
 
     btnAction.disabled = true;
-    statusText.textContent = '...'; 
+    setStatus('Инициализация звука...');
     try {
       ensurePlayback();
       if (playbackContext.state === 'suspended') await playbackContext.resume();
       if (!mediaStream) await initMicrophone();
       if (audioContext && audioContext.state === 'suspended') await audioContext.resume();
     } catch (err) {
-      console.error('Audio init err:', err);
+      console.error('Audio initialization error:', err);
       if (mediaStream) { mediaStream.getTracks().forEach(t => t.stop()); mediaStream = null; }
       btnAction.disabled = false;
-      btnAction.textContent = t('btnStart');
+      btnAction.textContent = 'Начать урок';
       btnAction.className = 'btn-main btn-start';
       const msg = micErrorMessage(err);
-      statusText.textContent = msg;
+      setStatus(msg);
       toast(msg, 6000);
       return;
     }
 
     sessionId++;
+    // Снимок настроек и памяти на момент старта: смена языка/настроек не может «перепутать» запись памяти
     sessionLang = cfg.lang;
     sessionGlobalMem = getGlobalMem();
     sessionLangMem = getLangMem(sessionLang);
@@ -1562,6 +1540,7 @@ ${langDirective}
           }
         }]
       }],
+      // Без этих двух полей аудио-сессия Live API обрывается примерно на 15-й минуте (а урок = 15 минут + сохранение)
       sessionResumption: resume && resumeHandle ? { handle: resumeHandle } : {},
       contextWindowCompression: { slidingWindow: {} }
     };
@@ -1589,9 +1568,9 @@ ${langDirective}
 
   function connectWebSocket(isResume) {
     const mySession = sessionId;
-    setStatus(isResume ? 'stReconn' : 'stConn');
+    setStatus(isResume ? st('reconnecting') : st('connecting'));
     const ws = new WebSocket(`${WS_BASE}?key=${encodeURIComponent(apiKey)}`);
-    ws.binaryType = 'arraybuffer';
+    ws.binaryType = 'arraybuffer';   // синхронный разбор: раньше async-await на Blob мог переставить сообщения местами
     socket = ws;
     const decoder = new TextDecoder('utf-8');
 
@@ -1606,11 +1585,11 @@ ${langDirective}
       if (ws !== socket || mySession !== sessionId) return;
       let msg;
       try { msg = JSON.parse(typeof event.data === 'string' ? event.data : decoder.decode(event.data)); }
-      catch (err) { console.warn('Bad server msg', err); return; }
-      try { handleServerMessage(msg); } catch (err) { console.error('Msg handler err', err); }
+      catch (err) { console.warn('Bad server message', err); return; }
+      try { handleServerMessage(msg); } catch (err) { console.error('Message handler error', err); }
     };
 
-    ws.onerror = e => { console.warn('WebSocket error:', e); };
+    ws.onerror = e => { console.warn('WebSocket error:', e); };   // за error всегда следует close — обрабатываем там
 
     ws.onclose = e => {
       if (ws !== socket || mySession !== sessionId) return;
@@ -1625,12 +1604,11 @@ ${langDirective}
 
       if (resumeHandle && reconnectAttempts < MAX_RECONNECT) {
         reconnectAttempts++;
-        setStatus('stReconn');
+        setStatus(st('reconnecting'));
         clearTimeout(reconnectTimer);
-        const backoffMs = 1000 * Math.pow(1.5, reconnectAttempts);
         reconnectTimer = setTimeout(() => {
           if (isSessionActive && !isFinalizing && mySession === sessionId) connectWebSocket(true);
-        }, backoffMs);
+        }, 500 * reconnectAttempts);
         return;
       }
       finalizeStop(isExtractingMemory
@@ -1653,7 +1631,8 @@ ${langDirective}
           if (ok) memoryCommitted = true;
           respondToToolCall(call, { status: ok ? 'success' : 'error', note: ok ? undefined : 'lang_memory пуст' });
         } else {
-          console.warn('saveStudentProfile вызван вне финала');
+          // Вызов посреди урока (запрещён промптом) больше не перезаписывает память
+          console.warn('saveStudentProfile вызван вне финала — проигнорирован');
           respondToToolCall(call, { status: 'ignored', note: 'Не вызывай функцию во время урока. Продолжай урок.' });
         }
       } else {
@@ -1670,23 +1649,23 @@ ${langDirective}
     setTimeout(() => finalizeStop('Урок и прогресс сохранены.'), 300);
   }
 
+  // Модель иногда «проговаривает» служебные токены (<ctrl46>, <noise>) в расшифровке — на экране им не место
   function cleanCaption(text) {
     return String(text || '').replace(/<\/?(?:ctrl\d+|noise|silence)[^>]*>/gi, '').replace(/\s{2,}/g, ' ');
   }
 
   function pushCaption(kind, text) {
     if (cfg.captions !== 'on') return;
-    if (isExtractingMemory) return;
+    if (isExtractingMemory) return;          // пока идёт сохранение итогов — субтитры не нужны
     text = cleanCaption(text);
     if (!text.trim()) return;
     if (kind === 'tutor') {
       if (captionNewTurn) { capTutor.textContent = ''; captionNewTurn = false; }
-      capTutor.textContent = (capTutor.textContent + text).slice(-1500);
+      capTutor.textContent = (capTutor.textContent + text).slice(-320);
     } else {
       if (!capUser.dataset.fresh || capUser.dataset.fresh === '1') { capUser.textContent = ''; capUser.dataset.fresh = '0'; }
-      capUser.textContent = ('Вы: ' + (capUser.textContent.replace(/^Вы: /, '') + text)).slice(-500);
+      capUser.textContent = ('Вы: ' + (capUser.textContent.replace(/^Вы: /, '') + text)).slice(-200);
     }
-    captionsBox.scrollTop = captionsBox.scrollHeight;
   }
 
   function onSetupComplete() {
@@ -1694,26 +1673,27 @@ ${langDirective}
     isSetupComplete = true;
     reconnectAttempts = 0;
 
-    if (lessonStarted) {
+    if (lessonStarted) {   // это восстановленное соединение: урок продолжается с того же места
       isWaitingForResponse = false;
       if (isExtractingMemory) { if (!memoryCommitted) sendMemoryDirective(); }
-      else setStatus('stList');
+      else setStatus(st('listening'));
       return;
     }
 
     lessonStarted = true;
     lessonStartedAtReal = Date.now();
     btnAction.disabled = false;
-    btnAction.textContent = t('btnStop');
+    btnAction.textContent = 'Завершить урок';
     btnAction.className = 'btn-main btn-stop';
     btnEndTurn.style.display = 'block';
-    setStatus('stList');
+    setStatus(st('listening'));
     startLessonTimer();
     sendText(startPromptText(), true);
   }
 
   function handleServerMessage(msg) {
     if ('setupComplete' in msg) { onSetupComplete(); return; }
+
     if (msg.goAway) console.info('goAway: сервер скоро закроет соединение, timeLeft =', msg.goAway.timeLeft);
 
     if (msg.sessionResumptionUpdate) {
@@ -1730,18 +1710,18 @@ ${langDirective}
     if (sc.inputTranscription && sc.inputTranscription.text) pushCaption('user', sc.inputTranscription.text);
     if (sc.outputTranscription && sc.outputTranscription.text) pushCaption('tutor', sc.outputTranscription.text);
 
+    // Сервер сообщил, что реплика прервана (наша «Я всё сказал» / ✋ / голос в режиме наушников)
     if (sc.interrupted) {
       stopBotSpeech();
       clearSuppress();
-      interruptedPending = true;
-      toast(t('msgInterrupted'), 2500);
-      if (!isWaitingForResponse && !isExtractingMemory) { clearTimeout(watchdogTimer); setStatus('stList'); }
+      interruptedPending = true;   // следом придёт turnComplete ПРЕРВАННОЙ реплики — он не означает конец нового ответа
+      if (!isWaitingForResponse && !isExtractingMemory) { clearTimeout(watchdogTimer); setStatus(st('listening')); }
     }
 
     if (sc.modelTurn && sc.modelTurn.parts) {
       for (const part of sc.modelTurn.parts) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
-          if (isExtractingMemory || suppressIncomingAudio) continue;
+          if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           interruptedPending = false;
@@ -1753,7 +1733,7 @@ ${langDirective}
             isBotSpeaking = true;
             avatarCard.classList.add('speaking');
             btnInterrupt.style.display = 'block';
-            setStatus('stSpeak');
+            setStatus(st('speaking'));
           }
         }
       }
@@ -1774,13 +1754,14 @@ ${langDirective}
 
       if (!wasInterruptedTurn) {
         clearTimeout(watchdogTimer);
+        // Пустой ход (модель ничего не сказала) раньше навсегда оставлял микрофон закрытым в полудуплексе
         if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
           isWaitingForResponse = false;
-          setStatus('stTurn');
-          try { if (navigator.vibrate) navigator.vibrate(50); } catch(e){}
+          setStatus(st('yourTurn'));
         }
         receivedAudioThisTurn = false;
 
+        // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
         if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
           saveNudges++;
           sendText('[СИСТЕМНО: Не отвечай голосом. Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory и lang_memory.]', true);
@@ -1791,6 +1772,9 @@ ${langDirective}
     }
   }
 
+  /* ==========================================================================
+     Завершение урока и сохранение памяти
+     ========================================================================== */
   function armSaveTimeout(ms) {
     clearTimeout(saveTimeoutId);
     saveTimeoutId = setTimeout(() => {
@@ -1801,9 +1785,9 @@ ${langDirective}
 
   function sendMemoryDirective() {
     if (!socket || socket.readyState !== WebSocket.OPEN || !isSetupComplete) return false;
-    setStatus('stSave');
+    setStatus(st('saving'));
     sendText(memoryPromptText(), true);
-    armSaveTimeout(25000);
+    armSaveTimeout(25000);   // было 7.5 с: при росте памяти модель просто не успевала «договорить» вызов функции
     return true;
   }
 
@@ -1821,22 +1805,23 @@ ${langDirective}
     if (forceImmediate) {
       stopBotSpeech();
     } else if (isAudioStillPlaying() || isServerTurnActive) {
-      setStatus('stFin');
-      await waitPlaybackDrain(10000);
+      setStatus(st('finishing'));
+      await waitPlaybackDrain(10000);   // Graceful Audio Drain Buffer
       if (mySession !== sessionId || isFinalizing) return;
     }
 
-    setStatus('stSave');
+    setStatus(st('saving'));
     if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
       sendMemoryDirective();
     } else if (resumeHandle && lessonStarted) {
-      armSaveTimeout(30000);
+      armSaveTimeout(30000);   // соединение переподключается; директива уйдёт сразу после setupComplete
     } else {
       finalizeStop(lessonStarted ? 'Связи нет — итоги урока сохранить не удалось.' : 'Урок завершён.');
     }
   }
 
   function addFallbackNote(sec) {
+    // Если ИИ не смог сохранить итоги, фиксируем хотя бы сам факт урока, чтобы память не «потеряла» занятие молча
     if (sec < 90) return;
     const old = getLangMem(sessionLang);
     store.set(memKey(sessionLang) + '__prev', old);
@@ -1869,19 +1854,20 @@ ${langDirective}
     logLesson(memoryCommitted, sec);
 
     if (!isExtractingMemory && isAudioStillPlaying()) {
-      statusText.textContent = 'Завершение реплики...';
+      setStatus('Завершение реплики...');
       await waitPlaybackDrain(10000);
     }
     if (mySession !== sessionId) return;
 
     stopBotSpeech();
     const ws = socket;
-    socket = null;
+    socket = null;                         // обработчики старого сокета после этого ничего не делают
     if (ws) { try { ws.close(); } catch (e) {} }
 
     if (mediaStream) { mediaStream.getTracks().forEach(track => track.stop()); mediaStream = null; }
     [sourceNode, lpFilter1, lpFilter2].forEach(n => { if (n) { try { n.disconnect(); } catch (e) {} } });
     sourceNode = lpFilter1 = lpFilter2 = null;
+    // iOS: контексты никогда не close(), только suspend()/resume()
     if (audioContext && audioContext.state === 'running') { try { audioContext.suspend(); } catch (e) {} }
     if (playbackContext && playbackContext.state === 'running') { try { playbackContext.suspend(); } catch (e) {} }
     stopLevelLoop();
@@ -1892,17 +1878,25 @@ ${langDirective}
     clearSuppress();
 
     btnAction.disabled = false;
+    btnAction.textContent = 'Начать урок';
     btnAction.className = 'btn-main btn-start';
     captionsBox.style.display = 'none';
-    
-    const isSaved = /сохранены\.$/.test(finalMessage);
-    if (!isSaved && finalMessage !== 'Урок завершён.') toast(finalMessage, 7000);
-    
+    setStatus(finalMessage);
+    if (!/сохранены\.$/.test(finalMessage) && finalMessage !== 'Урок завершён.') toast(finalMessage, 7000);
     updateUI();
   }
 
+  /* ---------- Старт ---------- */
   updateUI();
-  if (!apiKey) toast(t('msgAskKey'), 5000);
+  if (!apiKey) setStatus('Нажмите ⚙ и вставьте ключ Google AI Studio, затем «Начать урок»');
+
+  // v3.18.0: просим браузер не вытеснять локальную память (особенно Safari/iOS удаляет данные «неиспользуемых» сайтов)
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+
+  // v3.18.0: раньше sw.js и manifest лежали рядом, но нигде не подключались — установка как приложение не работала
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+  }
   </script>
 </body>
 </html>
