@@ -18,7 +18,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <title>AI Language Tutor v3.19.0</title>
+  <title>AI Language Tutor v3.19.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -316,9 +316,9 @@
       </div>
 
       <button type="button" class="btn-backup" id="btnInstall" style="display:none; background:#7c3aed;">📲 Установить как приложение</button>
-      <div class="hint" id="installHint" style="display:none"></div>
+      <div class="hint" id="installHint" style="display:none; color: #f59e0b;"></div>
 
-      <label id="lblKey" for="inputApiKey">Google AI Studio API Key:</label>
+      <label id="lblKey" for="inputApiKey">API ключ Google AI Studio:</label>
       <input type="password" id="inputApiKey" placeholder="Вставьте ключ сюда"
              autocomplete="off" spellcheck="false" autocapitalize="off">
       <a id="linkGetUrl" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно)</a>
@@ -429,14 +429,14 @@
   'use strict';
 
   /* ==========================================================================
-     AI Language Tutor v3.19.0  (монолит, без сборки)
-     Изменения относительно v3.18.1:
-       • Локализация UI: Внедрена полная поддержка 7 языков интерфейса (I18N).
-       • Диагностика обрывов: Добавлен Toast-алерт при срабатывании серверного VAD (sc.interrupted).
-       • Защита от потери пакетов: stuckInterval увеличен до 3000ms.
+     AI Language Tutor v3.19.1  (монолит, без сборки)
+     Исправления: 
+       • Устранена ошибка пустых выпадающих списков (восстановлена полная HTML-структура опций).
+       • Добавлен перевод метки «Хранение ключа» (lblKeyMode).
+       • Скрыта кнопка «Установить» в in-app браузерах Android (Viber/Telegram) с подсказкой открыть в Chrome.
      ========================================================================== */
 
-  const APP_VERSION = '3.19.0';
+  const APP_VERSION = '3.19.1';
   const LESSON_SEC = 15 * 60;
   const MAX_RECONNECT = 5;
   const WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
@@ -493,7 +493,7 @@
   /* ---------- I18N (Мультиязычный интерфейс) ---------- */
   const I18N = {
     uk: {
-      settingsTitle: 'Налаштування', lblKey: 'Зберігання ключа:', optLocal: 'На цьому пристрої', optSession: 'Лише на сесію', lblTarget: 'Мова вивчення:', lblVoice: 'Голос репетитора:', optFemale: 'Жіночий', optMale: 'Чоловічий', lblGender: 'Стать учня:', optAutoGen: 'Визначити авто', lblNative: 'Мова пояснень:', optAutoNat: 'Автовизначення', lblUiLang: 'Мова інтерфейсу:', lblAudio: 'Аудіо-режим:', optAutoAud: 'Авто (Навушники / Динамік)', optHalf: 'Динамік (мікрофон чекає)', optFull: 'Навушники (можна перебивати)', lblStrict: 'Перевірка вимови:', optStrict: 'Сувора', optSoft: 'М\'яка', lblVad: 'Пауза перед відповіддю:', optDef: 'Стандартна', optPat: 'Терпляча', optVery: 'Дуже терпляча', lblCap: 'Субтитри:', optOff: 'Вимкнено', optOn: 'Увімкнено', lblModel: 'Модель Gemini Live:',
+      settingsTitle: 'Налаштування', lblKey: 'API ключ Google AI Studio:', lblKeyMode: 'Зберігання ключа:', optLocal: 'На цьому пристрої', optSession: 'Лише на сесію', lblTarget: 'Мова вивчення:', lblVoice: 'Голос репетитора:', optFemale: 'Жіночий', optMale: 'Чоловічий', lblGender: 'Стать учня:', optAutoGen: 'Визначити авто', lblNative: 'Мова пояснень:', optAutoNat: 'Автовизначення', lblUiLang: 'Мова інтерфейсу:', lblAudio: 'Аудіо-режим:', optAutoAud: 'Авто (Навушники / Динамік)', optHalf: 'Динамік (мікрофон чекає)', optFull: 'Навушники (можна перебивати)', lblStrict: 'Перевірка вимови:', optStrict: 'Сувора', optSoft: 'М\'яка', lblVad: 'Пауза перед відповіддю:', optDef: 'Стандартна', optPat: 'Терпляча', optVery: 'Дуже терпляча', lblCap: 'Субтитри:', optOff: 'Вимкнено', optOn: 'Увімкнено', lblModel: 'Модель Gemini Live:',
       btnSave: 'Зберегти налаштування', btnExp: '📥 Експорт (JSON)', btnImp: '📤 Імпорт (JSON)', btnUndo: '↩ Відкотити пам\'ять', btnRstCur: 'Скинути поточну мову', btnRstAll: 'Скинути ВСЮ пам\'ять', btnClose: 'Закрити',
       btnStart: 'Почати урок', btnStop: 'Завершити урок', btnInterrupt: 'Перебити / Досить ✋', btnTurn: 'Я все сказав ➔',
       stList: 'Слухаю вас...', stSpeak: 'Репетитор говорить...', stThink: 'Готує відповідь...', stTurn: 'Ваша черга говорити...', stConn: 'З’єднання...', stReconn: 'Відновлення зв’язку...', stSave: 'Збереження...', stFin: 'Репетитор договорює...',
@@ -501,10 +501,11 @@
       hintText: 'Якщо урок не стартує — виберіть іншу модель.',
       memTemplate: 'Пам\'ять «{lang}»: {lKb} КБ • загальна: {gKb} КБ • локально',
       prog1: 'Розминка 1–5', prog2: 'Практика 6–10', prog3: 'Закріплення 11–15',
-      profAct: 'Профіль активний', profNew: 'Новий курс', audAuto: 'авто', audHead: 'Навушники', audSpeak: 'Динамік', msgAskKey: 'Натисніть ⚙ і вставте ключ API'
+      profAct: 'Профіль активний', profNew: 'Новий курс', audAuto: 'авто', audHead: 'Навушники', audSpeak: 'Динамік', msgAskKey: 'Натисніть ⚙ і вставте ключ API',
+      hintIos: 'iPhone/iPad: відкрийте в Safari → «Поділитися» → «На екран Домашній».', hintInApp: 'Щоб встановити додаток, відкрийте посилання у звичайному браузері (Chrome).'
     },
     ru: {
-      settingsTitle: 'Настройки', lblKey: 'Хранение ключа:', optLocal: 'На этом устройстве', optSession: 'Только на сессию', lblTarget: 'Изучаемый язык:', lblVoice: 'Голос репетитора:', optFemale: 'Женский', optMale: 'Мужской', lblGender: 'Пол ученика:', optAutoGen: 'Определить самому', lblNative: 'Язык объяснений:', optAutoNat: 'Автоопределение', lblUiLang: 'Язык интерфейса:', lblAudio: 'Аудио-режим:', optAutoAud: 'Авто (Наушники / Динамик)', optHalf: 'Динамик (микрофон ждет)', optFull: 'Наушники (перебивать)', lblStrict: 'Проверка произношения:', optStrict: 'Строгая', optSoft: 'Мягкая', lblVad: 'Пауза перед ответом:', optDef: 'Стандартная', optPat: 'Терпеливая', optVery: 'Очень терпеливая', lblCap: 'Субтитры:', optOff: 'Выключены', optOn: 'Включены', lblModel: 'Модель Gemini Live:',
+      settingsTitle: 'Настройки', lblKey: 'API ключ Google AI Studio:', lblKeyMode: 'Хранение ключа:', optLocal: 'На этом устройстве', optSession: 'Только на сессию', lblTarget: 'Изучаемый язык:', lblVoice: 'Голос репетитора:', optFemale: 'Женский', optMale: 'Мужской', lblGender: 'Пол ученика:', optAutoGen: 'Определить самому', lblNative: 'Язык объяснений:', optAutoNat: 'Автоопределение', lblUiLang: 'Язык интерфейса:', lblAudio: 'Аудио-режим:', optAutoAud: 'Авто (Наушники / Динамик)', optHalf: 'Динамик (микрофон ждет)', optFull: 'Наушники (перебивать)', lblStrict: 'Проверка произношения:', optStrict: 'Строгая', optSoft: 'Мягкая', lblVad: 'Пауза перед ответом:', optDef: 'Стандартная', optPat: 'Терпеливая', optVery: 'Очень терпеливая', lblCap: 'Субтитры:', optOff: 'Выключены', optOn: 'Включены', lblModel: 'Модель Gemini Live:',
       btnSave: 'Сохранить настройки', btnExp: '📥 Экспорт (JSON)', btnImp: '📤 Импорт (JSON)', btnUndo: '↩ Откатить память', btnRstCur: 'Сбросить текущий язык', btnRstAll: 'Сбросить ВСЮ память', btnClose: 'Закрыть',
       btnStart: 'Начать урок', btnStop: 'Завершить урок', btnInterrupt: 'Перебить / Хватит ✋', btnTurn: 'Я всё сказал ➔',
       stList: 'Слушаю вас...', stSpeak: 'Репетитор говорит...', stThink: 'Готовит ответ...', stTurn: 'Ваша очередь говорить...', stConn: 'Соединение...', stReconn: 'Восстановление связи...', stSave: 'Сохранение...', stFin: 'Репетитор договаривает...',
@@ -512,10 +513,11 @@
       hintText: 'Если урок не стартует — выберите другую модель.',
       memTemplate: 'Память «{lang}»: {lKb} КБ • общая: {gKb} КБ • локально',
       prog1: 'Разминка 1–5', prog2: 'Практика 6–10', prog3: 'Закрепление 11–15',
-      profAct: 'Профиль активен', profNew: 'Новый курс', audAuto: 'авто', audHead: 'Наушники', audSpeak: 'Динамик', msgAskKey: 'Нажмите ⚙ и вставьте ключ API'
+      profAct: 'Профиль активен', profNew: 'Новый курс', audAuto: 'авто', audHead: 'Наушники', audSpeak: 'Динамик', msgAskKey: 'Нажмите ⚙ и вставьте ключ API',
+      hintIos: 'iPhone/iPad: откройте в Safari → «Поделиться» → «На экран Домой».', hintInApp: 'Чтобы установить приложение, откройте ссылку в обычном браузере (Chrome).'
     },
     en: {
-      settingsTitle: 'Settings', lblKey: 'Key storage:', optLocal: 'On this device', optSession: 'Session only', lblTarget: 'Target language:', lblVoice: 'Tutor voice:', optFemale: 'Female', optMale: 'Male', lblGender: 'Student gender:', optAutoGen: 'Auto-detect', lblNative: 'Explanation lang:', optAutoNat: 'Auto-detect', lblUiLang: 'Interface lang:', lblAudio: 'Audio mode:', optAutoAud: 'Auto (Headset/Speaker)', optHalf: 'Speaker (mic waits)', optFull: 'Headset (can interrupt)', lblStrict: 'Pronunciation check:', optStrict: 'Strict', optSoft: 'Soft', lblVad: 'Pause before answer:', optDef: 'Standard', optPat: 'Patient', optVery: 'Very patient', lblCap: 'Subtitles:', optOff: 'Off', optOn: 'On', lblModel: 'Gemini Live Model:',
+      settingsTitle: 'Settings', lblKey: 'Google AI Studio API Key:', lblKeyMode: 'Key storage:', optLocal: 'On this device', optSession: 'Session only', lblTarget: 'Target language:', lblVoice: 'Tutor voice:', optFemale: 'Female', optMale: 'Male', lblGender: 'Student gender:', optAutoGen: 'Auto-detect', lblNative: 'Explanation lang:', optAutoNat: 'Auto-detect', lblUiLang: 'Interface lang:', lblAudio: 'Audio mode:', optAutoAud: 'Auto (Headset/Speaker)', optHalf: 'Speaker (mic waits)', optFull: 'Headset (can interrupt)', lblStrict: 'Pronunciation check:', optStrict: 'Strict', optSoft: 'Soft', lblVad: 'Pause before answer:', optDef: 'Standard', optPat: 'Patient', optVery: 'Very patient', lblCap: 'Subtitles:', optOff: 'Off', optOn: 'On', lblModel: 'Gemini Live Model:',
       btnSave: 'Save settings', btnExp: '📥 Export (JSON)', btnImp: '📤 Import (JSON)', btnUndo: '↩ Undo memory', btnRstCur: 'Reset current lang', btnRstAll: 'Reset ALL memory', btnClose: 'Close',
       btnStart: 'Start lesson', btnStop: 'End lesson', btnInterrupt: 'Interrupt ✋', btnTurn: 'I am done ➔',
       stList: 'Listening...', stSpeak: 'Tutor speaking...', stThink: 'Thinking...', stTurn: 'Your turn to speak...', stConn: 'Connecting...', stReconn: 'Reconnecting...', stSave: 'Saving...', stFin: 'Finishing...',
@@ -523,10 +525,11 @@
       hintText: 'If lesson fails to start, choose another model.',
       memTemplate: 'Memory "{lang}": {lKb} KB • global: {gKb} KB • local',
       prog1: 'Warm-up 1–5', prog2: 'Practice 6–10', prog3: 'Review 11–15',
-      profAct: 'Profile active', profNew: 'New course', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Speaker', msgAskKey: 'Click ⚙ and paste API key'
+      profAct: 'Profile active', profNew: 'New course', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Speaker', msgAskKey: 'Click ⚙ and paste API key',
+      hintIos: 'iPhone/iPad: open in Safari → "Share" → "Add to Home Screen".', hintInApp: 'To install the app, open this link in a standard browser (Chrome).'
     },
     fr: {
-      settingsTitle: 'Paramètres', lblKey: 'Stockage de clé:', optLocal: 'Sur cet appareil', optSession: 'Session unique', lblTarget: 'Langue cible:', lblVoice: 'Voix du tuteur:', optFemale: 'Femme', optMale: 'Homme', lblGender: 'Genre de l\'élève:', optAutoGen: 'Détecter auto', lblNative: 'Langue d\'explication:', optAutoNat: 'Détecter auto', lblUiLang: 'Langue interface:', lblAudio: 'Mode audio:', optAutoAud: 'Auto (Casque/Haut-parleur)', optHalf: 'Haut-parleur (micro attend)', optFull: 'Casque (interrompre)', lblStrict: 'Contrôle prononciation:', optStrict: 'Strict', optSoft: 'Souple', lblVad: 'Pause avant réponse:', optDef: 'Standard', optPat: 'Patient', optVery: 'Très patient', lblCap: 'Sous-titres:', optOff: 'Désactivé', optOn: 'Activé', lblModel: 'Modèle Gemini Live:',
+      settingsTitle: 'Paramètres', lblKey: 'Clé API Google AI Studio:', lblKeyMode: 'Stockage de clé:', optLocal: 'Sur cet appareil', optSession: 'Session unique', lblTarget: 'Langue cible:', lblVoice: 'Voix du tuteur:', optFemale: 'Femme', optMale: 'Homme', lblGender: 'Genre de l\'élève:', optAutoGen: 'Détecter auto', lblNative: 'Langue d\'explication:', optAutoNat: 'Détecter auto', lblUiLang: 'Langue interface:', lblAudio: 'Mode audio:', optAutoAud: 'Auto (Casque/Haut-parleur)', optHalf: 'Haut-parleur (micro attend)', optFull: 'Casque (interrompre)', lblStrict: 'Contrôle prononciation:', optStrict: 'Strict', optSoft: 'Souple', lblVad: 'Pause avant réponse:', optDef: 'Standard', optPat: 'Patient', optVery: 'Très patient', lblCap: 'Sous-titres:', optOff: 'Désactivé', optOn: 'Activé', lblModel: 'Modèle Gemini Live:',
       btnSave: 'Enregistrer', btnExp: '📥 Exporter (JSON)', btnImp: '📤 Importer (JSON)', btnUndo: '↩ Annuler dernière sauv.', btnRstCur: 'Réinitialiser langue', btnRstAll: 'Réinitialiser TOUT', btnClose: 'Fermer',
       btnStart: 'Commencer leçon', btnStop: 'Terminer leçon', btnInterrupt: 'Interrompre ✋', btnTurn: 'J\'ai fini ➔',
       stList: 'À l\'écoute...', stSpeak: 'Le tuteur parle...', stThink: 'Réflexion...', stTurn: 'À vous de parler...', stConn: 'Connexion...', stReconn: 'Reconnexion...', stSave: 'Sauvegarde...', stFin: 'Termine...',
@@ -534,10 +537,11 @@
       hintText: 'Si la leçon ne démarre pas, changez de modèle.',
       memTemplate: 'Mémoire "{lang}": {lKb} Ko • globale: {gKb} Ko • local',
       prog1: 'Échauffement 1-5', prog2: 'Pratique 6-10', prog3: 'Révision 11-15',
-      profAct: 'Profil actif', profNew: 'Nouveau cours', audAuto: 'auto', audHead: 'Casque', audSpeak: 'Haut-parleur', msgAskKey: 'Cliquez ⚙ et collez clé API'
+      profAct: 'Profil actif', profNew: 'Nouveau cours', audAuto: 'auto', audHead: 'Casque', audSpeak: 'Haut-parleur', msgAskKey: 'Cliquez ⚙ et collez clé API',
+      hintIos: 'iPhone/iPad: ouvrez dans Safari → "Partager" → "Sur l\'écran d\'accueil".', hintInApp: 'Pour installer, ouvrez ce lien dans un navigateur standard (Chrome).'
     },
     es: {
-      settingsTitle: 'Ajustes', lblKey: 'Almacenamiento clave:', optLocal: 'En el dispositivo', optSession: 'Solo sesión', lblTarget: 'Idioma objetivo:', lblVoice: 'Voz del tutor:', optFemale: 'Mujer', optMale: 'Hombre', lblGender: 'Género del alumno:', optAutoGen: 'Detectar auto', lblNative: 'Idioma de explicación:', optAutoNat: 'Detectar auto', lblUiLang: 'Idioma interfaz:', lblAudio: 'Modo de audio:', optAutoAud: 'Auto (Auricular/Altavoz)', optHalf: 'Altavoz (mic espera)', optFull: 'Auricular (interrumpir)', lblStrict: 'Control pronunciación:', optStrict: 'Estricto', optSoft: 'Suave', lblVad: 'Pausa antes de respuesta:', optDef: 'Estándar', optPat: 'Paciente', optVery: 'Muy paciente', lblCap: 'Subtítulos:', optOff: 'No', optOn: 'Sí', lblModel: 'Modelo Gemini Live:',
+      settingsTitle: 'Ajustes', lblKey: 'Clave API Google AI Studio:', lblKeyMode: 'Almacenamiento clave:', optLocal: 'En el dispositivo', optSession: 'Solo sesión', lblTarget: 'Idioma objetivo:', lblVoice: 'Voz del tutor:', optFemale: 'Mujer', optMale: 'Hombre', lblGender: 'Género del alumno:', optAutoGen: 'Detectar auto', lblNative: 'Idioma de explicación:', optAutoNat: 'Detectar auto', lblUiLang: 'Idioma interfaz:', lblAudio: 'Modo de audio:', optAutoAud: 'Auto (Auricular/Altavoz)', optHalf: 'Altavoz (mic espera)', optFull: 'Auricular (interrumpir)', lblStrict: 'Control pronunciación:', optStrict: 'Estricto', optSoft: 'Suave', lblVad: 'Pausa antes de respuesta:', optDef: 'Estándar', optPat: 'Paciente', optVery: 'Muy paciente', lblCap: 'Subtítulos:', optOff: 'No', optOn: 'Sí', lblModel: 'Modelo Gemini Live:',
       btnSave: 'Guardar ajustes', btnExp: '📥 Exportar (JSON)', btnImp: '📤 Importar (JSON)', btnUndo: '↩ Deshacer memoria', btnRstCur: 'Reiniciar idioma', btnRstAll: 'Reiniciar TODO', btnClose: 'Cerrar',
       btnStart: 'Empezar lección', btnStop: 'Terminar lección', btnInterrupt: 'Interrumpir ✋', btnTurn: 'He terminado ➔',
       stList: 'Escuchando...', stSpeak: 'Tutor hablando...', stThink: 'Pensando...', stTurn: 'Tu turno para hablar...', stConn: 'Conectando...', stReconn: 'Reconectando...', stSave: 'Guardando...', stFin: 'Terminando...',
@@ -545,10 +549,11 @@
       hintText: 'Si no inicia, elige otro modelo.',
       memTemplate: 'Memoria "{lang}": {lKb} KB • global: {gKb} KB • local',
       prog1: 'Calentamiento 1-5', prog2: 'Práctica 6-10', prog3: 'Repaso 11-15',
-      profAct: 'Perfil activo', profNew: 'Nuevo curso', audAuto: 'auto', audHead: 'Auricular', audSpeak: 'Altavoz', msgAskKey: 'Haz clic ⚙ y pega la clave API'
+      profAct: 'Perfil activo', profNew: 'Nuevo curso', audAuto: 'auto', audHead: 'Auricular', audSpeak: 'Altavoz', msgAskKey: 'Haz clic ⚙ y pega la clave API',
+      hintIos: 'iPhone/iPad: abre en Safari → "Compartir" → "Añadir a inicio".', hintInApp: 'Para instalar, abre este enlace en un navegador estándar (Chrome).'
     },
     de: {
-      settingsTitle: 'Einstellungen', lblKey: 'Schlüsselspeicher:', optLocal: 'Auf diesem Gerät', optSession: 'Nur Sitzung', lblTarget: 'Zielsprache:', lblVoice: 'Stimme Tutor:', optFemale: 'Frau', optMale: 'Mann', lblGender: 'Schülergeschlecht:', optAutoGen: 'Auto-Erkennung', lblNative: 'Erklärungssprache:', optAutoNat: 'Auto-Erkennung', lblUiLang: 'UI-Sprache:', lblAudio: 'Audio-Modus:', optAutoAud: 'Auto (Headset/Lautsprecher)', optHalf: 'Lautsprecher (Mic wartet)', optFull: 'Headset (unterbrechen)', lblStrict: 'Ausspracheprüfung:', optStrict: 'Streng', optSoft: 'Sanft', lblVad: 'Pause vor Antwort:', optDef: 'Standard', optPat: 'Geduldig', optVery: 'Sehr geduldig', lblCap: 'Untertitel:', optOff: 'Aus', optOn: 'Ein', lblModel: 'Gemini Live Modell:',
+      settingsTitle: 'Einstellungen', lblKey: 'Google AI Studio API-Key:', lblKeyMode: 'Schlüsselspeicher:', optLocal: 'Auf diesem Gerät', optSession: 'Nur Sitzung', lblTarget: 'Zielsprache:', lblVoice: 'Stimme Tutor:', optFemale: 'Frau', optMale: 'Mann', lblGender: 'Schülergeschlecht:', optAutoGen: 'Auto-Erkennung', lblNative: 'Erklärungssprache:', optAutoNat: 'Auto-Erkennung', lblUiLang: 'UI-Sprache:', lblAudio: 'Audio-Modus:', optAutoAud: 'Auto (Headset/Lautsprecher)', optHalf: 'Lautsprecher (Mic wartet)', optFull: 'Headset (unterbrechen)', lblStrict: 'Ausspracheprüfung:', optStrict: 'Streng', optSoft: 'Sanft', lblVad: 'Pause vor Antwort:', optDef: 'Standard', optPat: 'Geduldig', optVery: 'Sehr geduldig', lblCap: 'Untertitel:', optOff: 'Aus', optOn: 'Ein', lblModel: 'Gemini Live Modell:',
       btnSave: 'Speichern', btnExp: '📥 Exportieren (JSON)', btnImp: '📤 Importieren (JSON)', btnUndo: '↩ Speicher rückgängig', btnRstCur: 'Sprache zurücksetzen', btnRstAll: 'ALLES zurücksetzen', btnClose: 'Schließen',
       btnStart: 'Lektion starten', btnStop: 'Lektion beenden', btnInterrupt: 'Unterbrechen ✋', btnTurn: 'Ich bin fertig ➔',
       stList: 'Höre zu...', stSpeak: 'Tutor spricht...', stThink: 'Denkt nach...', stTurn: 'Du bist dran...', stConn: 'Verbinde...', stReconn: 'Verbinde neu...', stSave: 'Speichern...', stFin: 'Beenden...',
@@ -556,10 +561,11 @@
       hintText: 'Wenn es nicht startet, anderes Modell wählen.',
       memTemplate: 'Speicher "{lang}": {lKb} KB • global: {gKb} KB • lokal',
       prog1: 'Aufwärmen 1-5', prog2: 'Übung 6-10', prog3: 'Wiederholung 11-15',
-      profAct: 'Profil aktiv', profNew: 'Neuer Kurs', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Lautsprecher', msgAskKey: 'Klick ⚙ und API-Key einfügen'
+      profAct: 'Profil aktiv', profNew: 'Neuer Kurs', audAuto: 'auto', audHead: 'Headset', audSpeak: 'Lautsprecher', msgAskKey: 'Klick ⚙ und API-Key einfügen',
+      hintIos: 'iPhone/iPad: in Safari öffnen → "Teilen" → "Zum Home-Bildschirm".', hintInApp: 'Zum Installieren Link im Standardbrowser (Chrome) öffnen.'
     },
     it: {
-      settingsTitle: 'Impostazioni', lblKey: 'Memoria chiave:', optLocal: 'Su questo disp.', optSession: 'Solo sessione', lblTarget: 'Lingua di studio:', lblVoice: 'Voce tutor:', optFemale: 'Donna', optMale: 'Uomo', lblGender: 'Genere studente:', optAutoGen: 'Rilevamento auto', lblNative: 'Lingua spiegazione:', optAutoNat: 'Rilevamento auto', lblUiLang: 'Lingua interfaccia:', lblAudio: 'Modalità audio:', optAutoAud: 'Auto (Cuffie/Altoparlante)', optHalf: 'Altoparlante (mic attende)', optFull: 'Cuffie (può interrompere)', lblStrict: 'Controllo pronuncia:', optStrict: 'Severo', optSoft: 'Morbido', lblVad: 'Pausa prima di risposta:', optDef: 'Standard', optPat: 'Paziente', optVery: 'Molto paziente', lblCap: 'Sottotitoli:', optOff: 'Spento', optOn: 'Acceso', lblModel: 'Modello Gemini Live:',
+      settingsTitle: 'Impostazioni', lblKey: 'Chiave API Google AI Studio:', lblKeyMode: 'Memoria chiave:', optLocal: 'Su questo disp.', optSession: 'Solo sessione', lblTarget: 'Lingua di studio:', lblVoice: 'Voce tutor:', optFemale: 'Donna', optMale: 'Uomo', lblGender: 'Genere studente:', optAutoGen: 'Rilevamento auto', lblNative: 'Lingua spiegazione:', optAutoNat: 'Rilevamento auto', lblUiLang: 'Lingua interfaccia:', lblAudio: 'Modalità audio:', optAutoAud: 'Auto (Cuffie/Altoparlante)', optHalf: 'Altoparlante (mic attende)', optFull: 'Cuffie (può interrompere)', lblStrict: 'Controllo pronuncia:', optStrict: 'Severo', optSoft: 'Morbido', lblVad: 'Pausa prima di risposta:', optDef: 'Standard', optPat: 'Paziente', optVery: 'Molto paziente', lblCap: 'Sottotitoli:', optOff: 'Spento', optOn: 'Acceso', lblModel: 'Modello Gemini Live:',
       btnSave: 'Salva', btnExp: '📥 Esporta (JSON)', btnImp: '📤 Importa (JSON)', btnUndo: '↩ Annulla memoria', btnRstCur: 'Ripristina lingua', btnRstAll: 'Ripristina TUTTO', btnClose: 'Chiudi',
       btnStart: 'Inizia lezione', btnStop: 'Termina lezione', btnInterrupt: 'Interrompi ✋', btnTurn: 'Ho finito ➔',
       stList: 'Ascolto...', stSpeak: 'Il tutor parla...', stThink: 'Pensando...', stTurn: 'Tocca a te...', stConn: 'Connessione...', stReconn: 'Riconnessione...', stSave: 'Salvataggio...', stFin: 'Completamento...',
@@ -567,7 +573,8 @@
       hintText: 'Se non si avvia, scegli un altro modello.',
       memTemplate: 'Memoria "{lang}": {lKb} KB • globale: {gKb} KB • locale',
       prog1: 'Riscaldamento 1-5', prog2: 'Pratica 6-10', prog3: 'Ripasso 11-15',
-      profAct: 'Profilo attivo', profNew: 'Nuovo corso', audAuto: 'auto', audHead: 'Cuffie', audSpeak: 'Altoparlante', msgAskKey: 'Clicca ⚙ e incolla chiave API'
+      profAct: 'Profilo attivo', profNew: 'Nuovo corso', audAuto: 'auto', audHead: 'Cuffie', audSpeak: 'Altoparlante', msgAskKey: 'Clicca ⚙ e incolla chiave API',
+      hintIos: 'iPhone/iPad: apri in Safari → "Condividi" → "Aggiungi a Home".', hintInApp: 'Per installare, apri il link nel browser standard (Chrome).'
     }
   };
 
@@ -707,12 +714,51 @@
 
   function currentAudioMode() { return cfg.audio === 'auto' ? (isHeadsetConnected ? 'full' : 'half') : cfg.audio; }
 
+  const btnInstall = $('btnInstall'), installHint = $('installHint');
+  let deferredInstall = null;
+  const isStandalone = () => {
+    try { return !!(navigator.standalone || (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; }
+  };
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredInstall = e;
+    if (!isStandalone()) btnInstall.style.display = 'block';
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstall = null; btnInstall.style.display = 'none';
+    toast('Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.', 6000);
+  });
+  btnInstall.onclick = async () => {
+    if (!deferredInstall) return;
+    try { deferredInstall.prompt(); await deferredInstall.userChoice; } catch (e) {}
+    deferredInstall = null; btnInstall.style.display = 'none';
+  };
+
+  function showInstallHint() {
+    const ua = String(navigator.userAgent || '');
+    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const inApp = /Viber|Telegram|Instagram|FBAN|Line/i.test(ua);
+    if (!isStandalone()) {
+      if (ios) {
+        installHint.style.display = 'block';
+        installHint.textContent = t('hintIos');
+      } else if (inApp) {
+        installHint.style.display = 'block';
+        installHint.textContent = t('hintInApp');
+      } else {
+        installHint.style.display = 'none';
+      }
+    } else {
+      installHint.style.display = 'none';
+    }
+  }
+
   function applyTranslation() {
     btnAction.textContent = isSessionActive ? t('btnStop') : t('btnStart');
     btnInterrupt.textContent = t('btnInterrupt');
     btnEndTurn.textContent = t('btnTurn');
     $('lblSettingsTitle').textContent = t('settingsTitle');
     $('lblKey').textContent = t('lblKey');
+    $('lblKeyMode').textContent = t('lblKeyMode');
     selectStorageMode.options[0].text = t('optLocal'); selectStorageMode.options[1].text = t('optSession');
     $('lblTarget').textContent = t('lblTarget');
     $('lblVoice').textContent = t('lblVoice');
@@ -740,6 +786,7 @@
     $('btnCloseModal').textContent = t('btnClose');
     $('linkGetUrl').textContent = t('msgGetUrl');
     $('hintText').textContent = t('hintText');
+    showInstallHint();
   }
 
   function updateAudioChip() {
@@ -802,7 +849,7 @@
     store.set('vad_mode', cfg.vad); store.set('captions', cfg.captions); store.set('strict_mode', cfg.strict);
 
     updateUI(); closeSettings();
-    if (!ok) toast(t('hintText'), 5000); // reuse a string or silently fail
+    if (!ok) toast(t('hintText'), 5000);
   };
 
   $('btnExportMemory').onclick = () => {
@@ -1451,7 +1498,7 @@ ${langDirective}
     if (!apiKey) { toast(t('msgAskKey'), 4000); openSettings(); return; }
 
     btnAction.disabled = true;
-    statusText.textContent = '...'; // Neutral start
+    statusText.textContent = '...'; 
     try {
       ensurePlayback();
       if (playbackContext.state === 'suspended') await playbackContext.resume();
@@ -1848,42 +1895,10 @@ ${langDirective}
     btnAction.className = 'btn-main btn-start';
     captionsBox.style.display = 'none';
     
-    // Если сообщение не системный ключ локализации, показываем как есть
     const isSaved = /сохранены\.$/.test(finalMessage);
     if (!isSaved && finalMessage !== 'Урок завершён.') toast(finalMessage, 7000);
     
-    updateUI(); // Возвращает статус в исходное состояние с переводом
-  }
-
-  const btnInstall = $('btnInstall'), installHint =$('installHint');
-  let deferredInstall = null;
-  const isStandalone = () => {
-    try { return !!(navigator.standalone || (typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches)); } catch (e) { return false; }
-  };
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredInstall = e;
-    if (!isStandalone()) btnInstall.style.display = 'block';
-  });
-  window.addEventListener('appinstalled', () => {
-    deferredInstall = null; btnInstall.style.display = 'none';
-    toast('Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.', 6000);
-  });
-  btnInstall.onclick = async () => {
-    if (!deferredInstall) return;
-    try { deferredInstall.prompt(); await deferredInstall.userChoice; } catch (e) {}
-    deferredInstall = null; btnInstall.style.display = 'none';
-  };
-  (function showIosHint() {
-    const ua = String(navigator.userAgent || '');
-    const ios = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-    if (ios && !isStandalone()) {
-      installHint.style.display = 'block';
-      installHint.textContent = 'iPhone/iPad: откройте программу в Safari → кнопка «Поделиться» → «На экран «Домой»».';
-    }
-  })();
-  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e)); });
+    updateUI();
   }
 
   updateUI();
