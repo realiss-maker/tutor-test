@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.18.0</title>
+  <title>AI Language Tutor v3.20.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -224,7 +224,7 @@
 
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); justify-content: center; align-items: center; padding: 20px; z-index: 50; }
     .modal-content { background: #1e293b; padding: 22px; border-radius: 16px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; width: 100%; }   /* 16px — иначе iOS приближает страницу при фокусе */
+    .modal-content input, .modal-content select { padding: 10px 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 16px; width: 100%; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; padding-right: 30px; }   /* 16px — иначе iOS приближает страницу при фокусе */
     .modal-content label { font-size: 0.82rem; color: #94a3b8; margin-bottom: -5px; text-align: left; }
     .modal-content button { padding: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
     .modal-content a { color: #38bdf8; font-size: 0.8rem; text-align: left; }
@@ -317,7 +317,7 @@
              autocomplete="off" spellcheck="false" autocapitalize="off">
       <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно, в Google AI Studio)</a>
 
-      <label for="selectStorageMode">Режим хранения ключа:</label>
+      <label id="lblStorageMode" for="selectStorageMode">Режим хранения ключа:</label>
       <select id="selectStorageMode">
         <option value="local">На этом устройстве</option>
         <option value="session">Только на время сессии</option>
@@ -325,11 +325,11 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label for="selectLanguage">Изучаемый язык:</label>
+          <label id="lblTargetLang" for="selectLanguage">Изучаемый язык:</label>
           <select id="selectLanguage"></select>
         </div>
         <div style="flex: 1;">
-          <label for="selectTeacher">Голос репетитора:</label>
+          <label id="lblTeacherVoice" for="selectTeacher">Голос репетитора:</label>
           <select id="selectTeacher">
             <option value="female">Женский</option>
             <option value="male">Мужской</option>
@@ -339,7 +339,7 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label for="selectStudentGender">Пол ученика (обращение):</label>
+          <label id="lblStudentGender" for="selectStudentGender">Пол ученика (обращение):</label>
           <select id="selectStudentGender">
             <option value="auto">Определить самому</option>
             <option value="male">Мужской</option>
@@ -347,7 +347,7 @@
           </select>
         </div>
         <div style="flex: 1;">
-          <label for="selectNativeLang">Язык объяснений:</label>
+          <label id="lblNativeLang" for="selectNativeLang">Язык объяснений:</label>
           <select id="selectNativeLang">
             <option value="ru">Русский</option>
             <option value="uk">Українська</option>
@@ -358,7 +358,7 @@
 
       <div style="display: flex; gap: 10px;">
         <div style="flex: 1;">
-          <label for="selectLevel">Ваш уровень:</label>
+          <label id="lblLevelLabel" for="selectLevel">Ваш уровень:</label>
           <select id="selectLevel">
             <option value="auto">Определить по памяти</option>
             <option value="A0">С нуля (A0)</option>
@@ -369,7 +369,7 @@
           </select>
         </div>
         <div style="flex: 1;">
-          <label for="selectMinutes">Длина урока:</label>
+          <label id="lblMinutes" for="selectMinutes">Длина урока:</label>
           <select id="selectMinutes">
             <option value="10">10 минут</option>
             <option value="15">15 минут</option>
@@ -378,33 +378,33 @@
         </div>
       </div>
 
-      <label for="selectAudioMode">Аудио-режим:</label>
+      <label id="lblAudioMode" for="selectAudioMode">Аудио-режим:</label>
       <select id="selectAudioMode">
         <option value="auto">Авто (наушники / динамик)</option>
         <option value="half">Динамик (микрофон ждёт)</option>
         <option value="full">Наушники (можно перебивать)</option>
       </select>
 
-      <label for="selectStrict">Проверка вашего произношения:</label>
+      <label id="lblStrict" for="selectStrict">Проверка вашего произношения:</label>
       <select id="selectStrict">
         <option value="strict">Строгая</option>
         <option value="normal">Мягкая</option>
       </select>
 
-      <label for="selectVad">Пауза перед ответом репетитора:</label>
+      <label id="lblVad" for="selectVad">Пауза перед ответом репетитора:</label>
       <select id="selectVad">
         <option value="default">Стандартная</option>
         <option value="patient">Терпеливая</option>
         <option value="very">Очень терпеливая</option>
       </select>
 
-      <label for="selectCaptions">Текст реплик (субтитры):</label>
+      <label id="lblCaptions" for="selectCaptions">Текст реплик (субтитры):</label>
       <select id="selectCaptions">
         <option value="off">Выключены</option>
         <option value="on">Показывать</option>
       </select>
 
-      <label for="selectModel">Модель Gemini Live:</label>
+      <label id="lblModelLabel" for="selectModel">Модель Gemini Live:</label>
       <select id="selectModel"></select>
       <div class="hint">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель. «Определить самому» — пол ученика определяется по имени и речи.</div>
 
@@ -440,7 +440,458 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.18.0';
+  const APP_VERSION = '3.20.0';
+
+    const I18N = {
+  "uk": {
+    "settingsTitle": "Налаштування",
+    "lblKey": "API ключ Google AI Studio:",
+    "lblKeyMode": "Зберігання ключа:",
+    "optLocal": "На цьому пристрої",
+    "optSession": "Лише на сесію",
+    "lblTarget": "Мова вивчення:",
+    "lblVoice": "Голос репетитора:",
+    "optFemale": "Жіночий",
+    "optMale": "Чоловічий",
+    "lblGender": "Стать учня:",
+    "optAutoGen": "Визначити авто",
+    "lblNative": "Мова пояснень:",
+    "optAutoNat": "Автовизначення",
+    "lblUiLang": "Мова інтерфейсу:",
+    "lblAudio": "Аудіо-режим:",
+    "optAutoAud": "Авто (Навушники / Динамік)",
+    "optHalf": "Динамік (мікрофон чекає)",
+    "optFull": "Навушники (можна перебивати)",
+    "lblStrict": "Перевірка вимови:",
+    "optStrict": "Сувора",
+    "optSoft": "М'яка",
+    "lblVad": "Пауза перед відповіддю:",
+    "optDef": "Стандартна",
+    "optPat": "Терпляча",
+    "optVery": "Дуже терпляча",
+    "lblCap": "Субтитри:",
+    "optOff": "Вимкнено",
+    "optOn": "Увімкнено",
+    "lblModel": "Модель Gemini Live:",
+    "btnSave": "Зберегти налаштування",
+    "btnExp": "📥 Експорт (JSON)",
+    "btnImp": "📤 Імпорт (JSON)",
+    "btnUndo": "↩ Відкотити пам'ять",
+    "btnRstCur": "Скинути поточну мову",
+    "btnRstAll": "Скинути ВСЮ пам'ять",
+    "btnClose": "Закрити",
+    "btnStart": "Почати урок",
+    "btnStop": "Завершити урок",
+    "btnInterrupt": "Перебити / Досить ✋",
+    "btnTurn": "Я все сказав ➔",
+    "stList": "Слухаю вас...",
+    "stSpeak": "Репетитор говорить...",
+    "stThink": "Готує відповідь...",
+    "stTurn": "Ваша черга говорити...",
+    "stConn": "З’єднання...",
+    "stReconn": "Відновлення зв’язку...",
+    "stSave": "Збереження...",
+    "stFin": "Репетитор договорює...",
+    "msgGetUrl": "Де взяти ключ (безкоштовно)",
+    "msgInterrupted": "Репліку перервано (почуто шум/голос)",
+    "msgTimeDone": "Час вичерпано. Завершення...",
+    "hintText": "Якщо урок не стартує — виберіть іншу модель.",
+    "memTemplate": "Пам'ять «{lang}»: {lKb} КБ • загальна: {gKb} КБ • локально",
+    "prog1": "Розминка 1–5",
+    "prog2": "Практика 6–10",
+    "prog3": "Закріплення 11–15",
+    "profAct": "Профіль активний",
+    "profNew": "Новий курс",
+    "audAuto": "авто",
+    "audHead": "Навушники",
+    "audSpeak": "Динамік",
+    "msgAskKey": "Натисніть ⚙ і вставте ключ API",
+    "hintIos": "iPhone/iPad: відкрийте в Safari → «Поділитися» → «На екран Домашній».",
+    "hintInApp": "Щоб встановити додаток, відкрийте посилання у звичайному браузері (Chrome).",
+    "lblLevel": "Ваш рівень:",
+    "optLvAuto": "За пам'яттю",
+    "optLvA0": "З нуля (A0)",
+    "lblMinutes": "Тривалість уроку:",
+    "optMin": "{n} хв",
+    "btnInstall": "📲 Встановити як додаток",
+    "unitMin": "хв",
+    "capYou": "Ви"
+  },
+  "ru": {
+    "settingsTitle": "Настройки",
+    "lblKey": "API ключ Google AI Studio:",
+    "lblKeyMode": "Хранение ключа:",
+    "optLocal": "На этом устройстве",
+    "optSession": "Только на сессию",
+    "lblTarget": "Изучаемый язык:",
+    "lblVoice": "Голос репетитора:",
+    "optFemale": "Женский",
+    "optMale": "Мужской",
+    "lblGender": "Пол ученика:",
+    "optAutoGen": "Определить самому",
+    "lblNative": "Язык объяснений:",
+    "optAutoNat": "Автоопределение",
+    "lblUiLang": "Язык интерфейса:",
+    "lblAudio": "Аудио-режим:",
+    "optAutoAud": "Авто (Наушники / Динамик)",
+    "optHalf": "Динамик (микрофон ждет)",
+    "optFull": "Наушники (перебивать)",
+    "lblStrict": "Проверка произношения:",
+    "optStrict": "Строгая",
+    "optSoft": "Мягкая",
+    "lblVad": "Пауза перед ответом:",
+    "optDef": "Стандартная",
+    "optPat": "Терпеливая",
+    "optVery": "Очень терпеливая",
+    "lblCap": "Субтитры:",
+    "optOff": "Выключены",
+    "optOn": "Включены",
+    "lblModel": "Модель Gemini Live:",
+    "btnSave": "Сохранить настройки",
+    "btnExp": "📥 Экспорт (JSON)",
+    "btnImp": "📤 Импорт (JSON)",
+    "btnUndo": "↩ Откатить память",
+    "btnRstCur": "Сбросить текущий язык",
+    "btnRstAll": "Сбросить ВСЮ память",
+    "btnClose": "Закрыть",
+    "btnStart": "Начать урок",
+    "btnStop": "Завершить урок",
+    "btnInterrupt": "Перебить / Хватит ✋",
+    "btnTurn": "Я всё сказал ➔",
+    "stList": "Слушаю вас...",
+    "stSpeak": "Репетитор говорит...",
+    "stThink": "Готовит ответ...",
+    "stTurn": "Ваша очередь говорить...",
+    "stConn": "Соединение...",
+    "stReconn": "Восстановление связи...",
+    "stSave": "Сохранение...",
+    "stFin": "Репетитор договаривает...",
+    "msgGetUrl": "Где взять ключ (бесплатно)",
+    "msgInterrupted": "Реплика прервана (услышан шум/голос)",
+    "msgTimeDone": "Время истекло. Завершение...",
+    "hintText": "Если урок не стартует — выберите другую модель.",
+    "memTemplate": "Память «{lang}»: {lKb} КБ • общая: {gKb} КБ • локально",
+    "prog1": "Разминка 1–5",
+    "prog2": "Практика 6–10",
+    "prog3": "Закрепление 11–15",
+    "profAct": "Профиль активен",
+    "profNew": "Новый курс",
+    "audAuto": "авто",
+    "audHead": "Наушники",
+    "audSpeak": "Динамик",
+    "msgAskKey": "Нажмите ⚙ и вставьте ключ API",
+    "hintIos": "iPhone/iPad: откройте в Safari → «Поделиться» → «На экран Домой».",
+    "hintInApp": "Чтобы установить приложение, откройте ссылку в обычном браузере (Chrome).",
+    "lblLevel": "Ваш уровень:",
+    "optLvAuto": "По памяти",
+    "optLvA0": "С нуля (A0)",
+    "lblMinutes": "Длина урока:",
+    "optMin": "{n} мин",
+    "btnInstall": "📲 Установить как приложение",
+    "unitMin": "мин",
+    "capYou": "Вы"
+  },
+  "en": {
+    "settingsTitle": "Settings",
+    "lblKey": "Google AI Studio API Key:",
+    "lblKeyMode": "Key storage:",
+    "optLocal": "On this device",
+    "optSession": "Session only",
+    "lblTarget": "Target language:",
+    "lblVoice": "Tutor voice:",
+    "optFemale": "Female",
+    "optMale": "Male",
+    "lblGender": "Student gender:",
+    "optAutoGen": "Auto-detect",
+    "lblNative": "Explanation lang:",
+    "optAutoNat": "Auto-detect",
+    "lblUiLang": "Interface lang:",
+    "lblAudio": "Audio mode:",
+    "optAutoAud": "Auto (Headset/Speaker)",
+    "optHalf": "Speaker (mic waits)",
+    "optFull": "Headset (can interrupt)",
+    "lblStrict": "Pronunciation check:",
+    "optStrict": "Strict",
+    "optSoft": "Soft",
+    "lblVad": "Pause before answer:",
+    "optDef": "Standard",
+    "optPat": "Patient",
+    "optVery": "Very patient",
+    "lblCap": "Subtitles:",
+    "optOff": "Off",
+    "optOn": "On",
+    "lblModel": "Gemini Live Model:",
+    "btnSave": "Save settings",
+    "btnExp": "📥 Export (JSON)",
+    "btnImp": "📤 Import (JSON)",
+    "btnUndo": "↩ Undo memory",
+    "btnRstCur": "Reset current lang",
+    "btnRstAll": "Reset ALL memory",
+    "btnClose": "Close",
+    "btnStart": "Start lesson",
+    "btnStop": "End lesson",
+    "btnInterrupt": "Interrupt ✋",
+    "btnTurn": "I am done ➔",
+    "stList": "Listening...",
+    "stSpeak": "Tutor speaking...",
+    "stThink": "Thinking...",
+    "stTurn": "Your turn to speak...",
+    "stConn": "Connecting...",
+    "stReconn": "Reconnecting...",
+    "stSave": "Saving...",
+    "stFin": "Finishing...",
+    "msgGetUrl": "Get API key (Free)",
+    "msgInterrupted": "Interrupted (noise/voice detected)",
+    "msgTimeDone": "Time is up. Finishing...",
+    "hintText": "If lesson fails to start, choose another model.",
+    "memTemplate": "Memory \"{lang}\": {lKb} KB • global: {gKb} KB • local",
+    "prog1": "Warm-up 1–5",
+    "prog2": "Practice 6–10",
+    "prog3": "Review 11–15",
+    "profAct": "Profile active",
+    "profNew": "New course",
+    "audAuto": "auto",
+    "audHead": "Headset",
+    "audSpeak": "Speaker",
+    "msgAskKey": "Click ⚙ and paste API key",
+    "hintIos": "iPhone/iPad: open in Safari → \"Share\" → \"Add to Home Screen\".",
+    "hintInApp": "To install the app, open this link in a standard browser (Chrome).",
+    "lblLevel": "Your level:",
+    "optLvAuto": "From memory",
+    "optLvA0": "Beginner (A0)",
+    "lblMinutes": "Lesson length:",
+    "optMin": "{n} min",
+    "btnInstall": "📲 Install as app",
+    "unitMin": "min",
+    "capYou": "You"
+  }
+};
+
+    // MSG dict
+    const MSG = require('C:/WORK/FRANCE/Репетитор/Репазиторий 3.17.0/.gemini/antigravity-ide/brain/717bd762-273f-477c-846e-778c0f79582e/scratch/i18n_extra.js').MSG || {};
+    const MSG = {
+  ru: {
+    saved: 'Настройки сохранены.',
+    keyEmpty: 'Настройки сохранены, но ключ API пустой — без него урок не начнётся.',
+    keyOdd: 'Настройки сохранены. Ключ выглядит необычно: ключи Google AI Studio начинаются с «AIza».',
+    storeFail: 'Не удалось записать настройки в браузер (приватный режим или нет места).',
+    locked: 'Настройки доступны, когда урок завершён.',
+    expDone: 'Резервная копия скачана (ключ API в неё не входит).',
+    impBig: 'Файл слишком большой для резервной копии.',
+    impConfirm: 'Импорт заменит текущую память теми данными, что есть в файле. Продолжить?',
+    impDone: 'Память профиля импортирована из файла.',
+    impBad: 'Ошибка чтения файла. Проверьте, что это резервная копия в формате JSON.',
+    undoNone: 'Предыдущей версии памяти пока нет.',
+    undoConfirm: 'Вернуть память к состоянию перед последним сохранением? Текущая версия станет «предыдущей».',
+    undoDone: 'Память возвращена к предыдущей версии.',
+    rstLangConfirm: 'Сбросить историю и прогресс для текущего языка?',
+    rstLangDone: 'Прогресс текущего языка очищен (можно откатить кнопкой «Откатить память»).',
+    rstAllConfirm: 'ВНИМАНИЕ: удалить ВСЕ данные профиля и прогресс по всем языкам?',
+    rstAllDone: 'Весь профиль сброшен.',
+    memShrunk: 'Память сохранена в безопасном режиме: новая запись была короче старой, поэтому она добавлена, а не заменила.',
+    memWriteFail: 'Не удалось записать память в браузер (нет места или приватный режим). Сделайте экспорт в настройках ⚙.',
+    backupChip: '💾 Сделайте резервную копию (⚙)',
+    offline: 'Нет подключения к интернету. Урок требует связи с Google.',
+    noNet: 'Нет интернета',
+    micDenied: 'Доступ к микрофону запрещён. Разрешите его в настройках браузера и повторите.',
+    micNotFound: 'Микрофон не найден. Подключите микрофон и повторите.',
+    micBusy: 'Микрофон занят другим приложением. Закройте его и повторите.',
+    micFail: 'Не удалось включить микрофон или звук.',
+    micBack: 'Микрофон восстановлен.',
+    micLost: 'Завершите урок и начните заново.',
+    clAuth: 'Google не принял ключ API. Проверьте ключ в настройках ⚙.',
+    clModel: 'Выбранная модель недоступна для вашего ключа. Выберите другую модель в настройках ⚙.',
+    clQuota: 'Исчерпан лимит Google AI Studio (квота или оплата). Попробуйте позже.',
+    clConn: 'Не удалось установить соединение. Проверьте интернет и ключ API.',
+    clGeneric: 'Соединение закрыто сервером{reason}',
+    finSaved: 'Урок и прогресс сохранены.',
+    finDone: 'Урок завершён.',
+    finLostBeforeSave: 'Связь оборвалась до сохранения. Итоги урока записать не удалось.',
+    finLost: 'Связь с сервером потеряна. Итоги этого урока сохранить не удалось.',
+    finTimeout: 'Репетитор не вернул итоги урока вовремя. Урок засчитан, но слова и ошибки этого занятия не сохранились.',
+    finNoConn: 'Связи нет — итоги урока сохранить не удалось.',
+    finishing: 'Завершение реплики...',
+    installed: 'Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.',
+    startHint: 'Нажмите «Начать урок» для старта',
+    noKeyStatus: 'Нажмите ⚙ и вставьте ключ Google AI Studio, затем «Начать урок»',
+    noKeyToast: 'Сначала вставьте ключ Google AI Studio в настройках ⚙',
+    audioInit: 'Инициализация звука...'
+  },
+  uk: {
+    saved: 'Налаштування збережено.',
+    keyEmpty: 'Налаштування збережено, але ключ API порожній — без нього урок не почнеться.',
+    keyOdd: 'Налаштування збережено. Ключ виглядає незвично: ключі Google AI Studio починаються з «AIza».',
+    storeFail: 'Не вдалося записати налаштування в браузер (приватний режим або немає місця).',
+    locked: 'Налаштування доступні, коли урок завершено.',
+    expDone: 'Резервну копію завантажено (ключ API до неї не входить).',
+    impBig: 'Файл завеликий для резервної копії.',
+    impConfirm: 'Імпорт замінить поточну пам\'ять даними з файлу. Продовжити?',
+    impDone: 'Пам\'ять профілю імпортовано з файлу.',
+    impBad: 'Помилка читання файлу. Перевірте, що це резервна копія у форматі JSON.',
+    undoNone: 'Попередньої версії пам\'яті поки немає.',
+    undoConfirm: 'Повернути пам\'ять до стану перед останнім збереженням? Поточна версія стане «попередньою».',
+    undoDone: 'Пам\'ять повернуто до попередньої версії.',
+    rstLangConfirm: 'Скинути історію та прогрес для поточної мови?',
+    rstLangDone: 'Прогрес поточної мови очищено (можна відкотити кнопкою «Відкотити пам\'ять»).',
+    rstAllConfirm: 'УВАГА: видалити ВСІ дані профілю та прогрес за всіма мовами?',
+    rstAllDone: 'Увесь профіль скинуто.',
+    memShrunk: 'Пам\'ять збережено в безпечному режимі: новий запис був коротший за старий, тому його додано, а не замінено.',
+    memWriteFail: 'Не вдалося записати пам\'ять у браузер (немає місця або приватний режим). Зробіть експорт у налаштуваннях ⚙.',
+    backupChip: '💾 Зробіть резервну копію (⚙)',
+    offline: 'Немає підключення до інтернету. Урок потребує зв\'язку з Google.',
+    noNet: 'Немає інтернету',
+    micDenied: 'Доступ до мікрофона заборонено. Дозвольте його в налаштуваннях браузера та повторіть.',
+    micNotFound: 'Мікрофон не знайдено. Підключіть мікрофон і повторіть.',
+    micBusy: 'Мікрофон зайнятий іншою програмою. Закрийте її та повторіть.',
+    micFail: 'Не вдалося увімкнути мікрофон або звук.',
+    micBack: 'Мікрофон відновлено.',
+    micLost: 'Завершіть урок і почніть заново.',
+    clAuth: 'Google не прийняв ключ API. Перевірте ключ у налаштуваннях ⚙.',
+    clModel: 'Обрана модель недоступна для вашого ключа. Виберіть іншу модель у налаштуваннях ⚙.',
+    clQuota: 'Вичерпано ліміт Google AI Studio (квота або оплата). Спробуйте пізніше.',
+    clConn: 'Не вдалося встановити з\'єднання. Перевірте інтернет і ключ API.',
+    clGeneric: 'З\'єднання закрито сервером{reason}',
+    finSaved: 'Урок і прогрес збережено.',
+    finDone: 'Урок завершено.',
+    finLostBeforeSave: 'Зв\'язок обірвався до збереження. Підсумки уроку записати не вдалося.',
+    finLost: 'Зв\'язок із сервером втрачено. Підсумки цього уроку зберегти не вдалося.',
+    finTimeout: 'Репетитор не повернув підсумки уроку вчасно. Урок зараховано, але слова й помилки цього заняття не збереглися.',
+    finNoConn: 'Зв\'язку немає — підсумки уроку зберегти не вдалося.',
+    finishing: 'Завершення репліки...',
+    installed: 'Готово: значок «AI Tutor» з\'явився на екрані. Запускайте програму звідти.',
+    startHint: 'Натисніть «Почати урок» для старту',
+    noKeyStatus: 'Натисніть ⚙ і вставте ключ Google AI Studio, потім «Почати урок»',
+    noKeyToast: 'Спочатку вставте ключ Google AI Studio в налаштуваннях ⚙',
+    audioInit: 'Ініціалізація звуку...'
+  },
+  en: {
+    saved: 'Settings saved.',
+    keyEmpty: 'Settings saved, but the API key is empty — the lesson cannot start without it.',
+    keyOdd: 'Settings saved. The key looks unusual: Google AI Studio keys start with "AIza".',
+    storeFail: 'Could not write settings to the browser (private mode or no space).',
+    locked: 'Settings are available when the lesson is finished.',
+    expDone: 'Backup downloaded (the API key is not included).',
+    impBig: 'The file is too large for a backup.',
+    impConfirm: 'Import will replace the current memory with the data from the file. Continue?',
+    impDone: 'Profile memory imported from the file.',
+    impBad: 'Could not read the file. Make sure it is a JSON backup.',
+    undoNone: 'There is no previous version of the memory yet.',
+    undoConfirm: 'Restore the memory to its state before the last save? The current version will become the "previous" one.',
+    undoDone: 'Memory restored to the previous version.',
+    rstLangConfirm: 'Reset history and progress for the current language?',
+    rstLangDone: 'Progress for the current language cleared (you can undo with the "Undo memory" button).',
+    rstAllConfirm: 'WARNING: delete ALL profile data and progress for all languages?',
+    rstAllDone: 'The whole profile has been reset.',
+    memShrunk: 'Memory saved in safe mode: the new record was shorter than the old one, so it was appended instead of replacing it.',
+    memWriteFail: 'Could not write memory to the browser (no space or private mode). Make an export in settings ⚙.',
+    backupChip: '💾 Make a backup (⚙)',
+    offline: 'No internet connection. The lesson needs a connection to Google.',
+    noNet: 'No internet',
+    micDenied: 'Microphone access denied. Allow it in the browser settings and try again.',
+    micNotFound: 'Microphone not found. Connect a microphone and try again.',
+    micBusy: 'The microphone is used by another app. Close it and try again.',
+    micFail: 'Could not turn on the microphone or sound.',
+    micBack: 'Microphone restored.',
+    micLost: 'End the lesson and start again.',
+    clAuth: 'Google rejected the API key. Check the key in settings ⚙.',
+    clModel: 'The selected model is not available for your key. Choose another model in settings ⚙.',
+    clQuota: 'Google AI Studio limit reached (quota or billing). Try again later.',
+    clConn: 'Could not establish a connection. Check your internet and API key.',
+    clGeneric: 'Connection closed by the server{reason}',
+    finSaved: 'Lesson and progress saved.',
+    finDone: 'Lesson finished.',
+    finLostBeforeSave: 'The connection dropped before saving. The lesson summary could not be recorded.',
+    finLost: 'Connection to the server lost. The summary of this lesson could not be saved.',
+    finTimeout: 'The tutor did not return the lesson summary in time. The lesson is counted, but the words and mistakes of this session were not saved.',
+    finNoConn: 'No connection — the lesson summary could not be saved.',
+    finishing: 'Finishing the reply...',
+    installed: 'Done: the "AI Tutor" icon is now on your screen. Launch the app from there.',
+    startHint: 'Press "Start lesson" to begin',
+    noKeyStatus: 'Press ⚙ and paste your Google AI Studio key, then "Start lesson"',
+    noKeyToast: 'First paste your Google AI Studio key in settings ⚙',
+    audioInit: 'Initializing sound...'
+  }
+};
+
+    function t(key, params = {}) {
+      const l = cfg.uiLang || 'ru';
+      let dict = I18N[l] || I18N.en;
+      let text = dict[key];
+      if (!text && MSG[l]) text = MSG[l][key];
+      if (!text) { dict = I18N.en; text = dict[key] || (MSG.en ? MSG.en[key] : key); }
+      if (!text) return key;
+      for (const [k, v] of Object.entries(params)) text = text.replace('{'+k+'}', v);
+      return text;
+    }
+    
+    
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = $('btnInstallApp');
+      if(btn) btn.style.display = 'block';
+    });
+    function installApp() {
+      if(deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+             $('btnInstallApp').style.display = 'none';
+          }
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function updateInterface() {
+      if($('btnStart')) $('btnStart').textContent = t('btnStart');
+      if($('btnStop')) $('btnStop').textContent = t('btnStop');
+      if($('btnTurn')) $('btnTurn').textContent = t('btnTurn');
+      if($('btnInterrupt')) $('btnInterrupt').textContent = t('btnInterrupt');
+      if($('btnSaveKey')) $('btnSaveKey').textContent = t('btnSave');
+      if($('btnExport')) $('btnExport').textContent = t('btnExp');
+      if($('btnImport')) $('btnImport').textContent = t('btnImp');
+      if($('btnUndoMem')) $('btnUndoMem').textContent = t('btnUndo');
+      if($('btnResetLang')) $('btnResetLang').textContent = t('btnRstCur');
+      if($('btnResetAll')) $('btnResetAll').textContent = t('btnRstAll');
+      if($('btnCloseSettings')) $('btnCloseSettings').textContent = t('btnClose');
+      
+      const setOpts = (id, keys) => {
+        const sel = $(id);
+        if(!sel) return;
+        Array.from(sel.options).forEach((opt, idx) => { if(keys[idx]) opt.textContent = t(keys[idx]); });
+      };
+      
+      setOpts('selectStorageMode', ['optLocal', 'optSession']);
+      setOpts('selectTeacher', ['optFemale', 'optMale']);
+      setOpts('selectStudentGender', ['optAutoGen', 'optMale', 'optFemale']);
+      setOpts('selectAudioMode', ['optAutoAud', 'optHalf', 'optFull']);
+      setOpts('selectStrict', ['optStrict', 'optSoft']);
+      setOpts('selectVad', ['optDef', 'optPat', 'optVery']);
+      setOpts('selectCaptions', ['optOff', 'optOn']);
+      if($('lblVibration')) $('lblVibration').textContent = 'Вибрация (Haptic)';
+      setOpts('selectVibration', ['optOn', 'optOff']);
+      setOpts('selectLevel', ['optLvAuto', 'optLvA0', 'B1', 'B2']);
+      
+      if($('lblStorageMode')) $('lblStorageMode').textContent = t('lblKeyMode');
+      if($('lblTargetLang')) $('lblTargetLang').textContent = t('lblTarget');
+      if($('lblTeacherVoice')) $('lblTeacherVoice').textContent = t('lblVoice');
+      if($('lblStudentGender')) $('lblStudentGender').textContent = t('lblGender');
+      if($('lblNativeLang')) $('lblNativeLang').textContent = t('lblNative');
+      if($('lblLevelLabel')) $('lblLevelLabel').textContent = t('lblLevel');
+      if($('lblAudioMode')) $('lblAudioMode').textContent = t('lblAudio');
+      if($('lblStrict')) $('lblStrict').textContent = t('lblStrict');
+      if($('lblVad')) $('lblVad').textContent = t('lblVad');
+      if($('lblCaptions')) $('lblCaptions').textContent = t('lblCap');
+      if($('lblModelLabel')) $('lblModelLabel').textContent = t('lblModel');
+      if($('lblMinutes')) $('lblMinutes').textContent = t('lblMinutes');
+      
+      if($('settingsTitleText')) $('settingsTitleText').textContent = t('settingsTitle');
+      if($('msgGetUrl')) $('msgGetUrl').textContent = t('msgGetUrl');
+      if($('hintText')) $('hintText').textContent = t('hintText');
+    }
+
   const MAX_RECONNECT = 3;
   const WS_BASE = 'wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent';
 
@@ -562,6 +1013,12 @@
     finishing: ['Репетитор договаривает...', 'Репетитор договорює...']
   };
   const st = k => STR[k][cfg.native === 'uk' ? 1 : 0];
+  function vibrate(pattern) {
+    if (cfg.vibration !== 'off' && navigator.vibrate) {
+      try { navigator.vibrate(pattern); } catch (e) {}
+    }
+  }
+
   function setStatus(text) { statusText.textContent = text; }
 
   let toastTimer = null;
@@ -708,7 +1165,7 @@
   function syncSettingsForm() {
     selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
     selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectAudioMode.value = cfg.audio;
-    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; selectModel.value = cfg.model;
+    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; if($('selectVibration')) $('selectVibration').value = cfg.vibration; if($('selectUiLang')) $('selectUiLang').value = cfg.uiLang; selectModel.value = cfg.model;
     selectLevel.value = cfg.level; selectMinutes.value = String(cfg.minutes);
   }
 
@@ -716,6 +1173,7 @@
     if (isSessionActive || isFinalizing) { toast('Настройки доступны, когда урок завершён.'); return; }
     inputApiKey.value = apiKey;
     syncSettingsForm();
+    updateInterface();
     refreshMemInfo();
     modalSettings.style.display = 'flex';
   }
@@ -729,7 +1187,7 @@
     apiKey = inputApiKey.value.trim();
     cfg.keyMode = selectStorageMode.value; cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
     cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.audio = selectAudioMode.value;
-    cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; cfg.model = selectModel.value;
+    cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; if($('selectVibration')) cfg.vibration = $('selectVibration').value; if($('selectUiLang')) cfg.uiLang = $('selectUiLang').value; updateInterface(); if($('btnInstallApp')) $('btnInstallApp').textContent = t('btnInstall'); cfg.model = selectModel.value;
     cfg.level = selectLevel.value; cfg.minutes = parseInt(selectMinutes.value, 10) || 15;
 
     let ok = store.set('api_storage_mode', cfg.keyMode);
@@ -1324,7 +1782,7 @@ ${langDirective}
     isBotSpeaking = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
-    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) { setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
     if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
   }
 
@@ -1339,7 +1797,7 @@ ${langDirective}
           isBotSpeaking = false;
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
-          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) setStatus(st('yourTurn'));
+          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) { setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
       }, 200);
@@ -1443,7 +1901,7 @@ ${langDirective}
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
-      if (isWaitingForResponse) { isWaitingForResponse = false; setStatus(st('yourTurn')); }
+      if (isWaitingForResponse) { isWaitingForResponse = false; setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
     }, 10000);
   };
 
@@ -1579,7 +2037,7 @@ ${langDirective}
       if (ws === socket && !isSetupComplete) { console.warn('Setup timeout'); try { ws.close(); } catch (e) {} }
     }, 15000);
 
-    ws.onopen = () => { if (ws === socket) ws.send(JSON.stringify(buildSetup(isResume))); };
+    ws.onopen = () => { reconnectAttempts = 0; clearTimeout(reconnectTimer);  if (ws === socket) ws.send(JSON.stringify(buildSetup(isResume))); };
 
     ws.onmessage = event => {
       if (ws !== socket || mySession !== sessionId) return;
@@ -1854,7 +2312,7 @@ ${langDirective}
     logLesson(memoryCommitted, sec);
 
     if (!isExtractingMemory && isAudioStillPlaying()) {
-      setStatus('Завершение реплики...');
+      setStatus(t('finishing'));
       await waitPlaybackDrain(10000);
     }
     if (mySession !== sessionId) return;
