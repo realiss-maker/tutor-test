@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.21.0</title>
+  <title>AI Language Tutor v3.22.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -324,6 +324,10 @@
         <option value="en">English</option>
       </select>
 
+      <label id="lblUserName" for="inputUserName">Ваше имя (необязательно):</label>
+      <input type="text" id="inputUserName" placeholder="Например: Денис / Анна"
+             autocomplete="name" spellcheck="false">
+
       <label id="lblKey" for="inputApiKey">Google AI Studio API Key:</label>
       <input type="password" id="inputApiKey" placeholder="AIzaSy..."
              autocomplete="off" spellcheck="false" autocapitalize="off">
@@ -459,7 +463,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.21.0';
+  const APP_VERSION = '3.22.0';
 
     const I18N = {
   "uk": {
@@ -831,9 +835,9 @@
   }
 };
 
-    Object.assign(I18N.ru, { lblVib: 'Вибрация:', optVibOn: 'Включена', optVibOff: 'Выключена', blk1: 'Блок 1 • Разминка и новые фразы', blk2: 'Блок 2 • Практика и диалоги', blk3: 'Блок 3 • Закрепление и итоги', statNone: 'Уроков пока нет — начнём? 🙂', statStreak: '🔥 Серия: {n} дн.', statMin: '⏱ {n} мин' });
-    Object.assign(I18N.uk, { lblVib: 'Вібрація:', optVibOn: 'Увімкнена', optVibOff: 'Вимкнена', blk1: 'Блок 1 • Розминка та нові фрази', blk2: 'Блок 2 • Практика та діалоги', blk3: 'Блок 3 • Закріплення та підсумки', statNone: 'Уроків поки немає — почнемо? 🙂', statStreak: '🔥 Серія: {n} дн.', statMin: '⏱ {n} хв' });
-    Object.assign(I18N.en, { lblVib: 'Vibration:', optVibOn: 'On', optVibOff: 'Off', blk1: 'Block 1 • Warm-up and new phrases', blk2: 'Block 2 • Practice and dialogues', blk3: 'Block 3 • Review and summary', statNone: 'No lessons yet — shall we start? 🙂', statStreak: '🔥 Streak: {n} d.', statMin: '⏱ {n} min' });
+    Object.assign(I18N.ru, { lblUserName: "Ваше имя:",  lblVib: 'Вибрация:', optVibOn: 'Включена', optVibOff: 'Выключена', blk1: 'Блок 1 • Разминка и новые фразы', blk2: 'Блок 2 • Практика и диалоги', blk3: 'Блок 3 • Закрепление и итоги', statNone: 'Уроков пока нет — начнём? 🙂', statStreak: '🔥 Серия: {n} дн.', statMin: '⏱ {n} мин' });
+    Object.assign(I18N.uk, { lblUserName: "Ваше ім'я:",  lblVib: 'Вібрація:', optVibOn: 'Увімкнена', optVibOff: 'Вимкнена', blk1: 'Блок 1 • Розминка та нові фрази', blk2: 'Блок 2 • Практика та діалоги', blk3: 'Блок 3 • Закріплення та підсумки', statNone: 'Уроків поки немає — почнемо? 🙂', statStreak: '🔥 Серія: {n} дн.', statMin: '⏱ {n} хв' });
+    Object.assign(I18N.en, { lblUserName: "Your name:",  lblVib: 'Vibration:', optVibOn: 'On', optVibOff: 'Off', blk1: 'Block 1 • Warm-up and new phrases', blk2: 'Block 2 • Practice and dialogues', blk3: 'Block 3 • Review and summary', statNone: 'No lessons yet — shall we start? 🙂', statStreak: '🔥 Streak: {n} d.', statMin: '⏱ {n} min' });
 
     function t(key, params = {}) {
       const l = cfg.uiLang || 'ru';
@@ -904,6 +908,7 @@
 
       setText('lblKey', 'lblKey');
       setText('lblUiLang', 'lblUiLang');
+      setText('lblUserName', 'lblUserName');
       setText('lblStorageMode', 'lblKeyMode');
       setText('lblTargetLang', 'lblTarget');
       setText('lblTeacherVoice', 'lblVoice');
@@ -962,18 +967,6 @@
       photo: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=400&q=75',
       bg: 'https://images.unsplash.com/photo-1543783207-ec64e4d95325?auto=format&fit=crop&w=1280&q=70',
       grad: 'linear-gradient(160deg,#0f172a,#4a2a14)'
-    },
-    german: {
-      ru: 'Немецкий', label: 'Deutsch', gen: 'немецкого', adv: 'по-немецки', hello: 'Hallo', emoji: '🥨',
-      teachers: { female: { full: 'Ханна (Hanna)', short: 'Hanna' }, male: { full: 'Лукас (Lukas)', short: 'Lukas' } },
-      photo: null, bg: null,
-      grad: 'linear-gradient(160deg,#0f172a,#2b2f3a)'
-    },
-    italian: {
-      ru: 'Итальянский', label: 'Italiano', gen: 'итальянского', adv: 'по-итальянски', hello: 'Ciao', emoji: '🍕',
-      teachers: { female: { full: 'Джулия (Giulia)', short: 'Giulia' }, male: { full: 'Марко (Marco)', short: 'Marco' } },
-      photo: null, bg: null,
-      grad: 'linear-gradient(160deg,#0f172a,#14402b)'
     }
   };
 
@@ -1006,6 +999,7 @@
     level: store.get('level_hint', 'auto'),
     minutes: parseInt(store.get('lesson_minutes', '15'), 10) || 15,
     uiLang: store.get('ui_lang', 'ru'),
+    userName: store.get('user_name', ''),
     vibration: store.get('vibration', 'on')
   };
   if (!['ru', 'uk', 'en'].includes(cfg.uiLang)) cfg.uiLang = 'ru';
@@ -1129,14 +1123,10 @@
     const s = computeStats();
     statsRow.style.display = 'flex';
     if (s.total === 0) { statsRow.innerHTML = '<span class="stat-chip">' + t('statNone') + '</span>'; return; }
-    // Память живёт только в браузере: напоминаем про резервную копию, если уроков уже много, а копии давно не было
-    const lastBackup = parseInt(store.get('last_backup', '0'), 10) || 0;
-    const needBackup = s.total >= 5 && Date.now() - lastBackup > 14 * 86400000;
     statsRow.innerHTML =
       `<span class="stat-chip">${t('statStreak', { n: s.streak })}</span>` +
       `<span class="stat-chip">📚 ${langDisp(cfg.lang)}: ${s.lessonsLang}</span>` +
-      `<span class="stat-chip">${t('statMin', { n: s.minutes })}</span>` +
-      (needBackup ? '<span class="stat-chip">' + t('backupChip') + '</span>' : '');
+      `<span class="stat-chip">${t('statMin', { n: s.minutes })}</span>`;
   }
 
   /* ---------- Прочие переменные состояния ---------- */
@@ -1204,7 +1194,7 @@
   function syncSettingsForm() {
     selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
     selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectAudioMode.value = cfg.audio;
-    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; if($('selectVibration')) $('selectVibration').value = cfg.vibration; if($('selectUiLang')) $('selectUiLang').value = cfg.uiLang; selectModel.value = cfg.model;
+    selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; if($('selectVibration')) $('selectVibration').value = cfg.vibration; if($('selectUiLang')) $('selectUiLang').value = cfg.uiLang; if($('inputUserName')) $('inputUserName').value = cfg.userName || ''; selectModel.value = cfg.model;
     selectLevel.value = cfg.level; selectMinutes.value = String(cfg.minutes);
   }
 
@@ -1236,7 +1226,7 @@
     cfg.keyMode = selectStorageMode.value; cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
     cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.audio = selectAudioMode.value;
     cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; if($('selectVibration')) cfg.vibration = $('selectVibration').value; if($('selectUiLang')) cfg.uiLang = $('selectUiLang').value; updateInterface(); if($('btnInstallApp')) $('btnInstallApp').textContent = t('btnInstall'); cfg.model = selectModel.value;
-    cfg.level = selectLevel.value; cfg.minutes = parseInt(selectMinutes.value, 10) || 15;
+    cfg.level = selectLevel.value; cfg.minutes = parseInt(selectMinutes.value, 10) || 15; if($('inputUserName')) cfg.userName = $('inputUserName').value.trim();
 
     let ok = store.set('api_storage_mode', cfg.keyMode);
     if (cfg.keyMode === 'local') { ok = store.set('gemini_api_key', apiKey) && ok; sstore.remove('gemini_api_key'); }
@@ -1245,7 +1235,7 @@
     store.set('native_lang', cfg.native); store.set('audio_mode', cfg.audio); store.set('model_id', cfg.model);
     store.set('vad_mode', cfg.vad); store.set('captions', cfg.captions); store.set('strict_mode', cfg.strict);
     store.set('level_hint', cfg.level); store.set('lesson_minutes', String(cfg.minutes));
-    store.set('ui_lang', cfg.uiLang); store.set('vibration', cfg.vibration);
+    store.set('ui_lang', cfg.uiLang); store.set('vibration', cfg.vibration); store.set('user_name', cfg.userName);
 
     updateUI();
     closeSettings();
@@ -1262,7 +1252,7 @@
       global_memory: getGlobalMem(),
       teacher_gender: cfg.teacher, student_gender: cfg.student, native_lang: cfg.native, target_language: cfg.lang,
       audio_mode: cfg.audio, vad_mode: cfg.vad, captions: cfg.captions, strict_mode: cfg.strict,
-      level_hint: cfg.level, lesson_minutes: cfg.minutes, ui_lang: cfg.uiLang, vibration: cfg.vibration,
+      level_hint: cfg.level, lesson_minutes: cfg.minutes, ui_lang: cfg.uiLang, user_name: cfg.userName, vibration: cfg.vibration,
       lesson_log: readJSON('lesson_log', [])
     };
     Object.keys(LANGS).forEach(l => { data[memKey(l)] = getLangMem(l); });
@@ -1304,6 +1294,7 @@
         if ([10, 15, 20].includes(data.lesson_minutes)) { cfg.minutes = data.lesson_minutes; store.set('lesson_minutes', String(cfg.minutes)); }
         if (['ru', 'uk', 'en'].includes(data.ui_lang)) { cfg.uiLang = data.ui_lang; store.set('ui_lang', cfg.uiLang); }
         if (['on', 'off'].includes(data.vibration)) { cfg.vibration = data.vibration; store.set('vibration', cfg.vibration); }
+        if (typeof data.user_name === 'string') { cfg.userName = data.user_name; store.set('user_name', cfg.userName); }
         if (Array.isArray(data.lesson_log)) {
           store.set('lesson_log', JSON.stringify(data.lesson_log.filter(x => x && typeof x.t === 'number').slice(-500)));
         }
@@ -1333,6 +1324,17 @@
     const k = memKey(cfg.lang);
     const old = store.get(k, ''); if (old) store.set(k + '__prev', old);
     store.remove(k);
+
+    // Удаляем уроки текущего языка из журнала статистики
+    const log = readJSON('lesson_log', []).filter(x => x && x.l !== cfg.lang);
+    store.set('lesson_log', JSON.stringify(log));
+
+    // Если по другим языкам уроков нет — очищаем и общую память о жизни, чтобы начать курс с чистого листа
+    if (log.length === 0) {
+      const og = getGlobalMem(); if (og) store.set('global_memory__prev', og);
+      store.remove('global_memory');
+    }
+
     updateUI(); refreshMemInfo(); closeSettings();
     toast(t('rstLangDone'));
   };
@@ -1342,6 +1344,8 @@
     Object.keys(LANGS).forEach(l => { const k = memKey(l); const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.remove(k); });
     const og = getGlobalMem(); if (og) store.set('global_memory__prev', og);
     store.remove('global_memory');
+    store.remove('lesson_log');   // Полный сброс журнала уроков и статистики
+
     updateUI(); refreshMemInfo(); closeSettings();
     toast(t('rstAllDone'));
   };
@@ -1404,6 +1408,7 @@
 ${genderDirective}
 
 СЕКРЕТНАЯ ПАМЯТЬ ОБ УЧЕНИКЕ (НЕ ОЗВУЧИВАЙ ЭТО, ИСПОЛЬЗУЙ ДЛЯ ДИАЛОГА):
+[ИМЯ УЧЕНИКА ИЗ НАСТРОЕК]: ${cfg.userName ? cfg.userName : 'Ученик еще не назвал имя (спроси его на первом уроке)'}
 [ОБЩИЕ ДАННЫЕ О ЖИЗНИ (КРОСС-ЯЗЫКОВАЯ БАЗА)]: ${globalMem || 'Пока ничего неизвестно.'}
 [НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА (НЕ СТИРАТЬ, ИСПОЛЬЗОВАТЬ ДЛЯ ИНТЕРВАЛЬНОГО ПОВТОРЕНИЯ)]: ${langMem || 'Чистый лист (урок 1).'}
 
@@ -1433,7 +1438,7 @@ ${genderDirective}
 ЛИЧНЫЕ ГРАНИЦЫ: Если ученик хамит или переводит тему на эротическо-интимные темы — настойчиво напомни ему о целях урока. При повторении 2-3 раза - откажись обсуждать.
 
 СТРАНОВЕДЕНИЕ И КУЛЬТУРНЫЙ КОНТЕКСТ:
-Органично вплетай в фразы и диалоги живые культурные и бытовые реалии страны изучаемого языка (для Франции — особенности французского этикета, регионов, привычек, кулинарии, транспорта; для Англии — вежливость, традиции общения; для Германии — пунктуальность и прямоту).
+Органично вплетай в фразы и диалоги живые культурные и бытовые реалии страны изучаемого языка (для Франции — особенности этикета, регионов, привычек, кулинарии, транспорта; для Англии — вежливость, традиции общения; для Испании — открытость, дружелюбие и праздники).
 Если ученик случайно упоминает свой город или увлечения — бережно зафиксируй это и сохрани в [ОБЩИЕ ДАННЫЕ О ЖИЗНИ]. Старые факты никогда не стирай, дополняй их новыми.
 
 ЖЕЛЕЗНОЕ ПРАВИЛО ДИАЛОГА: ОДНА РЕПЛИКА — ОДИН ШАГ (КАТЕГОРИЧЕСКИЙ ЗАПРЕТ НА МОНОЛОГИ):
@@ -1550,7 +1555,7 @@ ${levelBlock}
     const L = LANGS[sessionLang];
     const helloWord = L.hello;
     const adv = L.adv;
-    const nameKnown = !isEmptyMem(sessionGlobalMem);
+    const nameKnown = !!cfg.userName || !isEmptyMem(sessionGlobalMem);
     const langIsNew = isEmptyMem(sessionLangMem);
     const kind = !nameKnown ? 'name' : (langIsNew ? 'newLang' : 'repeat');
     const uk = cfg.native === 'uk';
@@ -1961,19 +1966,22 @@ ${langDirective}
 
   btnEndTurn.onclick = () => {
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
-    const wasGenerating = isBotSpeaking || isServerTurnActive;
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
-    if (wasGenerating) suppressAudioFor(1200);   // «хвост» старой реплики не должен проиграться
     setStatus(st('thinking'));
-    const hint = cfg.native === 'uk' ? '[СИСТЕМНО: Учень завершив репліку. Оціни його слова й дай відповідь.]' : '[СИСТЕМНО: Ученик завершил реплику. Оцени его слова и дай ответ.]';
-    sendText(hint, true);
+    // Отправляем естественную фразу завершения фразы ученика (без системных скобок, которые модель игнорировала)
+    const phrase = cfg.native === 'uk' ? 'Я все сказав, чекаю на відповідь.' : 'Я всё сказал, жду твой ответ.';
+    sendText(phrase, true);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
-      if (isWaitingForResponse) { isWaitingForResponse = false; setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
-    }, 10000);
+      if (isWaitingForResponse) {
+        isWaitingForResponse = false;
+        setStatus(st('yourTurn'));
+        vibrate([50, 50, 50]);
+      }
+    }, 15000);
   };
 
   // Кнопка ✋ теперь действительно прерывает: раньше глушился только локальный звук, а сервер продолжал присылать остаток реплики.
