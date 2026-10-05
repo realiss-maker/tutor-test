@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.28.0</title>
+  <title>AI Language Tutor v3.29.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -338,6 +338,22 @@
         <span class="js-version" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;"></span>
       </div>
 
+      <!-- Блок установки приложения на главный экран смартфона (PWA) -->
+      <div id="pwaInstallBanner" style="background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.18)); border: 1px solid rgba(56,189,248,0.35); border-radius: 12px; padding: 10px 12px; margin-top: 4px; margin-bottom: 4px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+            <span style="font-size: 1.35rem; line-height: 1;">📲</span>
+            <div>
+              <div id="pwaTitle" style="font-size: 0.88rem; font-weight: 600; color: #f8fafc;">Приложение на главный экран</div>
+              <div id="pwaDesc" style="font-size: 0.72rem; color: #94a3b8; line-height: 1.2;">Запуск без браузера и адресной строки</div>
+            </div>
+          </div>
+          <button type="button" id="btnInstallApp" onclick="installApp()" style="background: #2563eb; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
+            Установить
+          </button>
+        </div>
+      </div>
+
       <label id="lblUiLang" for="selectUiLang">Язык интерфейса:</label>
       <select id="selectUiLang">
         <option value="ru">Русский</option>
@@ -452,7 +468,7 @@
       <div class="hint" id="hintText">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель. «Определить самому» — пол ученика определяется по имени и речи.</div>
 
       <button class="btn-save" id="btnSaveKey">Сохранить настройки</button>
-      <button type="button" class="btn-backup" id="btnInstallApp" style="display: none;" onclick="installApp()">📲 Установить как приложение</button>
+
 
       <div class="mem-info" id="memInfo"></div>
 
@@ -470,6 +486,35 @@
     </div>
   </div>
 
+  <!-- Модальное окно пошаговой установки для iPhone / iPad (Safari) -->
+  <div class="modal" id="modalIosInstall" role="dialog" aria-modal="true" aria-labelledby="iosInstallTitle">
+    <div class="modal-content" style="max-width: 360px; text-align: center; gap: 14px; padding: 22px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3 id="iosInstallTitle" style="margin: 0; font-size: 1.05rem; color: #f8fafc;">Установка на iPhone / iPad</h3>
+        <button type="button" onclick="closeIosInstall()" style="background: none; border: none; color: #94a3b8; font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1;">✕</button>
+      </div>
+      <p id="iosInstallIntro" style="font-size: 0.84rem; color: #cbd5e1; line-height: 1.4; margin: 0; text-align: left;">
+        Apple позволяет установить приложение на экран iPhone через стандартное меню Safari за 2 действия:
+      </p>
+      <div style="background: rgba(15,23,42,0.65); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; text-align: left; display: flex; flex-direction: column; gap: 12px; font-size: 0.86rem;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 0.85rem; font-weight: 700; background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">1</span>
+          <span id="iosStep1">В нижней панели Safari нажмите кнопку <b>«Поделиться»</b>: <svg style="vertical-align: middle; display: inline-block; margin-left: 2px;" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 0.85rem; font-weight: 700; background: #2563eb; color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">2</span>
+          <span id="iosStep2">Прокрутите вниз и выберите <b>«На экран "Домой"»</b> <span style="font-size: 1.05rem; vertical-align: middle; margin-left: 2px;">⊞</span></span>
+        </div>
+      </div>
+      <p id="iosInstallOutro" style="font-size: 0.76rem; color: #94a3b8; line-height: 1.3; margin: 0; text-align: left;">
+        После этого иконка появится на рабочем столе и будет открываться как отдельное приложение.
+      </p>
+      <button type="button" id="btnIosGotIt" class="btn-main btn-start" onclick="closeIosInstall()" style="padding: 11px; font-size: 0.9rem; margin-top: 4px;">
+        Понятно 👍
+      </button>
+    </div>
+  </div>
+
   <script>
   'use strict';
 
@@ -484,7 +529,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.28.0';
+  const APP_VERSION = '3.29.0';
 
     const I18N = {
   "uk": {
@@ -558,7 +603,16 @@
     "optLvA0": "З нуля (A0)",
     "lblMinutes": "Тривалість уроку:",
     "optMin": "{n} хв",
-    "btnInstall": "📲 Встановити як додаток",
+    "pwaTitle": "Додаток на головний екран",
+    "pwaDesc": "Запуск без браузера та адресного рядка",
+    "pwaAlreadyInstalled": "✅ Додаток уже встановлено",
+    "btnInstall": "Встановити",
+    "iosTitle": "Встановлення на iPhone / iPad",
+    "iosIntro": "Apple дозволяє додати ярлик на екран iPhone через стандартне меню Safari за 2 прості дії:",
+    "iosStep1": "У нижній панелі Safari натисніть кнопку «Поділитися»:",
+    "iosStep2": "Прокрутіть меню та виберіть «На екран Домашній»",
+    "iosOutro": "Після цього іконка з'явиться на робочому столі і відкриватиметься як окремий додаток.",
+    "iosGotIt": "Зрозуміло 👍",
     "unitMin": "хв",
     "capYou": "Ви"
   },
@@ -633,7 +687,16 @@
     "optLvA0": "С нуля (A0)",
     "lblMinutes": "Длина урока:",
     "optMin": "{n} мин",
-    "btnInstall": "📲 Установить как приложение",
+    "pwaTitle": "Приложение на главный экран",
+    "pwaDesc": "Запуск без браузера и адресной строки",
+    "pwaAlreadyInstalled": "✅ Приложение уже установлено",
+    "btnInstall": "Установить",
+    "iosTitle": "Установка на iPhone / iPad",
+    "iosIntro": "Apple позволяет установить приложение на экран iPhone через стандартное меню Safari за 2 действия:",
+    "iosStep1": "В нижней панели Safari нажмите кнопку «Поделиться»:",
+    "iosStep2": "Прокрутите вниз и выберите «На экран \"Домой\"»",
+    "iosOutro": "После этого иконка появится на рабочем столе и будет открываться как отдельное приложение.",
+    "iosGotIt": "Понятно 👍",
     "unitMin": "мин",
     "capYou": "Вы"
   },
@@ -708,7 +771,16 @@
     "optLvA0": "Beginner (A0)",
     "lblMinutes": "Lesson length:",
     "optMin": "{n} min",
-    "btnInstall": "📲 Install as app",
+    "pwaTitle": "Add to Home Screen",
+    "pwaDesc": "Launch without browser address bar",
+    "pwaAlreadyInstalled": "✅ App is already installed",
+    "btnInstall": "Install",
+    "iosTitle": "Install on iPhone / iPad",
+    "iosIntro": "Apple allows installing to the iPhone home screen via the standard Safari menu in 2 steps:",
+    "iosStep1": "Tap the \"Share\" button at the bottom of Safari:",
+    "iosStep2": "Scroll down and select \"Add to Home Screen\"",
+    "iosOutro": "The app icon will appear on your home screen and open as a standalone fullscreen app.",
+    "iosGotIt": "Got it 👍",
     "unitMin": "min",
     "capYou": "You"
   }
@@ -875,22 +947,66 @@
     }
     
     
-    let deferredPrompt;
+    let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      const btn = $('btnInstallApp');
-      if(btn) btn.style.display = 'block';
+      updatePwaInstallUI();
     });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      updatePwaInstallUI();
+    });
+
+    function isStandaloneMode() {
+      return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+    }
+
+    function updatePwaInstallUI() {
+      const banner = $('pwaInstallBanner');
+      const btn = $('btnInstallApp');
+      const desc = $('pwaDesc');
+      if (!banner || !btn) return;
+
+      if (isStandaloneMode()) {
+        btn.style.display = 'none';
+        if (desc) desc.textContent = t('pwaAlreadyInstalled');
+        banner.style.background = 'rgba(16, 185, 129, 0.12)';
+        banner.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+      } else {
+        btn.style.display = 'block';
+        btn.textContent = t('btnInstall');
+        if (desc) desc.textContent = t('pwaDesc');
+        banner.style.background = 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.18))';
+        banner.style.borderColor = 'rgba(56,189,248,0.35)';
+      }
+    }
+
+    function openIosInstall() {
+      const m = $('modalIosInstall');
+      if (m) m.style.display = 'flex';
+    }
+    function closeIosInstall() {
+      const m = $('modalIosInstall');
+      if (m) m.style.display = 'none';
+    }
+
     function installApp() {
-      if(deferredPrompt) {
+      if (isStandaloneMode()) {
+        toast(t('pwaAlreadyInstalled'));
+        return;
+      }
+      if (deferredPrompt) {
         deferredPrompt.prompt();
         deferredPrompt.userChoice.then((choiceResult) => {
           if (choiceResult.outcome === 'accepted') {
-             $('btnInstallApp').style.display = 'none';
+            updatePwaInstallUI();
           }
           deferredPrompt = null;
         });
+      } else {
+        openIosInstall();
       }
     }
 
@@ -910,7 +1026,12 @@
       setText('btnResetCurrentLang', 'btnRstCur');
       setText('btnResetAllMemory', 'btnRstAll');
       setText('btnCloseModal', 'btnClose');
-      setText('btnInstallApp', 'btnInstall');
+      setText('pwaTitle', 'pwaTitle');
+      setText('iosInstallTitle', 'iosTitle');
+      setText('iosInstallIntro', 'iosIntro');
+      setText('iosInstallOutro', 'iosOutro');
+      setText('btnIosGotIt', 'iosGotIt');
+      updatePwaInstallUI();
       if (btnAction && !isFinalizing) btnAction.textContent = isSessionActive ? t('btnStop') : t('btnStart');
 
       const setOpts = (id, keys) => {
@@ -1241,6 +1362,7 @@
     syncSettingsForm();
     updateInterface();
     refreshMemInfo();
+    updatePwaInstallUI();
     modalSettings.style.display = 'flex';
   }
   if (selectUiLang) {
@@ -1256,6 +1378,8 @@
   $('btnSettings').onclick = openSettings;
   $('btnCloseModal').onclick = closeSettings;
   modalSettings.addEventListener('click', e => { if (e.target === modalSettings) closeSettings(); });
+  const mIos = $('modalIosInstall');
+  if (mIos) mIos.addEventListener('click', e => { if (e.target === mIos) closeIosInstall(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalSettings.style.display === 'flex') closeSettings(); });
 
   $('btnSaveKey').onclick = () => {
