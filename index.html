@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.22.0</title>
+  <title>AI Language Tutor v3.23.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -303,7 +303,8 @@
 
     <footer>
       <button class="btn-main btn-interrupt" id="btnInterrupt">Перебить / Хватит ✋</button>
-      <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал, жду ответ ➔</button>
+      <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал ➔</button>
+      <div class="turn-hint" id="turnHint" style="display: none; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 4px; margin-bottom: 6px;">Репетитор ответит сам после паузы, или нажмите кнопку</div>
       <button class="btn-main btn-start" id="btnAction">Начать урок</button>
     </footer>
   </div>
@@ -463,7 +464,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.22.0';
+  const APP_VERSION = '3.23.0';
 
     const I18N = {
   "uk": {
@@ -507,6 +508,7 @@
     "btnStop": "Завершити урок",
     "btnInterrupt": "Перебити / Досить ✋",
     "btnTurn": "Я все сказав ➔",
+    "turnHint": "Репетитор відповість сам після паузи, або натисніть кнопку",
     "stList": "Слухаю вас...",
     "stSpeak": "Репетитор говорить...",
     "stThink": "Готує відповідь...",
@@ -581,6 +583,7 @@
     "btnStop": "Завершить урок",
     "btnInterrupt": "Перебить / Хватит ✋",
     "btnTurn": "Я всё сказал ➔",
+    "turnHint": "Репетитор ответит сам после паузы, или нажмите кнопку",
     "stList": "Слушаю вас...",
     "stSpeak": "Репетитор говорит...",
     "stThink": "Готовит ответ...",
@@ -655,6 +658,7 @@
     "btnStop": "End lesson",
     "btnInterrupt": "Interrupt ✋",
     "btnTurn": "I am done ➔",
+    "turnHint": "The tutor answers automatically after a pause, or tap the button",
     "stList": "Listening...",
     "stSpeak": "Tutor speaking...",
     "stThink": "Thinking...",
@@ -877,6 +881,7 @@
       document.documentElement.lang = cfg.uiLang;
 
       setText('btnEndTurn', 'btnTurn');
+      setText('turnHint', 'turnHint');
       setText('btnInterrupt', 'btnInterrupt');
       setText('btnSaveKey', 'btnSave');
       setText('btnExportMemory', 'btnExp');
@@ -1012,7 +1017,7 @@
 
   /* ---------- Элементы ---------- */
   const $ = id => document.getElementById(id);
-  const btnAction = $('btnAction'), btnEndTurn = $('btnEndTurn'), btnInterrupt = $('btnInterrupt');
+  const btnAction = $('btnAction'), btnEndTurn = $('btnEndTurn'), btnInterrupt = $('btnInterrupt'), turnHint = $('turnHint');
   const statusText = $('statusText'), avatarCard = $('avatarCard'), avatarHalo = $('avatarHalo');
   const profileBadge = $('profileBadge'), timerBadge = $('timerBadge'), progressPill = $('progressPill');
   const headerTitle = $('headerTitle'), modalSettings = $('modalSettings'), statsRow = $('statsRow');
@@ -1964,15 +1969,33 @@ ${langDirective}
     isSessionActive ? stopSession(true) : startSession();
   };
 
+  /* ==========================================================================
+     Ручное завершение хода ученика: VAD Silence Flush (вместо конфликтного clientContent)
+     ========================================================================== */
+  function sendVadSilenceFlush() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const vadMs = cfg.vad === 'very' ? 3600 : (cfg.vad === 'patient' ? 2600 : 1800);
+    // 16000 Гц, 16 бит моно = 32 байта на мс. В Base64 каждые 3 нулевых байта кодируются как 'AAAA'
+    const numZeros = Math.ceil(vadMs * 32 / 3) * 3;
+    const silenceBase64 = 'A'.repeat(numZeros * 4 / 3);
+    socket.send(JSON.stringify({
+      realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: silenceBase64 }] }
+    }));
+  }
+
   btnEndTurn.onclick = () => {
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
+    if (isWaitingForResponse || isBotSpeaking) return;
+
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
     setStatus(st('thinking'));
-    // Отправляем естественную фразу завершения фразы ученика (без системных скобок, которые модель игнорировала)
-    const phrase = cfg.native === 'uk' ? 'Я все сказав, чекаю на відповідь.' : 'Я всё сказал, жду твой ответ.';
-    sendText(phrase, true);
+    vibrate(30);
+
+    // Отправляем порцию тишины в поток realtimeInput:
+    // серверный VAD мгновенно фиксирует конец речи ученика и генерирует ответ без сбоя WebSocket
+    sendVadSilenceFlush();
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
@@ -1981,7 +2004,7 @@ ${langDirective}
         setStatus(st('yourTurn'));
         vibrate([50, 50, 50]);
       }
-    }, 15000);
+    }, 6000);
   };
 
   // Кнопка ✋ теперь действительно прерывает: раньше глушился только локальный звук, а сервер продолжал присылать остаток реплики.
@@ -2221,6 +2244,7 @@ ${langDirective}
     btnAction.textContent = t('btnStop');
     btnAction.className = 'btn-main btn-stop';
     btnEndTurn.style.display = 'block';
+    if (turnHint) turnHint.style.display = 'block';
     setStatus(st('listening'));
     startLessonTimer();
     sendText(startPromptText(), true);
@@ -2280,28 +2304,25 @@ ${langDirective}
     }
 
     if (sc.turnComplete) {
-      const wasInterruptedTurn = interruptedPending;
       interruptedPending = false;
       isServerTurnActive = false;
       clearSuppress();
       captionNewTurn = true;
       if (capUser) capUser.dataset.fresh = '1';
 
-      if (!wasInterruptedTurn) {
-        clearTimeout(watchdogTimer);
-        // Пустой ход (модель ничего не сказала) раньше навсегда оставлял микрофон закрытым в полудуплексе
-        if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
-          isWaitingForResponse = false;
-          setStatus(st('yourTurn'));
-        }
-        receivedAudioThisTurn = false;
+      clearTimeout(watchdogTimer);
+      // Если модель ничего не сказала (пустой ход или прерывание), возвращаем очередь ученику без зависания
+      if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
+        isWaitingForResponse = false;
+        setStatus(st('yourTurn'));
+      }
+      receivedAudioThisTurn = false;
 
-        // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
-        if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
-          saveNudges++;
-          sendText('[СИСТЕМНО: Не отвечай голосом. Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory и lang_memory.]', true);
-          armSaveTimeout(20000);
-        }
+      // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
+      if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
+        saveNudges++;
+        sendText('[СИСТЕМНО: Не отвечай голосом. Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory и lang_memory.]', true);
+        armSaveTimeout(20000);
       }
       checkBotSpeakingEnded();
     }
@@ -2334,6 +2355,7 @@ ${langDirective}
     clearTimeout(watchdogTimer);
     btnAction.disabled = true;
     btnEndTurn.style.display = 'none';
+    if (turnHint) turnHint.style.display = 'none';
     btnInterrupt.style.display = 'none';
     const mySession = sessionId;
 
@@ -2382,6 +2404,7 @@ ${langDirective}
     releaseWakeLock();
     btnAction.disabled = true;
     btnEndTurn.style.display = 'none';
+    if (turnHint) turnHint.style.display = 'none';
     btnInterrupt.style.display = 'none';
 
     const sec = lessonStarted ? Math.min(2400, Math.round((Date.now() - lessonStartedAtReal) / 1000)) : 0;
