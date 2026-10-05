@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <!-- Google Tag Manager -->
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MV9DTRNR');</script>
+  <!-- End Google Tag Manager -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,14 +20,16 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-  <!-- Политика безопасности CSP: безопасный режим без unsafe-eval, WebSocket для Gemini Live -->
+  <!-- Политика безопасности CSP: безопасный режим без unsafe-eval, WebSocket для Gemini Live, GTM -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' blob: data:;
-                 connect-src 'self' wss://generativelanguage.googleapis.com;
-                 img-src 'self' https://images.unsplash.com data:;
+                 script-src 'self' 'unsafe-inline' https://www.googletagmanager.com;
+                 connect-src 'self' wss://generativelanguage.googleapis.com https://*.google-analytics.com https://*.googletagmanager.com;
+                 img-src 'self' https://images.unsplash.com https://www.googletagmanager.com https://*.google-analytics.com data:;
+                 frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.29.0</title>
+  <title>AI Language Tutor v3.29.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -289,6 +298,10 @@
   </style>
 </head>
 <body>
+  <!-- Google Tag Manager (noscript) -->
+  <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MV9DTRNR"
+  height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+  <!-- End Google Tag Manager (noscript) -->
 
   <div class="app-container">
     <header>
@@ -529,7 +542,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.29.0';
+  const APP_VERSION = '3.29.1';
 
     const I18N = {
   "uk": {
