@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.24.1</title>
+  <title>AI Language Tutor v3.25.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -76,7 +76,11 @@
       border: 1px solid rgba(56, 189, 248, 0.3);
       display: none;
       font-variant-numeric: tabular-nums;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.1s ease, border-color 0.2s ease, background 0.2s ease;
     }
+    .timer-badge:active { transform: scale(0.95); }
     .timer-warning { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); animation: blink 1.2s infinite alternate; }
     @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.4; } }
     .btn-icon { background: none; border: none; color: #f8fafc; font-size: 1.4rem; cursor: pointer; padding: 4px; }
@@ -464,7 +468,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.24.1';
+  const APP_VERSION = '3.25.0';
 
     const I18N = {
   "uk": {
@@ -1891,7 +1895,20 @@ ${langDirective}
     isBotSpeaking = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
-    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) { setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
+
+    if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
+      clearInterval(lessonTimerInterval);
+      setStatus(t('msgTimeDone'));
+      stopSession(false);
+      return;
+    }
+
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+      btnEndTurn.style.display = 'block';
+      if (turnHint) turnHint.style.display = 'block';
+      setStatus(st('yourTurn'));
+      vibrate([50, 50, 50]);
+    }
     if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
   }
 
@@ -1906,7 +1923,21 @@ ${langDirective}
           isBotSpeaking = false;
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
-          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) { setStatus(st('yourTurn')); vibrate([50, 50, 50]); }
+
+          // Репетитор только что закончил свою речь. Если основное время урока истекло — мягко завершаем!
+          if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
+            clearInterval(lessonTimerInterval);
+            setStatus(t('msgTimeDone'));
+            stopSession(false);
+            return;
+          }
+
+          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+            btnEndTurn.style.display = 'block';
+            if (turnHint) turnHint.style.display = 'block';
+            setStatus(st('yourTurn'));
+            vibrate([50, 50, 50]);
+          }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
       }, 200);
@@ -1923,10 +1954,26 @@ ${langDirective}
     timerBadge.textContent = `${m}:${s < 10 ? '0' : ''}${s}`;
   }
 
+  function extendLesson(minutes) {
+    const mins = minutes || 15;
+    if (!isSessionActive || isStopping || isFinalizing) return;
+    lessonEndsAt = Math.max(Date.now(), lessonEndsAt) + mins * 60 * 1000;
+    isTimeWarningSent = false;
+    isTimeWarningPending = false;
+    timerBadge.classList.remove('timer-warning');
+    updateTimerBadge();
+    toast(cfg.native === 'uk' ? `Урок продовжено на ${mins} хв!` : `Урок продлён на ${mins} мин!`, 4000);
+    sendText(cfg.native === 'uk'
+      ? `[СИСТЕМНА ПІДКАЗКА: Учень продовжив урок ще на ${mins} хвилин! Не прощайся. Продовжуємо повноцінний урок, переходимо до наступного матеріалу.]`
+      : `[СИСТЕМНАЯ ПОДСКАЗКА: Ученик продлил урок ещё на ${mins} минут! Не прощайся. Продолжаем полноценный урок, переходи к следующему материалу.]`, false);
+    startLessonTimer();
+  }
+
   function startLessonTimer() {
     lessonEndsAt = Date.now() + cfg.minutes * 60 * 1000;
     isTimeWarningPending = false; isTimeWarningSent = false;
     timerBadge.style.display = 'block';
+    timerBadge.title = cfg.uiLang === 'uk' ? 'Натисніть, щоб продовжити урок на 15 хв' : 'Нажмите, чтобы продлить урок на 15 мин';
     progressPill.style.display = 'inline-block';
     timerBadge.classList.remove('timer-warning');
     updateTimerBadge();
@@ -1948,6 +1995,15 @@ ${langDirective}
       }
 
       if (r <= 0) {
+        timerBadge.classList.add('timer-warning');
+        // Не обрываем репетитора посреди слова: даём договорить фразу и попрощаться (до 45 сек)
+        const isBusy = isBotSpeaking || isAudioStillPlaying() || isServerTurnActive || isWaitingForResponse;
+        const overtimeSec = Math.floor((Date.now() - lessonEndsAt) / 1000);
+
+        if (isBusy && overtimeSec < 45) {
+          return;
+        }
+
         clearInterval(lessonTimerInterval);
         setStatus(t('msgTimeDone'));
         stopSession(false);
@@ -2012,6 +2068,12 @@ ${langDirective}
     }));
   }
 
+  timerBadge.onclick = () => {
+    if (isSessionActive && !isStopping && !isFinalizing) {
+      extendLesson(15);
+    }
+  };
+
   btnEndTurn.onclick = () => {
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
     if (isWaitingForResponse || isBotSpeaking) return;
@@ -2019,6 +2081,8 @@ ${langDirective}
     isWaitingForResponse = true;
     receivedAudioThisTurn = false;
     stopBotSpeech();
+    btnEndTurn.style.display = 'none';
+    if (turnHint) turnHint.style.display = 'none';
     setStatus(st('thinking'));
     vibrate(30);
 
@@ -2030,6 +2094,8 @@ ${langDirective}
     watchdogTimer = setTimeout(() => {
       if (isWaitingForResponse) {
         isWaitingForResponse = false;
+        btnEndTurn.style.display = 'block';
+        if (turnHint) turnHint.style.display = 'block';
         setStatus(st('yourTurn'));
         vibrate([50, 50, 50]);
       }
@@ -2043,7 +2109,9 @@ ${langDirective}
     isWaitingForResponse = false;
     suppressAudioFor(1200);
     sendText('[СИСТЕМНО: Реплика была прервана учеником. Не комментируй это вслух: просто выслушай ученика и отреагируй на его слова.]', false);
-    setStatus(st('listening'));
+    btnEndTurn.style.display = 'block';
+    if (turnHint) turnHint.style.display = 'block';
+    setStatus(st('yourTurn'));
   };
 
   /* ==========================================================================
@@ -2276,11 +2344,22 @@ ${langDirective}
     btnAction.disabled = false;
     btnAction.textContent = t('btnStop');
     btnAction.className = 'btn-main btn-stop';
-    btnEndTurn.style.display = 'block';
-    if (turnHint) turnHint.style.display = 'block';
-    setStatus(st('listening'));
+    btnEndTurn.style.display = 'none';
+    if (turnHint) turnHint.style.display = 'none';
+    isWaitingForResponse = true;
+    setStatus(st('thinking'));
     startLessonTimer();
     sendText(startPromptText(), true);
+
+    clearTimeout(watchdogTimer);
+    watchdogTimer = setTimeout(() => {
+      if (isWaitingForResponse && !isBotSpeaking && isSessionActive) {
+        isWaitingForResponse = false;
+        btnEndTurn.style.display = 'block';
+        if (turnHint) turnHint.style.display = 'block';
+        setStatus(st('yourTurn'));
+      }
+    }, 12000);
   }
 
   function handleServerMessage(msg) {
@@ -2325,6 +2404,8 @@ ${langDirective}
             isBotSpeaking = true;
             avatarCard.classList.add('speaking');
             btnInterrupt.style.display = 'block';
+            btnEndTurn.style.display = 'none';
+            if (turnHint) turnHint.style.display = 'none';
             setStatus(st('speaking'));
           }
         }
@@ -2383,7 +2464,6 @@ ${langDirective}
   async function stopSession(forceImmediate) {
     if (!isSessionActive || isStopping || isFinalizing) return;
     isStopping = true;
-    isExtractingMemory = true;
     stopLessonTimer();
     clearTimeout(watchdogTimer);
     btnAction.disabled = true;
@@ -2395,11 +2475,16 @@ ${langDirective}
     if (forceImmediate) {
       stopBotSpeech();
     } else if (isAudioStillPlaying() || isServerTurnActive) {
+      // КРИТИЧНО: isExtractingMemory здесь false, поэтому все входящие PCM-чанки
+      // финальной фразы/прощания репетитора принимаются и воспроизводятся полностью!
       setStatus(st('finishing'));
-      await waitPlaybackDrain(10000);   // Graceful Audio Drain Buffer
+      await waitPlaybackDrain(30000);   // Graceful Audio Drain Buffer (до 30 с)
       if (mySession !== sessionId || isFinalizing) return;
     }
 
+    // ТОЛЬКО ТЕПЕРЬ, когда вся прощальная речь репетитора прозвучала из динамиков,
+    // включаем флаг сохранения памяти и запрашиваем функцию saveStudentProfile:
+    isExtractingMemory = true;
     setStatus(st('saving'));
     if (socket && socket.readyState === WebSocket.OPEN && isSetupComplete) {
       sendMemoryDirective();
