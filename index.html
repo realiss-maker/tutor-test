@@ -20,7 +20,7 @@
                  img-src 'self' https://images.unsplash.com data:;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.25.0</title>
+  <title>AI Language Tutor v3.25.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -183,8 +183,11 @@
       display: none;
       margin-top: 14px;
       width: 100%;
-      max-height: 120px;
-      overflow: hidden;
+      max-height: 135px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      overscroll-behavior: contain;
       text-align: left;
       font-size: 0.92rem;
       line-height: 1.4;
@@ -192,6 +195,19 @@
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: 12px;
       padding: 10px 12px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(56, 189, 248, 0.4) transparent;
+      word-break: break-word;
+    }
+    .captions::-webkit-scrollbar {
+      width: 4px;
+    }
+    .captions::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .captions::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.4);
+      border-radius: 4px;
     }
     .captions .cap-user { color: #94a3b8; margin-bottom: 4px; }
     .captions .cap-tutor { color: #f1f5f9; }
@@ -468,7 +484,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.25.0';
+  const APP_VERSION = '3.25.1';
 
     const I18N = {
   "uk": {
@@ -2162,7 +2178,7 @@ ${langDirective}
     isTimeWarningSent = false; isTimeWarningPending = false;
     suppressIncomingAudio = false; interruptedPending = false; receivedAudioThisTurn = false;
     saveNudges = 0; reconnectAttempts = 0; resumeHandle = null; captionNewTurn = true;
-    capUser.textContent = ''; capTutor.textContent = '';
+    capUser.textContent = ''; capTutor.textContent = ''; captionsUserScrolled = false; if (captionsBox) captionsBox.scrollTop = 0;
     stopBotSpeech();
     statsRow.style.display = 'none';
     captionsBox.style.display = cfg.captions === 'on' ? 'block' : 'none';
@@ -2313,17 +2329,38 @@ ${langDirective}
     return String(text || '').replace(/<\/?(?:ctrl\d+|noise|silence)[^>]*>/gi, '').replace(/\s{2,}/g, ' ');
   }
 
+  let captionsUserScrolled = false;
+  if (captionsBox) {
+    captionsBox.addEventListener('scroll', () => {
+      const distanceToBottom = captionsBox.scrollHeight - captionsBox.scrollTop - captionsBox.clientHeight;
+      captionsUserScrolled = distanceToBottom > 35;
+    }, { passive: true });
+  }
+
   function pushCaption(kind, text) {
     if (cfg.captions !== 'on') return;
     if (isExtractingMemory) return;          // пока идёт сохранение итогов — субтитры не нужны
     text = cleanCaption(text);
     if (!text.trim()) return;
     if (kind === 'tutor') {
-      if (captionNewTurn) { capTutor.textContent = ''; captionNewTurn = false; }
-      capTutor.textContent = (capTutor.textContent + text).slice(-320);
+      if (captionNewTurn) {
+        capTutor.textContent = '';
+        captionNewTurn = false;
+        captionsUserScrolled = false;
+      }
+      capTutor.textContent = (capTutor.textContent + text).slice(-1000);
     } else {
-      if (!capUser.dataset.fresh || capUser.dataset.fresh === '1') { capUser.textContent = ''; capUser.dataset.fresh = '0'; }
-      const you = t('capYou') + ': '; const prev = capUser.textContent.startsWith(you) ? capUser.textContent.slice(you.length) : capUser.textContent; capUser.textContent = (you + prev + text).slice(-200);
+      if (!capUser.dataset.fresh || capUser.dataset.fresh === '1') {
+        capUser.textContent = '';
+        capUser.dataset.fresh = '0';
+        captionsUserScrolled = false;
+      }
+      const you = t('capYou') + ': ';
+      const prev = capUser.textContent.startsWith(you) ? capUser.textContent.slice(you.length) : capUser.textContent;
+      capUser.textContent = (you + prev + text).slice(-600);
+    }
+    if (!captionsUserScrolled && captionsBox) {
+      captionsBox.scrollTop = captionsBox.scrollHeight;
     }
   }
 
