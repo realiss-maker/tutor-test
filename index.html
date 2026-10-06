@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.34.0</title>
+  <title>AI Language Tutor v3.34.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -641,7 +641,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.34.0';
+  const APP_VERSION = '3.34.1';
 
     const I18N = {
   "uk": {
@@ -3058,13 +3058,20 @@ ${langDirective}
       captionNewTurn = true;
       if (capUser) capUser.dataset.fresh = '1';
 
-      clearTimeout(watchdogTimer);
-      // Если модель ничего не сказала (пустой ход или прерывание), возвращаем очередь ученику без зависания
+      // Защита от фальстарта «Ваша очередь»:
+      // Сервер шлёт turnComplete при завершении текста, пока аудио-пакеты ещё идут по сети.
+      // Не сбрасываем статус в «Ваша очередь» сразу: статус остаётся «Готовит ответ»,
+      // пока не зазвучит голос репетитора (или через 2.2 с при истинной тишине).
       if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
-        isWaitingForResponse = false;
-        btnEndTurn.style.display = 'block';
-        if (turnHint) turnHint.style.display = 'block';
-        setStatus(st('yourTurn'));
+        clearTimeout(watchdogTimer);
+        watchdogTimer = setTimeout(() => {
+          if (isWaitingForResponse && !receivedAudioThisTurn && !isBotSpeaking && !isAudioStillPlaying()) {
+            isWaitingForResponse = false;
+            btnEndTurn.style.display = 'block';
+            if (turnHint) turnHint.style.display = 'block';
+            setStatus(st('yourTurn'));
+          }
+        }, 2200);
       }
       receivedAudioThisTurn = false;
 
