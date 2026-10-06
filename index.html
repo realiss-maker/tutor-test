@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.32.7</title>
+  <title>AI Language Tutor v3.34.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -309,6 +309,8 @@
   height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
 
+  <div id="bgLayer" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; background-size: cover; background-position: center; background-repeat: no-repeat; transition: background-image 0.5s ease;"></div>
+
   <div class="app-container">
     <header>
       <div class="header-left">
@@ -379,6 +381,10 @@
           <option value="role_airport">Ролевая ситуация: Аэропорт / вокзал</option>
           <option value="role_hotel">Ролевая ситуация: В отеле / аренда жилья</option>
           <option value="role_doctor">Ролевая ситуация: У врача / аптека</option>
+          <option value="role_cinema">Ролевая ситуация: В кинотеатре (билеты, выбор фильма)</option>
+          <option value="role_party">Ролевая ситуация: На вечеринке / в гостях</option>
+          <option value="role_museum">Ролевая ситуация: В музее / на выставке</option>
+          <option value="role_culture">Ролевая ситуация: Обсуждение фильма или книги</option>
           <option value="interview">Собеседование на работу</option>
           <option value="grammar">Грамматический спринт</option>
           <option value="custom">Своя ситуация (назвать голосом)</option>
@@ -516,7 +522,13 @@
         <div class="hint" id="hintText">Если урок не стартует с ошибкой «модель недоступна» — выберите другую.</div>
 
         <div class="mem-info" id="memInfo" style="margin-top: 8px;"></div>
-        <div style="display: flex; gap: 10px; margin-top: 2px;">
+        <button type="button" onclick="openVocabModal()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: white; border: none; border-radius: 8px; padding: 11px; font-weight: 600; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 4px; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);">
+          <span>📖</span> <span>Открыть словарь и банк ошибок</span>
+        </button>
+        <button type="button" onclick="compactMemory()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; cursor: pointer; margin-top: 2px;">
+          🧹 Упаковать память (сжать архив уроков)
+        </button>
+        <div style="display: flex; gap: 10px; margin-top: 4px;">
           <button type="button" class="btn-backup" id="btnExportMemory" style="flex: 1; font-size: 0.8rem;">📥 Экспорт</button>
           <button type="button" class="btn-backup" id="btnImportMemory" style="flex: 1; font-size: 0.8rem; background: #0d9488;">📤 Импорт</button>
         </div>
@@ -530,6 +542,59 @@
       <button class="btn-save" id="btnSaveKey" style="margin-top: 8px;">Сохранить настройки</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
       <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Личный словарь и банк ошибок -->
+  <div class="modal" id="modalVocab" role="dialog" aria-modal="true" aria-labelledby="vocabTitle">
+    <div class="modal-content" style="max-width: 480px; height: 85vh; max-height: 85vh; padding: 18px 20px; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onclick="closeVocabModal()" style="background: rgba(255,255,255,0.1); border: none; color: #f8fafc; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+          <h3 id="vocabTitle" style="margin: 0; font-size: 1.1rem; text-align: left;">Словарь и память</h3>
+        </div>
+        <span id="vocabLangBadge" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">Français</span>
+      </div>
+
+      <div class="tabs-header" style="margin-bottom: 10px;">
+        <button type="button" class="tab-btn active" id="vtab-btn-words" onclick="switchVocabTab('words')">Словарь</button>
+        <button type="button" class="tab-btn" id="vtab-btn-errors" onclick="switchVocabTab('errors')">Ошибки</button>
+        <button type="button" class="tab-btn" id="vtab-btn-lessons" onclick="switchVocabTab('lessons')">Журнал</button>
+        <button type="button" class="tab-btn" id="vtab-btn-profile" onclick="switchVocabTab('profile')">Профиль</button>
+        <button type="button" class="tab-btn" id="vtab-btn-raw" onclick="switchVocabTab('raw')">Текст</button>
+      </div>
+
+      <!-- Вкладка: Словарь -->
+      <div id="vtab-words" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <input type="text" id="vocabSearch" placeholder="🔍 Поиск по словам или переводу..." oninput="filterVocabWords()" style="height: 38px; font-size: 0.88rem;">
+        <div id="vocabWordsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
+      </div>
+
+      <!-- Вкладка: Ошибки -->
+      <div id="vtab-errors" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <div style="font-size: 0.8rem; color: #94a3b8;">Сложные моменты, которые репетитор будет закреплять:</div>
+        <div id="vocabErrorsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
+      </div>
+
+      <!-- Вкладка: Журнал уроков -->
+      <div id="vtab-lessons" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <div id="vocabLessonsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
+      </div>
+
+      <!-- Вкладка: Профиль ученика -->
+      <div id="vtab-profile" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <div style="font-size: 0.8rem; color: #94a3b8;">Факты о вас, которые репетитор помнит для поддержания беседы:</div>
+        <div id="vocabProfileList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
+      </div>
+
+      <!-- Вкладка: RAW редактор -->
+      <div id="vtab-raw" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <div style="font-size: 0.78rem; color: #94a3b8;">Прямой текст памяти текущего языка (можно редактировать):</div>
+        <textarea id="rawMemoryText" style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-family: monospace; font-size: 0.78rem; padding: 10px; resize: none;"></textarea>
+        <button type="button" onclick="saveRawMemory()" style="background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer;">Сохранить правки</button>
+      </div>
+
+      <button type="button" class="btn-close" onclick="closeVocabModal()" style="margin-top: 8px;">Закрыть</button>
     </div>
   </div>
 
@@ -576,7 +641,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.32.7';
+  const APP_VERSION = '3.34.0';
 
     const I18N = {
   "uk": {
@@ -1318,6 +1383,7 @@
     }
     if (writeFailed) toast(t('memWriteFail'), 8000);
     else if (shrunk) toast(t('memShrunk'), 6000);
+    try { sessionStorage.removeItem('active_lesson_draft'); } catch (e) {}
     return l.length > 0 && !writeFailed;
   }
 
@@ -1398,13 +1464,20 @@
       role_airport: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1280&q=70',
       role_hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1280&q=70',
       role_doctor: 'https://images.unsplash.com/photo-1551076805-e1869043e660?auto=format&fit=crop&w=1280&q=70',
-      interview: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1280&q=70'
+      interview: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1280&q=70',
+      role_cinema: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1280&q=70',
+      role_party: 'https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?auto=format&fit=crop&w=1280&q=70',
+      role_museum: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1280&q=70',
+      role_culture: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1280&q=70'
     };
     const bgUrl = MODE_BGS[cfg.mode] || L.bg;
-    
-    document.body.style.backgroundImage = bgUrl
+    const bgCss = bgUrl
       ? `linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.90)), url('${bgUrl}')`
-      : L.grad;
+      : (L.grad || 'linear-gradient(160deg, #0f172a, #1e293b)');
+    
+    const layer = $('bgLayer');
+    if (layer) layer.style.backgroundImage = bgCss;
+    document.body.style.backgroundImage = bgCss;
     renderStats();
   }
   landmarkImage.onerror = () => { landmarkImage.style.display = 'none'; avatarEmoji.style.display = 'flex'; };
@@ -1449,7 +1522,234 @@
   modalSettings.addEventListener('click', e => { if (e.target === modalSettings) closeSettings(); });
   const mIos = $('modalIosInstall');
   if (mIos) mIos.addEventListener('click', e => { if (e.target === mIos) closeIosInstall(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalSettings.style.display === 'flex') closeSettings(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if (modalSettings.style.display === 'flex') closeSettings();
+      if ($('modalVocab') && $('modalVocab').style.display === 'flex') closeVocabModal();
+    }
+  });
+
+  /* ==========================================================================
+     Личный словарь, банк ошибок и упаковка памяти (Раздел 4)
+     ========================================================================== */
+  function parseMem(txt) {
+    const sections = {};
+    let cur = 'other';
+    (txt || '').split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        cur = trimmed;
+        if (!sections[cur]) sections[cur] = [];
+      } else if (trimmed) {
+        if (!sections[cur]) sections[cur] = [];
+        sections[cur].push(trimmed);
+      }
+    });
+    return sections;
+  }
+
+  let cachedVocabWords = [];
+
+  window.openVocabModal = () => {
+    const m = $('modalVocab');
+    if (!m) return;
+    $('vocabLangBadge').textContent = (LANGS[cfg.lang] && LANGS[cfg.lang].label) || cfg.lang;
+    switchVocabTab('words');
+    renderVocab();
+    m.style.display = 'flex';
+  };
+
+  window.closeVocabModal = () => {
+    const m = $('modalVocab');
+    if (m) m.style.display = 'none';
+  };
+
+  const mVocab = $('modalVocab');
+  if (mVocab) {
+    mVocab.addEventListener('click', e => { if (e.target === mVocab) closeVocabModal(); });
+  }
+
+  window.switchVocabTab = tab => {
+    ['words', 'errors', 'lessons', 'profile', 'raw'].forEach(t => {
+      const btn = $('vtab-btn-' + t);
+      const pane = $('vtab-' + t);
+      if (btn) btn.classList.toggle('active', t === tab);
+      if (pane) pane.style.display = t === tab ? 'flex' : 'none';
+    });
+    if (tab === 'raw') {
+      const raw = $('rawMemoryText');
+      if (raw) raw.value = getLangMem(cfg.lang);
+    }
+  };
+
+  window.saveRawMemory = () => {
+    const raw = $('rawMemoryText');
+    if (!raw) return;
+    const val = raw.value.trim();
+    store.set(memKey(cfg.lang), val);
+    refreshMemInfo();
+    renderVocab();
+    toast('Память языка успешно сохранена!', 4000);
+  };
+
+  function renderVocab() {
+    const mem = parseMem(getLangMem(cfg.lang));
+    const errorsList = $('vocabErrorsList');
+    const lessonsList = $('vocabLessonsList');
+    const profileList = $('vocabProfileList');
+
+    // 1. Словарь
+    const words = mem[SEC_VOC] || [];
+    cachedVocabWords = words.map(w => w.replace(/^[-•*]\s*/, ''));
+    filterVocabWords();
+
+    // 2. Ошибки
+    const errs = mem[SEC_ERR] || [];
+    if (errorsList) {
+      errorsList.innerHTML = errs.length === 0
+        ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">Ошибок пока не зафиксировано. Отличная работа!</div>'
+        : errs.map(e => `
+          <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #fca5a5;">
+            ⚠️ ${e.replace(/^[-•*]\s*/, '')}
+          </div>`).join('');
+    }
+
+    // 3. Журнал
+    const lessons = mem[SEC_LOG] || [];
+    if (lessonsList) {
+      lessonsList.innerHTML = lessons.length === 0
+        ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">Журнал уроков пуст. Начните первый урок!</div>'
+        : lessons.map(l => `
+          <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #cbd5e1;">
+            📅 ${l.replace(/^[-•*]\s*/, '')}
+          </div>`).join('');
+    }
+
+    // 4. Профиль
+    const glob = getGlobalMem().split('\n').filter(x => x.trim());
+    if (profileList) {
+      profileList.innerHTML = glob.length === 0
+        ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">Репетитор пока не знает фактов о вашей биографии. Они появятся по ходу бесед.</div>'
+        : glob.map(f => `
+          <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #bae6fd;">
+            👤 ${f.replace(/^[-•*]\s*/, '')}
+          </div>`).join('');
+    }
+  }
+
+  window.filterVocabWords = () => {
+    const input = $('vocabSearch');
+    const query = input ? input.value.toLowerCase().trim() : '';
+    const wordsList = $('vocabWordsList');
+    if (!wordsList) return;
+
+    const filtered = cachedVocabWords.filter(w => !query || w.toLowerCase().includes(query));
+    if (filtered.length === 0) {
+      wordsList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 16px; text-align: center;">' +
+        (query ? 'Ничего не найдено по запросу «' + query + '»' : 'В словаре пока нет сохранённых слов. Они появятся после завершения уроков!') +
+        '</div>';
+      return;
+    }
+
+    wordsList.innerHTML = filtered.map(w => {
+      const parts = w.split(/[\—\-\:]+/);
+      const foreign = parts[0] ? parts[0].trim() : w;
+      const trans = parts.slice(1).join(' — ').trim();
+      return `
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+          <span style="font-weight: 600; color: #38bdf8; font-size: 0.9rem;">${foreign}</span>
+          ${trans ? `<span style="color: #94a3b8; font-size: 0.82rem; text-align: right;">${trans}</span>` : ''}
+        </div>`;
+    }).join('');
+  };
+
+  window.compactMemory = () => {
+    const raw = getLangMem(cfg.lang);
+    if (!raw || raw.length < 400) {
+      toast('Память ещё компактная, сжатие не требуется.', 4000);
+      return;
+    }
+
+    const mem = parseMem(raw);
+    const beforeLen = raw.length;
+
+    // 1. Дедупликация словаря
+    if (mem[SEC_VOC]) {
+      const seen = new Set();
+      const dedup = [];
+      mem[SEC_VOC].forEach(w => {
+        const norm = w.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '');
+        if (!seen.has(norm)) { seen.add(norm); dedup.push(w); }
+      });
+      mem[SEC_VOC] = dedup;
+    }
+
+    // 2. Дедупликация ошибок
+    if (mem[SEC_ERR]) {
+      const seen = new Set();
+      const dedup = [];
+      mem[SEC_ERR].forEach(e => {
+        const norm = e.toLowerCase().replace(/[^a-zа-яё0-9]/gi, '');
+        if (!seen.has(norm)) { seen.add(norm); dedup.push(e); }
+      });
+      mem[SEC_ERR] = dedup;
+    }
+
+    // 3. Упаковка журнала уроков (оставляем 5 последних, более старые сворачиваем)
+    if (mem[SEC_LOG] && mem[SEC_LOG].length > 5) {
+      const total = mem[SEC_LOG].length;
+      const recent = mem[SEC_LOG].slice(-5);
+      const olderCount = total - 5;
+      const summary = `• [АРХИВ]: Пройдено ранних уроков (${olderCount}) — базовые темы закреплены`;
+      mem[SEC_LOG] = [summary, ...recent];
+    }
+
+    let newMem = '';
+    [SEC_LOG, SEC_VOC, SEC_ERR, SEC_NEXT].forEach(sec => {
+      if (mem[sec] && mem[sec].length > 0) {
+        newMem += sec + '\n' + mem[sec].join('\n') + '\n\n';
+      }
+    });
+
+    newMem = newMem.trim();
+    store.set(memKey(cfg.lang), newMem);
+    refreshMemInfo();
+    renderVocab();
+    const saved = beforeLen - newMem.length;
+    toast(`Память упакована! Освобождено ${saved > 0 ? saved : 0} байт.`, 5000);
+  };
+
+  /* ==========================================================================
+     Локальный черновик урока и восстановление при сбоях (Раздел 5)
+     ========================================================================== */
+  function saveLiveDraft() {
+    if (!lessonStarted || !sessionLang) return;
+    try {
+      const draft = {
+        lang: sessionLang,
+        sec: Math.round((Date.now() - lessonStartedAtReal) / 1000),
+        time: Date.now()
+      };
+      sessionStorage.setItem('active_lesson_draft', JSON.stringify(draft));
+    } catch (e) {}
+  }
+
+  function checkRecoverDraft() {
+    try {
+      const raw = sessionStorage.getItem('active_lesson_draft');
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      sessionStorage.removeItem('active_lesson_draft');
+      if (draft && draft.sec > 120 && draft.lang) {
+        const min = Math.round(draft.sec / 60);
+        const note = `\n${SEC_LOG} (восстановлено из черновика ${todayStr()}): проведён урок (~${min} мин), практика тем диалога.`;
+        const old = getLangMem(draft.lang);
+        store.set(memKey(draft.lang), (old ? old.trim() : '') + note);
+        toast(`Восстановлен черновик прошлого занятия (~${min} мин) в память!`, 7000);
+        refreshMemInfo();
+      }
+    } catch (e) {}
+  }
 
   $('btnSaveKey').onclick = () => {
     apiKey = inputApiKey.value.trim();
@@ -1761,6 +2061,10 @@ ${startScenario}
         'role_airport': 'РЕЖИМ: Ролевая ситуация "В аэропорту / на вокзале". Разбей тему на последовательный цикл уроков (Урок 1 — регистрация; Урок 2 — досмотр; Урок 3 — поиск выхода на посадку; Урок 4 — вопросы в полете). Фразы должны быть ролевыми, от первого лица.',
         'role_hotel': 'РЕЖИМ: Ролевая ситуация "В отеле". Разбей тему на цикл уроков: заселение, просьбы на ресепшен, выезд, решение проблем. Фразы от первого лица.',
         'role_doctor': 'РЕЖИМ: Ролевая ситуация "У врача / в аптеке". Разбей на цикл: запись на прием, описание симптомов, рецепт в аптеке. Фразы от первого лица.',
+        'role_cinema': 'РЕЖИМ: Ролевая ситуация "В кинотеатре". Разыгрывайте поход в кино. Разбей тему на последовательный цикл уроков: Урок 1 — выбор фильма и жанра; Урок 2 — покупка билетов и выбор мест в кассе; Урок 3 — заказ закусок и напитков в кинобаре; Урок 4 — впечатления после просмотра. Фразы от первого лица, живые и естественные.',
+        'role_party': 'РЕЖИМ: Ролевая ситуация "На вечеринке / в гостях". Разбей тему на последовательный цикл уроков: Урок 1 — приветствие и знакомство с новыми людьми; Урок 2 — непринужденная беседа (small talk), комплименты хозяевам; Урок 3 — угощения и напитки; Урок 4 — договоренность о новой встрече и прощание. Фразы от первого лица.',
+        'role_museum': 'РЕЖИМ: Ролевая ситуация "В музее / на выставке". Разбей тему на цикл уроков: Урок 1 — покупка входных билетов и аудиогида в кассе; Урок 2 — ориентирование по залам и схемам музея; Урок 3 — диалог о картине/скульптуре и стилях искусства; Урок 4 — сувенирная лавка. Фразы от первого лица.',
+        'role_culture': 'РЕЖИМ: Ролевая ситуация "Обсуждение фильма или книги". Разбей тему на цикл: Урок 1 — сюжет и краткий пересказ завязки; Урок 2 — любимые персонажи и их характеры; Урок 3 — эмоциональные впечатления и цитаты; Урок 4 — рекомендации и выводы. Фразы от первого лица.',
         'interview': 'РЕЖИМ: Собеседование на работу. Разбей на цикл: рассказ о себе, опыт работы, сильные и слабые стороны, вопросы работодателю.',
         'grammar': 'РЕЖИМ: Грамматический спринт. Фокус на интенсивной тренировке грамматики. Выбирай одну грамматическую тему за урок и активно гоняй по ней (спряжение глаголов, артикли, времена).',
         'custom': 'РЕЖИМ: Своя ситуация. Спроси ученика, какую тему или ситуацию он хочет разобрать. Подстраивайся под его ответ и разыгрывай соответствующий цикл уроков.'
@@ -1774,6 +2078,11 @@ ${startScenario}
 
 ${settingLanguageDirective}
 ${modeInstructions}
+
+ТЕРПЕНИЕ И ВЫДЕРЖКА ПРИ ОТВЕТЕ УЧЕНИКА:
+1. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО торопить ученика, перебивать его или говорить «Ничего страшного, мы повторим это позже», если ученик ещё не успел вслух произнести фразу или если в титрах отобразился шум/вздох.
+2. Фразу «Ничего страшного, повторим это чуть-чуть позже» разрешено говорить ИСКЛЮЧИТЕЛЬНО после того, как ученик РЕАЛЬНО произнес фразу вслух и ошибся 4-5 раз подряд при изолированной отработке. Ни в коем случае не произноси её после 1-2 попыток или при паузе ученика!
+3. Если ученик делает паузу или обдумывает фразу — ТЕРПЕЛИВО ЖДИ его голосового ответа.
 
 СИСТЕМНЫЙ МАРКЕР ПЕРЕДАЧИ ХОДА:
 Если в сессии появляется служебный маркер [TURN_COMPLETE] — это значит, что ученик нажал кнопку завершения своей реплики. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО зачитывать этот маркер вслух, упоминать его или обсуждать саму кнопку! Просто оцени услышанную голосовую речь ученика (или переспроси, если была полная тишина) и отвечай строго в соответствии с текущим этапом урока.
@@ -1970,7 +2279,17 @@ ${langDirective}
       if (playbackContext && playbackContext.state === 'suspended') { try { await playbackContext.resume(); } catch (e) {} }
       if (audioContext && audioContext.state === 'suspended') { try { await audioContext.resume(); } catch (e) {} }
       ensureMicAlive();
+      // Если iOS разорвала соединение во время сна экрана — бесшовно возобновляем сессию
+      if (socket && socket.readyState !== WebSocket.OPEN && resumeHandle && lessonStarted && !isStopping && !isFinalizing) {
+        connectWebSocket(true);
+      }
+    } else if (document.visibilityState === 'hidden' && isSessionActive) {
+      saveLiveDraft();
     }
+  });
+
+  window.addEventListener('pagehide', () => {
+    if (isSessionActive) saveLiveDraft();
   });
 
   // Не даём случайно закрыть вкладку посреди урока (прогресс урока ещё не записан)
@@ -2003,18 +2322,34 @@ ${langDirective}
     return window.btoa(binary);
   }
 
+  let lastBotSpeechEndedAt = 0;
+
   function onMicChunk(event) {
     micLevel = event.data.rms;
     if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+    // 1. Акустический буфер (cool-off) после речи репетитора: 600 мс тишины,
+    // чтобы эхо из динамика смартфона или первый вдох не сработали как начало ответа ученика
+    if (Date.now() - lastBotSpeechEndedAt < 600) return;
 
     let allowTransmission = true;
     if (currentAudioMode() === 'half') {
       if (isBotSpeaking || isWaitingForResponse || isExtractingMemory) allowTransmission = false;
     } else if (isExtractingMemory) allowTransmission = false;
 
-    if (allowTransmission && socket.bufferedAmount < 512 * 1024) {
+    if (!allowTransmission) return;
+
+    // 2. Шумоподавитель (Noise Gate): если в комнате тишина / дыхание (rms < 0.009),
+    // отправляем чистые нули (цифровую тишину), чтобы ASR Google не галлюцинировал арабскими/ивритскими символами
+    // и серверный VAD не прерывал урок ложным «ответом» ученика
+    let pcmToSend = event.data.pcm;
+    if (event.data.rms < 0.009) {
+      pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
+    }
+
+    if (socket.bufferedAmount < 512 * 1024) {
       socket.send(JSON.stringify({
-        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(event.data.pcm)) }] }
+        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(pcmToSend)) }] }
       }));
     }
   }
@@ -2140,6 +2475,7 @@ ${langDirective}
     activeAudioSources = [];
     isBotSpeaking = false;
     isServerTurnActive = false;
+    lastBotSpeechEndedAt = Date.now();
     scheduledPlayTime = 0;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
@@ -2199,6 +2535,7 @@ ${langDirective}
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
           isBotSpeaking = false;
+          lastBotSpeechEndedAt = Date.now();
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
 
@@ -2612,6 +2949,7 @@ ${langDirective}
     if (!captionsUserScrolled && captionsBox) {
       captionsBox.scrollTop = captionsBox.scrollHeight;
     }
+    saveLiveDraft();
   }
 
   function onSetupComplete() {
@@ -2863,6 +3201,7 @@ ${langDirective}
   /* ---------- Старт ---------- */
   updateUI();
   updateInterface();   // язык интерфейса, подписи и стартовая подсказка
+  checkRecoverDraft(); // Проверка и восстановление незавершённого черновика после сбоев
 
   // Защита от вытеснения: просим браузер сохранять локальные данные (особенно в Safari/iOS).
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
