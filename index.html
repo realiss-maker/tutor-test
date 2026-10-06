@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.31.0</title>
+  <title>AI Language Tutor v3.32.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -263,6 +263,11 @@
     .modal-content label { font-size: 0.82rem; color: #94a3b8; margin-bottom: -5px; text-align: left; }
     .modal-content button { padding: 11px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
     .modal-content a { color: #38bdf8; font-size: 0.8rem; text-align: left; }
+    .tabs-header { display: flex; margin-bottom: 6px; border-bottom: 1px solid #334155; }
+    .tab-btn { flex: 1; background: transparent; color: #94a3b8 !important; padding: 8px 0 !important; font-size: 0.75rem !important; border-bottom: 2px solid transparent !important; border-radius: 0 !important; }
+    .tab-btn.active { color: #38bdf8 !important; border-bottom-color: #38bdf8 !important; }
+    .tab-content { display: none; flex-direction: column; gap: 11px; }
+    .tab-content.active { display: flex; }
     .btn-save { background: #2563eb; color: white; margin-top: 4px; }
     .btn-backup { background: #0369a1; color: white; }
     .btn-reset-current { background: #475569; color: #f8fafc; }
@@ -348,18 +353,185 @@
   <div class="modal" id="modalSettings" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
-        <h3 id="settingsTitle" style="margin: 0; text-align: left;">Настройки</h3>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <button type="button" onclick="closeSettings()" style="background: rgba(255,255,255,0.1); border: none; color: #f8fafc; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+          <h3 id="settingsTitle" style="margin: 0; text-align: left;">Настройки</h3>
+        </div>
         <span class="js-version" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;"></span>
       </div>
 
-      <!-- Блок установки приложения на главный экран смартфона (PWA) -->
-      <div id="pwaInstallBanner" style="background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.18)); border: 1px solid rgba(56,189,248,0.35); border-radius: 12px; padding: 10px 12px; margin-top: 4px; margin-bottom: 4px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
-            <span style="font-size: 1.35rem; line-height: 1;">📲</span>
-            <div>
-              <div id="pwaTitle" style="font-size: 0.88rem; font-weight: 600; color: #f8fafc;">Приложение на главный экран</div>
-              <div id="pwaDesc" style="font-size: 0.72rem; color: #94a3b8; line-height: 1.2;">Запуск без браузера и адресной строки</div>
+      <div class="tabs-header">
+        <button type="button" class="tab-btn active" onclick="switchTab('tab-lesson')">Урок и Режим</button>
+        <button type="button" class="tab-btn" onclick="switchTab('tab-profile')">Профиль и Звук</button>
+        <button type="button" class="tab-btn" onclick="switchTab('tab-system')">Память и API</button>
+      </div>
+
+      <!-- Вкладка 1: Урок и Режим -->
+      <div id="tab-lesson" class="tab-content active">
+        <label id="lblTargetLang" for="selectLanguage">Изучаемый язык:</label>
+        <select id="selectLanguage"></select>
+
+        <label for="selectMode" style="color: #38bdf8; font-weight: 600;">Режим урока / Тема:</label>
+        <select id="selectMode" style="border-color: #38bdf8; color: #e0f2fe;">
+          <option value="standard">Стандартный курс</option>
+          <option value="small_talk">Свободный разговор (Small Talk)</option>
+          <option value="role_restaurant">Ролевая игра: В ресторане / кафе</option>
+          <option value="role_airport">Ролевая игра: Аэропорт / вокзал</option>
+          <option value="role_hotel">Ролевая игра: В отеле / аренда жилья</option>
+          <option value="role_doctor">Ролевая игра: У врача / аптека</option>
+          <option value="interview">Собеседование на работу</option>
+          <option value="grammar">Грамматический спринт</option>
+          <option value="custom">Своя ситуация (назвать голосом)</option>
+        </select>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label id="lblLevelLabel" for="selectLevel">Ваш уровень:</label>
+            <select id="selectLevel">
+              <option value="auto">Авто (по памяти)</option>
+              <option value="A0">С нуля (A0)</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label id="lblMinutes" for="selectMinutes">Длина урока:</label>
+            <select id="selectMinutes">
+              <option value="10">10 минут</option>
+              <option value="15">15 минут</option>
+              <option value="20">20 минут</option>
+            </select>
+          </div>
+        </div>
+
+        <label id="lblStrict" for="selectStrict">Проверка произношения:</label>
+        <select id="selectStrict">
+          <option value="strict">Строгая</option>
+          <option value="normal">Мягкая</option>
+        </select>
+      </div>
+
+      <!-- Вкладка 2: Профиль и Звук -->
+      <div id="tab-profile" class="tab-content">
+        <label id="lblUserName" for="inputUserName">Ваше имя (необязательно):</label>
+        <input type="text" id="inputUserName" placeholder="Например: Денис / Анна" autocomplete="name" spellcheck="false">
+
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label id="lblStudentGender" for="selectStudentGender">Пол (обращение):</label>
+            <select id="selectStudentGender">
+              <option value="auto">Авто</option>
+              <option value="male">Мужской</option>
+              <option value="female">Женский</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label id="lblNativeLang" for="selectNativeLang">Язык интерфейса:</label>
+            <select id="selectNativeLang">
+              <option value="ru">Русский</option>
+              <option value="uk">Українська</option>
+              <option value="auto">Авто</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label id="lblTeacherVoice" for="selectTeacher">Голос репетитора:</label>
+            <select id="selectTeacher">
+              <option value="female">Женский</option>
+              <option value="male">Мужской</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label id="lblVad" for="selectVad">Пауза ответа:</label>
+            <select id="selectVad">
+              <option value="default">Стандарт</option>
+              <option value="patient">Терпеливая</option>
+              <option value="very">Очень долгая</option>
+            </select>
+          </div>
+        </div>
+
+        <label id="lblAudioMode" for="selectAudioMode">Аудио-режим:</label>
+        <select id="selectAudioMode">
+          <option value="half" selected>Динамик (микрофон ждёт)</option>
+          <option value="auto">Авто (наушники / динамик)</option>
+          <option value="full">Наушники (можно перебивать)</option>
+        </select>
+
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;">
+            <label id="lblCaptions" for="selectCaptions">Субтитры:</label>
+            <select id="selectCaptions">
+              <option value="off">Выкл</option>
+              <option value="on">Вкл</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label id="lblVibration" for="selectVibration">Вибрация:</label>
+            <select id="selectVibration">
+              <option value="on">Вкл</option>
+              <option value="off">Выкл</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Вкладка 3: Память и API -->
+      <div id="tab-system" class="tab-content">
+        <div id="pwaInstallBanner" style="background: linear-gradient(135deg, rgba(37,99,235,0.18), rgba(99,102,241,0.18)); border: 1px solid rgba(56,189,248,0.35); border-radius: 12px; padding: 10px 12px; margin-bottom: 4px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1;">
+              <span style="font-size: 1.35rem; line-height: 1;">📲</span>
+              <div>
+                <div id="pwaTitle" style="font-size: 0.88rem; font-weight: 600; color: #f8fafc;">Приложение на главный экран</div>
+              </div>
+            </div>
+            <button type="button" id="btnInstallApp" onclick="installApp()" style="background: #2563eb; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+              Установить
+            </button>
+          </div>
+        </div>
+
+        <label id="lblKey" for="inputApiKey">Google AI Studio API Key:</label>
+        <input type="password" id="inputApiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" autocapitalize="off">
+        <a id="msgGetUrl" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно)</a>
+
+        <div style="display: flex; gap: 10px; margin-top: 4px;">
+          <div style="flex: 1;">
+            <label id="lblStorageMode" for="selectStorageMode">Хранение ключа:</label>
+            <select id="selectStorageMode">
+              <option value="local">На устройстве</option>
+              <option value="session">На сессию</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
+            <label id="lblModelLabel" for="selectModel">Модель Gemini:</label>
+            <select id="selectModel"></select>
+          </div>
+        </div>
+        <div class="hint" id="hintText">Если урок не стартует с ошибкой «модель недоступна» — выберите другую.</div>
+
+        <div class="mem-info" id="memInfo" style="margin-top: 8px;"></div>
+        <div style="display: flex; gap: 10px; margin-top: 2px;">
+          <button type="button" class="btn-backup" id="btnExportMemory" style="flex: 1; font-size: 0.8rem;">📥 Экспорт</button>
+          <button type="button" class="btn-backup" id="btnImportMemory" style="flex: 1; font-size: 0.8rem; background: #0d9488;">📤 Импорт</button>
+        </div>
+        <input type="file" id="inputImportFile" accept=".json" style="display: none;">
+
+        <button class="btn-reset-current" id="btnUndoMemory">↩ Откатить последнее сохранение</button>
+        <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память языка</button>
+        <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
+      </div>
+
+      <button class="btn-save" id="btnSaveKey" style="margin-top: 8px;">Сохранить настройки</button>
+      <button class="btn-close" id="btnCloseModal">Закрыть</button>
+      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
+
+</div>
             </div>
           </div>
           <button type="button" id="btnInstallApp" onclick="installApp()" style="background: #2563eb; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
@@ -543,7 +715,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.31.0';
+  const APP_VERSION = '3.32.0';
 
     const I18N = {
   "uk": {
@@ -1165,6 +1337,7 @@
     teacher: store.get('teacher_gender', 'female'),
     student: store.get('student_gender', 'auto'),
     lang: store.get('target_language', 'french'),
+    mode: store.get('lesson_mode', 'standard'),
     native: store.get('native_lang', 'ru'),
     audio: store.get('audio_mode', 'half'),
     model: store.get('model_id', MODELS[0].id),
@@ -1176,6 +1349,13 @@
     uiLang: store.get('ui_lang', 'ru'),
     userName: store.get('user_name', ''),
     vibration: store.get('vibration', 'on')
+  };
+  
+  window.switchTab = function(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    if (event && event.currentTarget) event.currentTarget.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
   };
   if (!['ru', 'uk', 'en'].includes(cfg.uiLang)) cfg.uiLang = 'ru';
   if (!['on', 'off'].includes(cfg.vibration)) cfg.vibration = 'on';
@@ -1352,8 +1532,17 @@
       landmarkImage.style.display = 'none';
       avatarEmoji.style.display = 'flex';
     }
-    document.body.style.backgroundImage = L.bg
-      ? `linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.90)), url('${L.bg}')`
+    const MODE_BGS = {
+      role_restaurant: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1280&q=70',
+      role_airport: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=1280&q=70',
+      role_hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1280&q=70',
+      role_doctor: 'https://images.unsplash.com/photo-1551076805-e1869043e660?auto=format&fit=crop&w=1280&q=70',
+      interview: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1280&q=70'
+    };
+    const bgUrl = MODE_BGS[cfg.mode] || L.bg;
+    
+    document.body.style.backgroundImage = bgUrl
+      ? `linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.90)), url('${bgUrl}')`
       : L.grad;
     renderStats();
   }
@@ -1367,10 +1556,12 @@
   }
 
   function syncSettingsForm() {
-    selectStorageMode.value = cfg.keyMode; selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
+    if(typeof selectStorageMode !== 'undefined') selectStorageMode.value = cfg.keyMode; 
+    selectTeacher.value = cfg.teacher; selectStudentGender.value = cfg.student;
     selectLanguage.value = cfg.lang; selectNativeLang.value = cfg.native; selectAudioMode.value = cfg.audio;
     selectVad.value = cfg.vad; selectStrict.value = cfg.strict; selectCaptions.value = cfg.captions; if($('selectVibration')) $('selectVibration').value = cfg.vibration; if($('selectUiLang')) $('selectUiLang').value = cfg.uiLang; if($('inputUserName')) $('inputUserName').value = cfg.userName || ''; selectModel.value = cfg.model;
     selectLevel.value = cfg.level; selectMinutes.value = String(cfg.minutes);
+    if($('selectMode')) $('selectMode').value = cfg.mode || 'standard';
   }
 
   function openSettings() {
@@ -1382,7 +1573,7 @@
     updatePwaInstallUI();
     modalSettings.style.display = 'flex';
   }
-  if (selectUiLang) {
+  if (typeof selectUiLang !== 'undefined' && selectUiLang) {
     selectUiLang.onchange = () => {
       cfg.uiLang = selectUiLang.value;
       store.set('ui_lang', cfg.uiLang);
@@ -1391,7 +1582,7 @@
       refreshMemInfo();
     };
   }
-  const closeSettings = () => { modalSettings.style.display = 'none'; };
+  window.closeSettings = () => { modalSettings.style.display = 'none'; };
   $('btnSettings').onclick = openSettings;
   $('btnCloseModal').onclick = closeSettings;
   modalSettings.addEventListener('click', e => { if (e.target === modalSettings) closeSettings(); });
@@ -1401,12 +1592,15 @@
 
   $('btnSaveKey').onclick = () => {
     apiKey = inputApiKey.value.trim();
-    cfg.keyMode = selectStorageMode.value; cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
+    if(typeof selectStorageMode !== 'undefined') cfg.keyMode = selectStorageMode.value; 
+    cfg.teacher = selectTeacher.value; cfg.student = selectStudentGender.value;
     cfg.lang = selectLanguage.value; cfg.native = selectNativeLang.value; cfg.audio = selectAudioMode.value;
     cfg.vad = selectVad.value; cfg.strict = selectStrict.value; cfg.captions = selectCaptions.value; if($('selectVibration')) cfg.vibration = $('selectVibration').value; if($('selectUiLang')) cfg.uiLang = $('selectUiLang').value; updateInterface(); if($('btnInstallApp')) $('btnInstallApp').textContent = t('btnInstall'); cfg.model = selectModel.value;
     cfg.level = selectLevel.value; cfg.minutes = parseInt(selectMinutes.value, 10) || 15; if($('inputUserName')) cfg.userName = $('inputUserName').value.trim();
+    if($('selectMode')) cfg.mode = $('selectMode').value;
 
     let ok = store.set('api_storage_mode', cfg.keyMode);
+    store.set('lesson_mode', cfg.mode);
     if (cfg.keyMode === 'local') { ok = store.set('gemini_api_key', apiKey) && ok; sstore.remove('gemini_api_key'); }
     else { sstore.set('gemini_api_key', apiKey); store.remove('gemini_api_key'); }
     store.set('teacher_gender', cfg.teacher); store.set('student_gender', cfg.student); store.set('target_language', cfg.lang);
@@ -1698,9 +1892,27 @@ ${startScenario}
     const levelBlock = cfg.level === 'auto' ? '' :
       `УРОВЕНЬ УЧЕНИКА (задан в настройках): ${cfg.level === 'A0' ? 'A0 — с нуля' : cfg.level}. Подбирай лексику, грамматику и скорость речи именно под этот уровень (для A0 начинай с самых простых бытовых фраз и говори медленнее). Если память о прошлых уроках противоречит — доверяй настройке.`;
 
+    let modeInstructions = '';
+    if (cfg.mode && cfg.mode !== 'standard') {
+      const modeDict = {
+        'small_talk': 'РЕЖИМ: Свободный разговор (Small Talk). Твоя цель — поддерживать легкую непринужденную беседу. Меньше формальных упражнений, больше вопросов о жизни, мнениях, интересах. Если ученик делает ошибки, мягко исправляй.',
+        'role_restaurant': 'РЕЖИМ: Ролевая игра "В ресторане". Разыгрывайте ситуации в ресторане. НЕ давай все фразы сразу. Разбей тему на последовательный цикл коротких уроков: например, Урок 1 — бронирование столика; Урок 2 — общение на рецепции; Урок 3 — заказ блюд; Урок 4 — просьбы к официанту и оплата счета. Опирайся на память, чтобы понять, какой этап мы проходим сейчас. Фразы давай живые, ролевые (не инфинитив "забронировать", а "Я бы хотел забронировать"). Будь креативным и последовательным!',
+        'role_airport': 'РЕЖИМ: Ролевая игра "В аэропорту / на вокзале". Разбей тему на последовательный цикл уроков (Урок 1 — регистрация; Урок 2 — досмотр; Урок 3 — поиск выхода на посадку; Урок 4 — вопросы в полете). Фразы должны быть ролевыми, от первого лица.',
+        'role_hotel': 'РЕЖИМ: Ролевая игра "В отеле". Разбей тему на цикл уроков: заселение, просьбы на ресепшен, выезд, решение проблем. Фразы от первого лица.',
+        'role_doctor': 'РЕЖИМ: Ролевая игра "У врача / в аптеке". Разбей на цикл: запись на прием, описание симптомов, рецепт в аптеке. Фразы от первого лица.',
+        'interview': 'РЕЖИМ: Собеседование на работу. Разбей на цикл: рассказ о себе, опыт работы, сильные и слабые стороны, вопросы работодателю.',
+        'grammar': 'РЕЖИМ: Грамматический спринт. Фокус на интенсивной тренировке грамматики. Выбирай одну грамматическую тему за урок и активно гоняй по ней (спряжение глаголов, артикли, времена).',
+        'custom': 'РЕЖИМ: Своя ситуация. Спроси ученика, какую тему или ситуацию он хочет разобрать. Подстраивайся под его ответ и разыгрывай соответствующий цикл уроков.'
+      };
+      if (modeDict[cfg.mode]) {
+        modeInstructions = `\n\nВНИМАНИЕ! АКТИВЕН СПЕЦИАЛЬНЫЙ РЕЖИМ УРОКА:\n${modeDict[cfg.mode]}`;
+      }
+    }
+
     const additions = `
 
 ${settingLanguageDirective}
+${modeInstructions}
 
 ${strictBlock}
 
