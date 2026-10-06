@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.32.6</title>
+  <title>AI Language Tutor v3.32.7</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -576,7 +576,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.32.6';
+  const APP_VERSION = '3.32.7';
 
     const I18N = {
   "uk": {
@@ -1775,6 +1775,9 @@ ${startScenario}
 ${settingLanguageDirective}
 ${modeInstructions}
 
+СИСТЕМНЫЙ МАРКЕР ПЕРЕДАЧИ ХОДА:
+Если в сессии появляется служебный маркер [TURN_COMPLETE] — это значит, что ученик нажал кнопку завершения своей реплики. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО зачитывать этот маркер вслух, упоминать его или обсуждать саму кнопку! Просто оцени услышанную голосовую речь ученика (или переспроси, если была полная тишина) и отвечай строго в соответствии с текущим этапом урока.
+
 ${strictBlock}
 
 ${levelBlock}
@@ -2350,15 +2353,8 @@ ${langDirective}
     setStatus(st('thinking'));
     vibrate(30);
 
-    // Мгновенно передаем ход серверу
-    socket.send(JSON.stringify({ clientContent: { turnComplete: true } }));
-
-    // Если ответа нет более 2 секунд (пустая тишина), подталкиваем модель текстовой подсказкой
-    setTimeout(() => {
-      if (isWaitingForResponse && !receivedAudioThisTurn && socket && socket.readyState === WebSocket.OPEN) {
-        sendText('[Ученик явно передал ход. Отвечай на услышанное или продолжай диалог]', true);
-      }
-    }, 2000);
+    // Безопасная передача хода через стандартный sendText (без сбоя сокета)
+    sendText('[TURN_COMPLETE]', true);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
