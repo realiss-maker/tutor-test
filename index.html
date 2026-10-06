@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.32.3</title>
+  <title>AI Language Tutor v3.32.4</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -576,7 +576,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.32.3';
+  const APP_VERSION = '3.32.4';
 
     const I18N = {
   "uk": {
@@ -2688,7 +2688,12 @@ ${langDirective}
       stopBotSpeech();
       clearSuppress();
       interruptedPending = true;   // следом придёт turnComplete ПРЕРВАННОЙ реплики — он не означает конец нового ответа
-      if (!isWaitingForResponse && !isExtractingMemory) { clearTimeout(watchdogTimer); setStatus(st('listening')); }
+      if (!isWaitingForResponse && !isExtractingMemory) {
+        clearTimeout(watchdogTimer);
+        btnEndTurn.style.display = 'block';
+        if (turnHint) turnHint.style.display = 'block';
+        setStatus(st('listening'));
+      }
     }
 
     if (sc.modelTurn && sc.modelTurn.parts) {
