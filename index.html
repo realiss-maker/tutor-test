@@ -23,13 +23,14 @@
   <!-- Политика безопасности CSP: безопасный режим без unsafe-eval, WebSocket для Gemini Live, GTM -->
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self' 'unsafe-inline' blob: data:;
-                 script-src 'self' 'unsafe-inline' https://www.googletagmanager.com;
+                 script-src 'self' 'unsafe-inline' blob: https://www.googletagmanager.com;
+                 worker-src 'self' blob:;
                  connect-src 'self' wss://generativelanguage.googleapis.com https://*.google-analytics.com https://*.googletagmanager.com;
                  img-src 'self' https://images.unsplash.com https://www.googletagmanager.com https://*.google-analytics.com data:;
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.30.0</title>
+  <title>AI Language Tutor v3.30.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -542,7 +543,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.30.0';
+  const APP_VERSION = '3.30.1';
 
     const I18N = {
   "uk": {
