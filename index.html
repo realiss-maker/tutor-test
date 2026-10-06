@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.32.0</title>
+  <title>AI Language Tutor v3.32.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -530,145 +530,6 @@
       <button class="btn-save" id="btnSaveKey" style="margin-top: 8px;">Сохранить настройки</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
       <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
-
-</div>
-            </div>
-          </div>
-          <button type="button" id="btnInstallApp" onclick="installApp()" style="background: #2563eb; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; box-shadow: 0 2px 8px rgba(37,99,235,0.4);">
-            Установить
-          </button>
-        </div>
-      </div>
-
-      <label id="lblUiLang" for="selectUiLang">Язык интерфейса:</label>
-      <select id="selectUiLang">
-        <option value="ru">Русский</option>
-        <option value="uk">Українська</option>
-        <option value="en">English</option>
-      </select>
-
-      <label id="lblUserName" for="inputUserName">Ваше имя (необязательно):</label>
-      <input type="text" id="inputUserName" placeholder="Например: Денис / Анна"
-             autocomplete="name" spellcheck="false">
-
-      <label id="lblKey" for="inputApiKey">Google AI Studio API Key:</label>
-      <input type="password" id="inputApiKey" placeholder="AIzaSy..."
-             autocomplete="off" spellcheck="false" autocapitalize="off">
-      <a id="msgGetUrl" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Где взять ключ (бесплатно, в Google AI Studio)</a>
-
-      <label id="lblStorageMode" for="selectStorageMode">Режим хранения ключа:</label>
-      <select id="selectStorageMode">
-        <option value="local">На этом устройстве</option>
-        <option value="session">Только на время сессии</option>
-      </select>
-
-      <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-          <label id="lblTargetLang" for="selectLanguage">Изучаемый язык:</label>
-          <select id="selectLanguage"></select>
-        </div>
-        <div style="flex: 1;">
-          <label id="lblTeacherVoice" for="selectTeacher">Голос репетитора:</label>
-          <select id="selectTeacher">
-            <option value="female">Женский</option>
-            <option value="male">Мужской</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-          <label id="lblStudentGender" for="selectStudentGender">Пол ученика (обращение):</label>
-          <select id="selectStudentGender">
-            <option value="auto">Определить самому</option>
-            <option value="male">Мужской</option>
-            <option value="female">Женский</option>
-          </select>
-        </div>
-        <div style="flex: 1;">
-          <label id="lblNativeLang" for="selectNativeLang">Язык объяснений:</label>
-          <select id="selectNativeLang">
-            <option value="ru">Русский</option>
-            <option value="uk">Українська</option>
-            <option value="auto">Автоопределение</option>
-          </select>
-        </div>
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <div style="flex: 1;">
-          <label id="lblLevelLabel" for="selectLevel">Ваш уровень:</label>
-          <select id="selectLevel">
-            <option value="auto">Определить по памяти</option>
-            <option value="A0">С нуля (A0)</option>
-            <option value="A1">A1</option>
-            <option value="A2">A2</option>
-            <option value="B1">B1</option>
-            <option value="B2">B2</option>
-          </select>
-        </div>
-        <div style="flex: 1;">
-          <label id="lblMinutes" for="selectMinutes">Длина урока:</label>
-          <select id="selectMinutes">
-            <option value="10">10 минут</option>
-            <option value="15">15 минут</option>
-            <option value="20">20 минут</option>
-          </select>
-        </div>
-      </div>
-
-      <label id="lblAudioMode" for="selectAudioMode">Аудио-режим:</label>
-      <select id="selectAudioMode">
-        <option value="half" selected>Динамик (микрофон ждёт)</option>
-        <option value="auto">Авто (наушники / динамик)</option>
-        <option value="full">Наушники (можно перебивать)</option>
-      </select>
-
-      <label id="lblStrict" for="selectStrict">Проверка вашего произношения:</label>
-      <select id="selectStrict">
-        <option value="strict">Строгая</option>
-        <option value="normal">Мягкая</option>
-      </select>
-
-      <label id="lblVad" for="selectVad">Пауза перед ответом репетитора:</label>
-      <select id="selectVad">
-        <option value="default">Стандартная</option>
-        <option value="patient">Терпеливая</option>
-        <option value="very">Очень терпеливая</option>
-      </select>
-
-      <label id="lblCaptions" for="selectCaptions">Текст реплик (субтитры):</label>
-      <select id="selectCaptions">
-        <option value="off">Выключены</option>
-        <option value="on">Показывать</option>
-      </select>
-
-      <label id="lblVibration" for="selectVibration">Вибрация:</label>
-      <select id="selectVibration">
-        <option value="on">Включена</option>
-        <option value="off">Выключена</option>
-      </select>
-
-      <label id="lblModelLabel" for="selectModel">Модель Gemini Live:</label>
-      <select id="selectModel"></select>
-      <div class="hint" id="hintText">Если урок не стартует с ошибкой «модель недоступна» — выберите другую модель. «Определить самому» — пол ученика определяется по имени и речи.</div>
-
-      <button class="btn-save" id="btnSaveKey">Сохранить настройки</button>
-
-
-      <div class="mem-info" id="memInfo"></div>
-
-      <div style="display: flex; gap: 10px; margin-top: 2px;">
-        <button type="button" class="btn-backup" id="btnExportMemory" style="flex: 1; font-size: 0.8rem;">📥 Экспорт (JSON)</button>
-        <button type="button" class="btn-backup" id="btnImportMemory" style="flex: 1; font-size: 0.8rem; background: #0d9488;">📤 Импорт (JSON)</button>
-      </div>
-      <input type="file" id="inputImportFile" accept=".json" style="display: none;">
-
-      <button class="btn-reset-current" id="btnUndoMemory">↩ Откатить последнее сохранение памяти</button>
-      <button class="btn-reset-current" id="btnResetCurrentLang">Сбросить память текущего языка</button>
-      <button class="btn-reset-all" id="btnResetAllMemory">Сбросить всю память (все языки)</button>
-      <button class="btn-close" id="btnCloseModal">Закрыть</button>
-      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
     </div>
   </div>
 
@@ -715,7 +576,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.32.0';
+  const APP_VERSION = '3.32.1';
 
     const I18N = {
   "uk": {
@@ -3011,3 +2872,4 @@ ${langDirective}
   </script>
 </body>
 </html>
+
