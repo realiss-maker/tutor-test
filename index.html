@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.38.4</title>
+  <title>AI Language Tutor v3.38.5</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -724,7 +724,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.38.4';
+  const APP_VERSION = '3.38.5';
 
     const I18N = {
   "uk": {
@@ -3852,7 +3852,16 @@ ${langDirective}
 
   function checkBotSpeakingEnded() {
     if (isServerTurnActive) return;
-    if (!isBotSpeaking && !receivedAudioThisTurn) return;
+    if (!isBotSpeaking && !receivedAudioThisTurn) {
+      if (isWaitingForResponse && isSessionActive && !isExtractingMemory && !isFinalizing) {
+        isWaitingForResponse = false;
+        btnEndTurn.style.display = 'block';
+        if (turnHint) turnHint.style.display = 'block';
+        setStatus(st('yourTurn'));
+        vibrate([50, 50, 50]);
+      }
+      return;
+    }
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
       botSpeechDrainTimeout = setTimeout(() => {
