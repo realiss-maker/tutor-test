@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.36.0</title>
+  <title>AI Language Tutor v3.37.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -410,9 +410,9 @@
       </div>
 
       <div class="tabs-header">
-        <button type="button" class="tab-btn active" onclick="switchTab('tab-lesson', this)">Урок и Режим</button>
-        <button type="button" class="tab-btn" onclick="switchTab('tab-profile', this)">Профиль и Звук</button>
-        <button type="button" class="tab-btn" onclick="switchTab('tab-system', this)">Память и API</button>
+        <button type="button" class="tab-btn active" id="tabBtnLesson" onclick="switchTab('tab-lesson', this)">Урок і Режим</button>
+        <button type="button" class="tab-btn" id="tabBtnProfile" onclick="switchTab('tab-profile', this)">Профіль і Звук</button>
+        <button type="button" class="tab-btn" id="tabBtnSystem" onclick="switchTab('tab-system', this)">Пам'ять і API</button>
       </div>
 
       <!-- Вкладка 1: Урок и Режим -->
@@ -420,22 +420,8 @@
         <label id="lblTargetLang" for="selectLanguage">Изучаемый язык:</label>
         <select id="selectLanguage"></select>
 
-        <label for="selectMode" style="color: #38bdf8; font-weight: 600;">Режим урока / Тема:</label>
-        <select id="selectMode" style="border-color: #38bdf8; color: #e0f2fe;">
-          <option value="standard">Стандартный курс</option>
-          <option value="small_talk">Свободный разговор (Small Talk)</option>
-          <option value="role_restaurant">Ролевая ситуация: В ресторане / кафе</option>
-          <option value="role_airport">Ролевая ситуация: Аэропорт / вокзал</option>
-          <option value="role_hotel">Ролевая ситуация: В отеле / аренда жилья</option>
-          <option value="role_doctor">Ролевая ситуация: У врача / аптека</option>
-          <option value="role_cinema">Ролевая ситуация: В кинотеатре (билеты, выбор фильма)</option>
-          <option value="role_party">Ролевая ситуация: На вечеринке / в гостях</option>
-          <option value="role_museum">Ролевая ситуация: В музее / на выставке</option>
-          <option value="role_culture">Ролевая ситуация: Обсуждение фильма или книги</option>
-          <option value="interview">Собеседование на работу</option>
-          <option value="grammar">Грамматический спринт</option>
-          <option value="custom">Своя ситуация (назвать голосом)</option>
-        </select>
+        <label id="lblSelectMode" for="selectMode" style="color: #38bdf8; font-weight: 600;">Режим уроку / Ситуація:</label>
+        <select id="selectMode" style="border-color: #38bdf8; color: #e0f2fe;"></select>
 
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
@@ -469,7 +455,7 @@
       <!-- Вкладка 2: Профиль и Звук -->
       <div id="tab-profile" class="tab-content">
         <label id="lblUserName" for="inputUserName">Ваше имя (необязательно):</label>
-        <input type="text" id="inputUserName" placeholder="Например: Денис / Анна" autocomplete="name" spellcheck="false">
+        <input type="text" id="inputUserName" placeholder="Наприклад: Денис / Анна" autocomplete="name" spellcheck="false">
 
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
@@ -481,23 +467,36 @@
             </select>
           </div>
           <div style="flex: 1;">
-            <label id="lblNativeLang" for="selectNativeLang">Язык интерфейса:</label>
+            <label id="lblNativeLang" for="selectNativeLang">Мова пояснень:</label>
             <select id="selectNativeLang">
-              <option value="ru">Русский</option>
-              <option value="uk">Українська</option>
               <option value="auto">Авто</option>
+              <option value="uk">Українська</option>
+              <option value="ru">Русский</option>
             </select>
           </div>
         </div>
 
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
+            <label id="lblUiLang" for="selectUiLang">Мова інтерфейсу:</label>
+            <select id="selectUiLang">
+              <option value="uk" selected>Українська</option>
+              <option value="ru">Русский</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+              <option value="es">Español</option>
+            </select>
+          </div>
+          <div style="flex: 1;">
             <label id="lblTeacherVoice" for="selectTeacher">Голос репетитора:</label>
             <select id="selectTeacher">
-              <option value="female">Женский</option>
+              <option value="female" selected>Женский</option>
               <option value="male">Мужской</option>
             </select>
           </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
             <label id="lblVad" for="selectVad">Пауза ответа:</label>
             <select id="selectVad">
@@ -506,14 +505,15 @@
               <option value="very">Очень долгая</option>
             </select>
           </div>
+          <div style="flex: 1;">
+            <label id="lblAudioMode" for="selectAudioMode">Аудио-режим:</label>
+            <select id="selectAudioMode">
+              <option value="half" selected>Динамик (микрофон ждёт)</option>
+              <option value="auto">Авто (наушники / динамик)</option>
+              <option value="full">Наушники (можно перебивать)</option>
+            </select>
+          </div>
         </div>
-
-        <label id="lblAudioMode" for="selectAudioMode">Аудио-режим:</label>
-        <select id="selectAudioMode">
-          <option value="half" selected>Динамик (микрофон ждёт)</option>
-          <option value="auto">Авто (наушники / динамик)</option>
-          <option value="full">Наушники (можно перебивать)</option>
-        </select>
 
         <div style="display: flex; gap: 10px;">
           <div style="flex: 1;">
@@ -615,10 +615,10 @@
       <!-- Вкладка 1: Домашка (Фразы последних уроков) -->
       <div id="vtab-homework" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 10px;">
         <div style="background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(14,165,233,0.15)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-          <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.35;">
+          <div id="lblHwBanner" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.35;">
             🎯 <b>Фразы последних уроков</b> для заучивания вслух
           </div>
-          <button type="button" onclick="switchVocabTab('trainer')" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
+          <button type="button" id="btnGoTrainer" onclick="switchVocabTab('trainer')" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
             ▶ Тренажёр
           </button>
         </div>
@@ -629,7 +629,7 @@
       <div id="vtab-trainer" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 12px; justify-content: space-between;">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
           <span id="flashcardCounter" style="font-size: 0.84rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 3px 8px;">1 / 8</span>
-          <span style="font-size: 0.78rem; color: #94a3b8;">Методика самосверки и эталона</span>
+          <span id="lblTrainerMethod" style="font-size: 0.78rem; color: #94a3b8;">Методика самосверки и эталона</span>
         </div>
 
         <div class="flashcard-box" id="flashcardElement" onclick="flipFlashcard()">
@@ -637,13 +637,13 @@
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: auto; padding-bottom: 4px;">
-          <button type="button" onclick="prevFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+          <button type="button" id="btnCardPrev" onclick="prevFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
             ← Назад
           </button>
-          <button type="button" onclick="flipFlashcard()" style="flex: 1; background: #0284c7; color: #fff; border: none; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
+          <button type="button" id="btnCardFlip" onclick="flipFlashcard()" style="flex: 1; background: #0284c7; color: #fff; border: none; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
             🔄 Проверить
           </button>
-          <button type="button" onclick="nextFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+          <button type="button" id="btnCardNext" onclick="nextFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
             Далее ➔
           </button>
         </div>
@@ -724,7 +724,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.36.0';
+  const APP_VERSION = '3.37.0';
 
     const I18N = {
   "uk": {
@@ -809,7 +809,36 @@
     "iosOutro": "Після цього іконка з'явиться на робочому столі і відкриватиметься як окремий додаток.",
     "iosGotIt": "Зрозуміло 👍",
     "unitMin": "хв",
-    "capYou": "Ви"
+    "capYou": "Ви",
+    "lblUserName": "Ваше ім'я:",
+    "lblVib": "Вібрація:",
+    "optVibOn": "Увімкнена",
+    "optVibOff": "Вимкнена",
+    "blk1": "Блок 1 • Розминка та нові фрази",
+    "blk2": "Блок 2 • Практика та діалоги",
+    "blk3": "Блок 3 • Закріплення та підсумки",
+    "statNone": "Уроків поки немає — почнемо? 🙂",
+    "statStreak": "🔥 Серія: {n} дн.",
+    "statMin": "⏱ {n} хв",
+    "tabLesson": "Урок і Режим",
+    "tabProfile": "Профіль і Звук",
+    "tabSystem": "Пам'ять і API",
+    "lblSelectMode": "Режим уроку / Ситуація:",
+    "vocabTitle": "Практика і словник",
+    "vtabHw": "📋 Домашка",
+    "vtabTr": "🗣️ Тренажер",
+    "vtabWd": "📚 Словник",
+    "vtabMem": "🧠 Пам'ять",
+    "lblHwBanner": "🎯 Фрази останніх уроків для заучування вголос",
+    "btnGoTrainer": "▶ Тренажер",
+    "lblTrainerMethod": "Методика самоперевірки та еталона",
+    "btnCardPrev": "← Назад",
+    "btnCardFlip": "🔄 Перевірити",
+    "btnCardNext": "Далі ➔",
+    "mtabErr": "Помилки",
+    "mtabLog": "Журнал",
+    "mtabProf": "Профіль",
+    "mtabRaw": "RAW-текст"
   },
   "ru": {
     "settingsTitle": "Настройки",
@@ -893,7 +922,36 @@
     "iosOutro": "После этого иконка появится на рабочем столе и будет открываться как отдельное приложение.",
     "iosGotIt": "Понятно 👍",
     "unitMin": "мин",
-    "capYou": "Вы"
+    "capYou": "Вы",
+    "lblUserName": "Ваше имя:",
+    "lblVib": "Вибрация:",
+    "optVibOn": "Включена",
+    "optVibOff": "Выключена",
+    "blk1": "Блок 1 • Разминка и новые фразы",
+    "blk2": "Блок 2 • Практика и диалоги",
+    "blk3": "Блок 3 • Закрепление и итоги",
+    "statNone": "Уроков пока нет — начнём? 🙂",
+    "statStreak": "🔥 Серия: {n} дн.",
+    "statMin": "⏱ {n} мин",
+    "tabLesson": "Урок и Режим",
+    "tabProfile": "Профиль и Звук",
+    "tabSystem": "Память и API",
+    "lblSelectMode": "Режим урока / Ситуация:",
+    "vocabTitle": "Практика и словарь",
+    "vtabHw": "📋 Домашка",
+    "vtabTr": "🗣️ Тренажёр",
+    "vtabWd": "📚 Словарь",
+    "vtabMem": "🧠 Память",
+    "lblHwBanner": "🎯 Фразы последних уроков для заучивания вслух",
+    "btnGoTrainer": "▶ Тренажёр",
+    "lblTrainerMethod": "Методика самосверки и эталона",
+    "btnCardPrev": "← Назад",
+    "btnCardFlip": "🔄 Проверить",
+    "btnCardNext": "Далее ➔",
+    "mtabErr": "Ошибки",
+    "mtabLog": "Журнал",
+    "mtabProf": "Профиль",
+    "mtabRaw": "RAW-текст"
   },
   "en": {
     "settingsTitle": "Settings",
@@ -977,172 +1035,521 @@
     "iosOutro": "The app icon will appear on your home screen and open as a standalone fullscreen app.",
     "iosGotIt": "Got it 👍",
     "unitMin": "min",
-    "capYou": "You"
+    "capYou": "You",
+    "lblUserName": "Your name:",
+    "lblVib": "Vibration:",
+    "optVibOn": "On",
+    "optVibOff": "Off",
+    "blk1": "Block 1 • Warm-up and new phrases",
+    "blk2": "Block 2 • Practice and dialogues",
+    "blk3": "Block 3 • Review and summary",
+    "statNone": "No lessons yet — shall we start? 🙂",
+    "statStreak": "🔥 Streak: {n} d.",
+    "statMin": "⏱ {n} min",
+    "tabLesson": "Lesson & Mode",
+    "tabProfile": "Profile & Sound",
+    "tabSystem": "Memory & API",
+    "lblSelectMode": "Lesson Mode / Situation:",
+    "vocabTitle": "Practice & Vocabulary",
+    "vtabHw": "📋 Homework",
+    "vtabTr": "🗣️ Trainer",
+    "vtabWd": "📚 Vocabulary",
+    "vtabMem": "🧠 Memory",
+    "lblHwBanner": "🎯 Key phrases from recent lessons to practice aloud",
+    "btnGoTrainer": "▶ Trainer",
+    "lblTrainerMethod": "Self-check & reference methodology",
+    "btnCardPrev": "← Back",
+    "btnCardFlip": "🔄 Check",
+    "btnCardNext": "Next ➔",
+    "mtabErr": "Mistakes",
+    "mtabLog": "Log",
+    "mtabProf": "Profile",
+    "mtabRaw": "RAW text"
+  },
+  "fr": {
+    "settingsTitle": "Paramètres",
+    "lblKey": "Clé API Google AI Studio :",
+    "lblKeyMode": "Stockage de clé :",
+    "optLocal": "Sur cet appareil",
+    "optSession": "Session uniquement",
+    "lblTarget": "Langue étudiée :",
+    "lblVoice": "Voix du tuteur :",
+    "optFemale": "Féminine",
+    "optMale": "Masculine",
+    "lblGender": "Genre de l'élève :",
+    "optAutoGen": "Détection auto",
+    "lblNative": "Langue des explications :",
+    "optAutoNat": "Détection auto",
+    "lblUiLang": "Langue de l'interface :",
+    "lblAudio": "Mode audio :",
+    "optAutoAud": "Auto (Casque / Haut-parleur)",
+    "optHalf": "Haut-parleur (micro en attente)",
+    "optFull": "Casque (interruption possible)",
+    "lblStrict": "Contrôle de prononciation :",
+    "optStrict": "Strict",
+    "optSoft": "Souple",
+    "lblVad": "Pause avant réponse :",
+    "optDef": "Standard",
+    "optPat": "Patiente",
+    "optVery": "Très patiente",
+    "lblCap": "Sous-titres :",
+    "optOff": "Désactivés",
+    "optOn": "Activés",
+    "lblModel": "Modèle Gemini Live :",
+    "btnSave": "Enregistrer",
+    "btnExp": "📥 Exporter (JSON)",
+    "btnImp": "📤 Importer (JSON)",
+    "btnUndo": "↩ Annuler mémoire",
+    "btnRstCur": "Réinitialiser langue courante",
+    "btnRstAll": "Réinitialiser TOUT",
+    "btnClose": "Fermer",
+    "btnStart": "Démarrer leçon",
+    "btnStop": "Terminer leçon",
+    "btnInterrupt": "Interrompre ✋",
+    "btnTurn": "J'ai fini ➔",
+    "turnHint": "Le tuteur répondra après une pause, ou appuyez sur le bouton",
+    "stList": "À l'écoute...",
+    "stSpeak": "Le tuteur parle...",
+    "stThink": "Préparation réponse...",
+    "stTurn": "À votre tour de parler...",
+    "stConn": "Connexion...",
+    "stReconn": "Reconnexion...",
+    "stSave": "Enregistrement...",
+    "stFin": "Le tuteur termine...",
+    "msgGetUrl": "Obtenir une clé (gratuit)",
+    "msgInterrupted": "Réplique interrompue",
+    "msgTimeDone": "Temps écoulé. Fin de leçon...",
+    "hintText": "Si la leçon ne démarre pas, choisissez un autre modèle.",
+    "memTemplate": "Mémoire «{lang}» : {lKb} Ko • globale : {gKb} Ko • locale",
+    "prog1": "Échauffement 1–5",
+    "prog2": "Pratique 6–10",
+    "prog3": "Bilan 11–15",
+    "profAct": "Profil actif",
+    "profNew": "Nouveau cours",
+    "audAuto": "auto",
+    "audHead": "Casque",
+    "audSpeak": "Haut-parleur",
+    "msgAskKey": "Cliquez sur ⚙ et entrez votre clé API",
+    "hintIos": "iPhone/iPad : Safari → Partager → Sur l'écran d'accueil.",
+    "hintInApp": "Ouvrez dans Chrome pour installer.",
+    "lblLevel": "Votre niveau :",
+    "optLvAuto": "Selon mémoire",
+    "optLvA0": "Débutant (A0)",
+    "lblMinutes": "Durée de leçon :",
+    "optMin": "{n} min",
+    "pwaTitle": "Ajouter à l'écran d'accueil",
+    "pwaDesc": "Lancement plein écran sans navigateur",
+    "pwaAlreadyInstalled": "✅ Application déjà installée",
+    "btnInstall": "Installer",
+    "iosTitle": "Installation sur iPhone / iPad",
+    "iosIntro": "Apple permet l'installation en 2 étapes via Safari :",
+    "iosStep1": "Appuyez sur «Partager» en bas de Safari :",
+    "iosStep2": "Choisissez «Sur l'écran d'accueil»",
+    "iosOutro": "L'icône apparaîtra comme une vraie application.",
+    "iosGotIt": "Compris 👍",
+    "unitMin": "min",
+    "capYou": "Vous",
+    "lblUserName": "Votre prénom :",
+    "lblVib": "Vibration :",
+    "optVibOn": "Activée",
+    "optVibOff": "Désactivée",
+    "blk1": "Bloc 1 • Échauffement et phrases",
+    "blk2": "Bloc 2 • Pratique et dialogues",
+    "blk3": "Bloc 3 • Consolidation et bilan",
+    "statNone": "Pas encore de cours — on commence ? 🙂",
+    "statStreak": "🔥 Série : {n} j.",
+    "statMin": "⏱ {n} min",
+    "tabLesson": "Leçon et Mode",
+    "tabProfile": "Profil et Son",
+    "tabSystem": "Mémoire et API",
+    "lblSelectMode": "Mode de leçon / Situation :",
+    "vocabTitle": "Pratique et vocabulaire",
+    "vtabHw": "📋 Devoirs",
+    "vtabTr": "🗣️ Entraîneur",
+    "vtabWd": "📚 Vocabulaire",
+    "vtabMem": "🧠 Mémoire",
+    "lblHwBanner": "🎯 Phrases clés des leçons récentes pour s'entraîner à voix haute",
+    "btnGoTrainer": "▶ Entraîneur",
+    "lblTrainerMethod": "Méthode d'auto-évaluation et référence",
+    "btnCardPrev": "← Précédent",
+    "btnCardFlip": "🔄 Vérifier",
+    "btnCardNext": "Suivant ➔",
+    "mtabErr": "Erreurs",
+    "mtabLog": "Journal",
+    "mtabProf": "Profil",
+    "mtabRaw": "RAW texte"
+  },
+  "es": {
+    "settingsTitle": "Configuración",
+    "lblKey": "Clave API de Google AI Studio:",
+    "lblKeyMode": "Almacenamiento de clave:",
+    "optLocal": "En este dispositivo",
+    "optSession": "Solo sesión",
+    "lblTarget": "Idioma de estudio:",
+    "lblVoice": "Voz del tutor:",
+    "optFemale": "Femenina",
+    "optMale": "Masculina",
+    "lblGender": "Género del alumno:",
+    "optAutoGen": "Detección auto",
+    "lblNative": "Idioma explicaciones:",
+    "optAutoNat": "Detección auto",
+    "lblUiLang": "Idioma interfaz:",
+    "lblAudio": "Modo de audio:",
+    "optAutoAud": "Auto (Auriculares / Altavoz)",
+    "optHalf": "Altavoz (micrófono en espera)",
+    "optFull": "Auriculares (interrupción)",
+    "lblStrict": "Control pronunciación:",
+    "optStrict": "Estricto",
+    "optSoft": "Suave",
+    "lblVad": "Pausa antes de responder:",
+    "optDef": "Estándar",
+    "optPat": "Paciente",
+    "optVery": "Muy paciente",
+    "lblCap": "Subtítulos:",
+    "optOff": "Desactivados",
+    "optOn": "Activados",
+    "lblModel": "Modelo Gemini Live:",
+    "btnSave": "Guardar ajustes",
+    "btnExp": "📥 Exportar (JSON)",
+    "btnImp": "📤 Importar (JSON)",
+    "btnUndo": "↩ Deshacer memoria",
+    "btnRstCur": "Restablecer idioma actual",
+    "btnRstAll": "Restablecer TODO",
+    "btnClose": "Cerrar",
+    "btnStart": "Comenzar lección",
+    "btnStop": "Terminar lección",
+    "btnInterrupt": "Interrumpir ✋",
+    "btnTurn": "Terminé ➔",
+    "turnHint": "El tutor responderá tras una pausa, o pulse el botón",
+    "stList": "Escuchando...",
+    "stSpeak": "El tutor habla...",
+    "stThink": "Preparando respuesta...",
+    "stTurn": "Su turno de hablar...",
+    "stConn": "Conectando...",
+    "stReconn": "Reconectando...",
+    "stSave": "Guardando...",
+    "stFin": "El tutor termina...",
+    "msgGetUrl": "Obtener clave (gratis)",
+    "msgInterrupted": "Interrumpido",
+    "msgTimeDone": "Tiempo agotado. Terminando...",
+    "hintText": "Si no inicia, elija otro modelo.",
+    "memTemplate": "Memoria «{lang}»: {lKb} KB • global: {gKb} KB • local",
+    "prog1": "Calentamiento 1–5",
+    "prog2": "Práctica 6–10",
+    "prog3": "Consolidación 11–15",
+    "profAct": "Perfil activo",
+    "profNew": "Nuevo curso",
+    "audAuto": "auto",
+    "audHead": "Auriculares",
+    "audSpeak": "Altavoz",
+    "msgAskKey": "Pulse ⚙ e ingrese su clave API",
+    "hintIos": "iPhone/iPad: Safari → Compartir → Agregar a inicio.",
+    "hintInApp": "Abra en Chrome para instalar.",
+    "lblLevel": "Su nivel:",
+    "optLvAuto": "Según memoria",
+    "optLvA0": "Desde cero (A0)",
+    "lblMinutes": "Duración de lección:",
+    "optMin": "{n} min",
+    "pwaTitle": "Añadir a pantalla de inicio",
+    "pwaDesc": "Inicio a pantalla completa sin navegador",
+    "pwaAlreadyInstalled": "✅ Aplicación ya instalada",
+    "btnInstall": "Instalar",
+    "iosTitle": "Instalación en iPhone / iPad",
+    "iosIntro": "Apple permite la instalación en 2 pasos desde Safari:",
+    "iosStep1": "Toque «Compartir» abajo en Safari:",
+    "iosStep2": "Elija «Agregar a inicio»",
+    "iosOutro": "El icono se abrirá como app independiente.",
+    "iosGotIt": "Entendido 👍",
+    "unitMin": "min",
+    "capYou": "Usted",
+    "lblUserName": "Su nombre:",
+    "lblVib": "Vibración:",
+    "optVibOn": "Activada",
+    "optVibOff": "Desactivada",
+    "blk1": "Bloque 1 • Calentamiento y frases",
+    "blk2": "Bloque 2 • Práctica и diálogos",
+    "blk3": "Bloque 3 • Resumen",
+    "statNone": "Aún no hay lecciones —¿empezamos? 🙂",
+    "statStreak": "🔥 Racha: {n} d.",
+    "statMin": "⏱ {n} min",
+    "tabLesson": "Lección y Modo",
+    "tabProfile": "Perfil y Sonido",
+    "tabSystem": "Memoria y API",
+    "lblSelectMode": "Modo de lección / Situación:",
+    "vocabTitle": "Práctica y vocabulario",
+    "vtabHw": "📋 Tarea",
+    "vtabTr": "🗣️ Entrenador",
+    "vtabWd": "📚 Vocabulario",
+    "vtabMem": "🧠 Memoria",
+    "lblHwBanner": "🎯 Frases clave de las lecciones recientes para practicar en voz alta",
+    "btnGoTrainer": "▶ Entrenador",
+    "lblTrainerMethod": "Método de autocomprobación y referencia",
+    "btnCardPrev": "← Anterior",
+    "btnCardFlip": "🔄 Comprobar",
+    "btnCardNext": "Siguiente ➔",
+    "mtabErr": "Errores",
+    "mtabLog": "Registro",
+    "mtabProf": "Perfil",
+    "mtabRaw": "RAW texto"
   }
 };
 
     // MSG dict
     const MSG = {
-  ru: {
-    saved: 'Настройки сохранены.',
-    keyEmpty: 'Настройки сохранены, но ключ API пустой — без него урок не начнётся.',
-    keyOdd: 'Настройки сохранены. Ключ выглядит необычно: ключи Google AI Studio начинаются с «AIza».',
-    storeFail: 'Не удалось записать настройки в браузер (приватный режим или нет места).',
-    locked: 'Настройки доступны, когда урок завершён.',
-    expDone: 'Резервная копия скачана (ключ API в неё не входит).',
-    impBig: 'Файл слишком большой для резервной копии.',
-    impConfirm: 'Импорт заменит текущую память теми данными, что есть в файле. Продолжить?',
-    impDone: 'Память профиля импортирована из файла.',
-    impBad: 'Ошибка чтения файла. Проверьте, что это резервная копия в формате JSON.',
-    undoNone: 'Предыдущей версии памяти пока нет.',
-    undoConfirm: 'Вернуть память к состоянию перед последним сохранением? Текущая версия станет «предыдущей».',
-    undoDone: 'Память возвращена к предыдущей версии.',
-    rstLangConfirm: 'Сбросить историю и прогресс для текущего языка?',
-    rstLangDone: 'Прогресс текущего языка очищен (можно откатить кнопкой «Откатить память»).',
-    rstAllConfirm: 'ВНИМАНИЕ: удалить ВСЕ данные профиля и прогресс по всем языкам?',
-    rstAllDone: 'Весь профиль сброшен.',
-    memShrunk: 'Память сохранена в безопасном режиме: новая запись была короче старой, поэтому она добавлена, а не заменила.',
-    memWriteFail: 'Не удалось записать память в браузер (нет места или приватный режим). Сделайте экспорт в настройках ⚙.',
-    backupChip: '💾 Сделайте резервную копию (⚙)',
-    offline: 'Нет подключения к интернету. Урок требует связи с Google.',
-    noNet: 'Нет интернета',
-    micDenied: 'Доступ к микрофону запрещён. Разрешите его в настройках браузера и повторите.',
-    micNotFound: 'Микрофон не найден. Подключите микрофон и повторите.',
-    micBusy: 'Микрофон занят другим приложением. Закройте его и повторите.',
-    micFail: 'Не удалось включить микрофон или звук.',
-    micBack: 'Микрофон восстановлен.',
-    micLost: 'Завершите урок и начните заново.',
-    clAuth: 'Google не принял ключ API. Проверьте ключ в настройках ⚙.',
-    clModel: 'Выбранная модель недоступна для вашего ключа. Выберите другую модель в настройках ⚙.',
-    clQuota: 'Исчерпан лимит Google AI Studio (квота или оплата). Попробуйте позже.',
-    clConn: 'Не удалось установить соединение. Проверьте интернет и ключ API.',
-    clGeneric: 'Соединение закрыто сервером{reason}',
-    finSaved: 'Урок и прогресс сохранены.',
-    finDone: 'Урок завершён.',
-    finLostBeforeSave: 'Связь оборвалась до сохранения. Итоги урока записать не удалось.',
-    finLost: 'Связь с сервером потеряна. Итоги этого урока сохранить не удалось.',
-    finTimeout: 'Репетитор не вернул итоги урока вовремя. Урок засчитан, но слова и ошибки этого занятия не сохранились.',
-    finNoConn: 'Связи нет — итоги урока сохранить не удалось.',
-    finishing: 'Завершение реплики...',
-    installed: 'Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.',
-    startHint: 'Нажмите «Начать урок» для старта',
-    noKeyStatus: 'Нажмите ⚙ и вставьте ключ Google AI Studio, затем «Начать урок»',
-    noKeyToast: 'Сначала вставьте ключ Google AI Studio в настройках ⚙',
-    audioInit: 'Инициализация звука...'
+  "ru": {
+    "saved": "Настройки сохранены.",
+    "keyEmpty": "Настройки сохранены, но ключ API пустой — без него урок не начнётся.",
+    "keyOdd": "Настройки сохранены. Ключ выглядит необычно: ключи Google AI Studio начинаются с «AIza».",
+    "storeFail": "Не удалось записать настройки в браузер (приватный режим или нет места).",
+    "locked": "Настройки доступны, когда урок завершён.",
+    "expDone": "Резервная копия скачана (ключ API в неё не входит).",
+    "impBig": "Файл слишком большой для резервной копии.",
+    "impConfirm": "Импорт заменит текущую память теми данными, что есть в файле. Продолжить?",
+    "impDone": "Память профиля импортирована из файла.",
+    "impBad": "Ошибка чтения файла. Проверьте, что это резервная копия в формате JSON.",
+    "undoNone": "Предыдущей версии памяти пока нет.",
+    "undoConfirm": "Вернуть память к состоянию перед последним сохранением? Текущая версия станет «предыдущей».",
+    "undoDone": "Память возвращена к предыдущей версии.",
+    "rstLangConfirm": "Сбросить историю и прогресс для текущего языка?",
+    "rstLangDone": "Прогресс текущего языка очищен (можно откатить кнопкой «Откатить память»).",
+    "rstAllConfirm": "ВНИМАНИЕ: удалить ВСЕ данные профиля и прогресс по всем языкам?",
+    "rstAllDone": "Весь профиль сброшен.",
+    "memShrunk": "Память сохранена в безопасном режиме: новая запись была короче старой, поэтому она добавлена, а не заменила.",
+    "memWriteFail": "Не удалось записать память в браузер (нет места или приватный режим). Сделайте экспорт в настройках ⚙.",
+    "backupChip": "💾 Сделайте резервную копию (⚙)",
+    "offline": "Нет подключения к интернету. Урок требует связи с Google.",
+    "noNet": "Нет интернета",
+    "micDenied": "Доступ к микрофону запрещён. Разрешите его в настройках браузера и повторите.",
+    "micNotFound": "Микрофон не найден. Подключите микрофон и повторите.",
+    "micBusy": "Микрофон занят другим приложением. Закройте его и повторите.",
+    "micFail": "Не удалось включить микрофон или звук.",
+    "micBack": "Микрофон восстановлен.",
+    "micLost": "Завершите урок и начните заново.",
+    "clAuth": "Google не принял ключ API. Проверьте ключ в настройках ⚙.",
+    "clModel": "Выбранная модель недоступна для вашего ключа. Выберите другую модель в настройках ⚙.",
+    "clQuota": "Исчерпан лимит Google AI Studio (квота или оплата). Попробуйте позже.",
+    "clConn": "Не удалось установить соединение. Проверьте интернет и ключ API.",
+    "clGeneric": "Соединение закрыто сервером{reason}",
+    "finSaved": "Урок и прогресс сохранены.",
+    "finDone": "Урок завершён.",
+    "finLostBeforeSave": "Связь оборвалась до сохранения. Итоги урока записать не удалось.",
+    "finLost": "Связь с сервером потеряна. Итоги этого урока сохранить не удалось.",
+    "finTimeout": "Репетитор не вернул итоги урока вовремя. Урок засчитан, но слова и ошибки этого занятия не сохранились.",
+    "finNoConn": "Связи нет — итоги урока сохранить не удалось.",
+    "finishing": "Завершение реплики...",
+    "installed": "Готово: значок «AI Tutor» появился на экране. Запускайте программу оттуда.",
+    "startHint": "Нажмите «Начать урок» для старта",
+    "noKeyStatus": "Нажмите ⚙ и вставьте ключ Google AI Studio, затем «Начать урок»",
+    "noKeyToast": "Сначала вставьте ключ Google AI Studio в настройках ⚙",
+    "audioInit": "Инициализация звука..."
   },
-  uk: {
-    saved: 'Налаштування збережено.',
-    keyEmpty: 'Налаштування збережено, але ключ API порожній — без нього урок не почнеться.',
-    keyOdd: 'Налаштування збережено. Ключ виглядає незвично: ключі Google AI Studio починаються з «AIza».',
-    storeFail: 'Не вдалося записати налаштування в браузер (приватний режим або немає місця).',
-    locked: 'Налаштування доступні, коли урок завершено.',
-    expDone: 'Резервну копію завантажено (ключ API до неї не входить).',
-    impBig: 'Файл завеликий для резервної копії.',
-    impConfirm: 'Імпорт замінить поточну пам\'ять даними з файлу. Продовжити?',
-    impDone: 'Пам\'ять профілю імпортовано з файлу.',
-    impBad: 'Помилка читання файлу. Перевірте, що це резервна копія у форматі JSON.',
-    undoNone: 'Попередньої версії пам\'яті поки немає.',
-    undoConfirm: 'Повернути пам\'ять до стану перед останнім збереженням? Поточна версія стане «попередньою».',
-    undoDone: 'Пам\'ять повернуто до попередньої версії.',
-    rstLangConfirm: 'Скинути історію та прогрес для поточної мови?',
-    rstLangDone: 'Прогрес поточної мови очищено (можна відкотити кнопкою «Відкотити пам\'ять»).',
-    rstAllConfirm: 'УВАГА: видалити ВСІ дані профілю та прогрес за всіма мовами?',
-    rstAllDone: 'Увесь профіль скинуто.',
-    memShrunk: 'Пам\'ять збережено в безпечному режимі: новий запис був коротший за старий, тому його додано, а не замінено.',
-    memWriteFail: 'Не вдалося записати пам\'ять у браузер (немає місця або приватний режим). Зробіть експорт у налаштуваннях ⚙.',
-    backupChip: '💾 Зробіть резервну копію (⚙)',
-    offline: 'Немає підключення до інтернету. Урок потребує зв\'язку з Google.',
-    noNet: 'Немає інтернету',
-    micDenied: 'Доступ до мікрофона заборонено. Дозвольте його в налаштуваннях браузера та повторіть.',
-    micNotFound: 'Мікрофон не знайдено. Підключіть мікрофон і повторіть.',
-    micBusy: 'Мікрофон зайнятий іншою програмою. Закрийте її та повторіть.',
-    micFail: 'Не вдалося увімкнути мікрофон або звук.',
-    micBack: 'Мікрофон відновлено.',
-    micLost: 'Завершіть урок і почніть заново.',
-    clAuth: 'Google не прийняв ключ API. Перевірте ключ у налаштуваннях ⚙.',
-    clModel: 'Обрана модель недоступна для вашого ключа. Виберіть іншу модель у налаштуваннях ⚙.',
-    clQuota: 'Вичерпано ліміт Google AI Studio (квота або оплата). Спробуйте пізніше.',
-    clConn: 'Не вдалося встановити з\'єднання. Перевірте інтернет і ключ API.',
-    clGeneric: 'З\'єднання закрито сервером{reason}',
-    finSaved: 'Урок і прогрес збережено.',
-    finDone: 'Урок завершено.',
-    finLostBeforeSave: 'Зв\'язок обірвався до збереження. Підсумки уроку записати не вдалося.',
-    finLost: 'Зв\'язок із сервером втрачено. Підсумки цього уроку зберегти не вдалося.',
-    finTimeout: 'Репетитор не повернув підсумки уроку вчасно. Урок зараховано, але слова й помилки цього заняття не збереглися.',
-    finNoConn: 'Зв\'язку немає — підсумки уроку зберегти не вдалося.',
-    finishing: 'Завершення репліки...',
-    installed: 'Готово: значок «AI Tutor» з\'явився на екрані. Запускайте програму звідти.',
-    startHint: 'Натисніть «Почати урок» для старту',
-    noKeyStatus: 'Натисніть ⚙ і вставте ключ Google AI Studio, потім «Почати урок»',
-    noKeyToast: 'Спочатку вставте ключ Google AI Studio в налаштуваннях ⚙',
-    audioInit: 'Ініціалізація звуку...'
+  "uk": {
+    "saved": "Налаштування збережено.",
+    "keyEmpty": "Налаштування збережено, але ключ API порожній — без нього урок не почнеться.",
+    "keyOdd": "Налаштування збережено. Ключ виглядає незвично: ключі Google AI Studio починаються з «AIza».",
+    "storeFail": "Не вдалося записати налаштування в браузер (приватний режим або немає місця).",
+    "locked": "Налаштування доступні, коли урок завершено.",
+    "expDone": "Резервну копію завантажено (ключ API до неї не входить).",
+    "impBig": "Файл завеликий для резервної копії.",
+    "impConfirm": "Імпорт замінить поточну пам'ять даними з файлу. Продовжити?",
+    "impDone": "Пам'ять профілю імпортовано з файлу.",
+    "impBad": "Помилка читання файлу. Перевірте, що це резервна копія у форматі JSON.",
+    "undoNone": "Попередньої версії пам'яті поки немає.",
+    "undoConfirm": "Повернути пам'ять до стану перед останнім збереженням? Поточна версія стане «попередньою».",
+    "undoDone": "Пам'ять повернуто до попередньої версії.",
+    "rstLangConfirm": "Скинути історію та прогрес для поточної мови?",
+    "rstLangDone": "Прогрес поточної мови очищено (можна відкотити кнопкою «Відкотити пам'ять»).",
+    "rstAllConfirm": "УВАГА: видалити ВСІ дані профілю та прогрес за всіма мовами?",
+    "rstAllDone": "Увесь профіль скинуто.",
+    "memShrunk": "Пам'ять збережено в безпечному режимі: новий запис був коротший за старий, тому його додано, а не замінено.",
+    "memWriteFail": "Не вдалося записати пам'ять у браузер (немає місця або приватний режим). Зробіть експорт у налаштуваннях ⚙.",
+    "backupChip": "💾 Зробіть резервну копію (⚙)",
+    "offline": "Немає підключення до інтернету. Урок потребує зв'язку з Google.",
+    "noNet": "Немає інтернету",
+    "micDenied": "Доступ до мікрофона заборонено. Дозвольте його в налаштуваннях браузера та повторіть.",
+    "micNotFound": "Мікрофон не знайдено. Підключіть мікрофон і повторіть.",
+    "micBusy": "Мікрофон зайнятий іншою програмою. Закрийте її та повторіть.",
+    "micFail": "Не вдалося увімкнути мікрофон або звук.",
+    "micBack": "Мікрофон відновлено.",
+    "micLost": "Завершіть урок і почніть заново.",
+    "clAuth": "Google не прийняв ключ API. Перевірте ключ у налаштуваннях ⚙.",
+    "clModel": "Обрана модель недоступна для вашого ключа. Виберіть іншу модель у налаштуваннях ⚙.",
+    "clQuota": "Вичерпано ліміт Google AI Studio (квота або оплата). Спробуйте пізніше.",
+    "clConn": "Не вдалося встановити з'єднання. Перевірте інтернет і ключ API.",
+    "clGeneric": "З'єднання закрито сервером{reason}",
+    "finSaved": "Урок і прогрес збережено.",
+    "finDone": "Урок завершено.",
+    "finLostBeforeSave": "Зв'язок обірвався до збереження. Підсумки уроку записати не вдалося.",
+    "finLost": "Зв'язок із сервером втрачено. Підсумки цього уроку зберегти не вдалося.",
+    "finTimeout": "Репетитор не повернув підсумки уроку вчасно. Урок зараховано, але слова й помилки цього заняття не збереглися.",
+    "finNoConn": "Зв'язку немає — підсумки уроку зберегти не вдалося.",
+    "finishing": "Завершення репліки...",
+    "installed": "Готово: значок «AI Tutor» з'явився на екрані. Запускайте програму звідти.",
+    "startHint": "Натисніть «Почати урок» для старту",
+    "noKeyStatus": "Натисніть ⚙ і вставте ключ Google AI Studio, потім «Почати урок»",
+    "noKeyToast": "Спочатку вставте ключ Google AI Studio в налаштуваннях ⚙",
+    "audioInit": "Ініціалізація звуку..."
   },
-  en: {
-    saved: 'Settings saved.',
-    keyEmpty: 'Settings saved, but the API key is empty — the lesson cannot start without it.',
-    keyOdd: 'Settings saved. The key looks unusual: Google AI Studio keys start with "AIza".',
-    storeFail: 'Could not write settings to the browser (private mode or no space).',
-    locked: 'Settings are available when the lesson is finished.',
-    expDone: 'Backup downloaded (the API key is not included).',
-    impBig: 'The file is too large for a backup.',
-    impConfirm: 'Import will replace the current memory with the data from the file. Continue?',
-    impDone: 'Profile memory imported from the file.',
-    impBad: 'Could not read the file. Make sure it is a JSON backup.',
-    undoNone: 'There is no previous version of the memory yet.',
-    undoConfirm: 'Restore the memory to its state before the last save? The current version will become the "previous" one.',
-    undoDone: 'Memory restored to the previous version.',
-    rstLangConfirm: 'Reset history and progress for the current language?',
-    rstLangDone: 'Progress for the current language cleared (you can undo with the "Undo memory" button).',
-    rstAllConfirm: 'WARNING: delete ALL profile data and progress for all languages?',
-    rstAllDone: 'The whole profile has been reset.',
-    memShrunk: 'Memory saved in safe mode: the new record was shorter than the old one, so it was appended instead of replacing it.',
-    memWriteFail: 'Could not write memory to the browser (no space or private mode). Make an export in settings ⚙.',
-    backupChip: '💾 Make a backup (⚙)',
-    offline: 'No internet connection. The lesson needs a connection to Google.',
-    noNet: 'No internet',
-    micDenied: 'Microphone access denied. Allow it in the browser settings and try again.',
-    micNotFound: 'Microphone not found. Connect a microphone and try again.',
-    micBusy: 'The microphone is used by another app. Close it and try again.',
-    micFail: 'Could not turn on the microphone or sound.',
-    micBack: 'Microphone restored.',
-    micLost: 'End the lesson and start again.',
-    clAuth: 'Google rejected the API key. Check the key in settings ⚙.',
-    clModel: 'The selected model is not available for your key. Choose another model in settings ⚙.',
-    clQuota: 'Google AI Studio limit reached (quota or billing). Try again later.',
-    clConn: 'Could not establish a connection. Check your internet and API key.',
-    clGeneric: 'Connection closed by the server{reason}',
-    finSaved: 'Lesson and progress saved.',
-    finDone: 'Lesson finished.',
-    finLostBeforeSave: 'The connection dropped before saving. The lesson summary could not be recorded.',
-    finLost: 'Connection to the server lost. The summary of this lesson could not be saved.',
-    finTimeout: 'The tutor did not return the lesson summary in time. The lesson is counted, but the words and mistakes of this session were not saved.',
-    finNoConn: 'No connection — the lesson summary could not be saved.',
-    finishing: 'Finishing the reply...',
-    installed: 'Done: the "AI Tutor" icon is now on your screen. Launch the app from there.',
-    startHint: 'Press "Start lesson" to begin',
-    noKeyStatus: 'Press ⚙ and paste your Google AI Studio key, then "Start lesson"',
-    noKeyToast: 'First paste your Google AI Studio key in settings ⚙',
-    audioInit: 'Initializing sound...'
+  "en": {
+    "saved": "Settings saved.",
+    "keyEmpty": "Settings saved, but the API key is empty — the lesson cannot start without it.",
+    "keyOdd": "Settings saved. The key looks unusual: Google AI Studio keys start with \"AIza\".",
+    "storeFail": "Could not write settings to the browser (private mode or no space).",
+    "locked": "Settings are available when the lesson is finished.",
+    "expDone": "Backup downloaded (the API key is not included).",
+    "impBig": "The file is too large for a backup.",
+    "impConfirm": "Import will replace the current memory with the data from the file. Continue?",
+    "impDone": "Profile memory imported from the file.",
+    "impBad": "Could not read the file. Make sure it is a JSON backup.",
+    "undoNone": "There is no previous version of the memory yet.",
+    "undoConfirm": "Restore the memory to its state before the last save? The current version will become the \"previous\" one.",
+    "undoDone": "Memory restored to the previous version.",
+    "rstLangConfirm": "Reset history and progress for the current language?",
+    "rstLangDone": "Progress for the current language cleared (you can undo with the \"Undo memory\" button).",
+    "rstAllConfirm": "WARNING: delete ALL profile data and progress for all languages?",
+    "rstAllDone": "The whole profile has been reset.",
+    "memShrunk": "Memory saved in safe mode: the new record was shorter than the old one, so it was appended instead of replacing it.",
+    "memWriteFail": "Could not write memory to the browser (no space or private mode). Make an export in settings ⚙.",
+    "backupChip": "💾 Make a backup (⚙)",
+    "offline": "No internet connection. The lesson needs a connection to Google.",
+    "noNet": "No internet",
+    "micDenied": "Microphone access denied. Allow it in the browser settings and try again.",
+    "micNotFound": "Microphone not found. Connect a microphone and try again.",
+    "micBusy": "The microphone is used by another app. Close it and try again.",
+    "micFail": "Could not turn on the microphone or sound.",
+    "micBack": "Microphone restored.",
+    "micLost": "End the lesson and start again.",
+    "clAuth": "Google rejected the API key. Check the key in settings ⚙.",
+    "clModel": "The selected model is not available for your key. Choose another model in settings ⚙.",
+    "clQuota": "Google AI Studio limit reached (quota or billing). Try again later.",
+    "clConn": "Could not establish a connection. Check your internet and API key.",
+    "clGeneric": "Connection closed by the server{reason}",
+    "finSaved": "Lesson and progress saved.",
+    "finDone": "Lesson finished.",
+    "finLostBeforeSave": "The connection dropped before saving. The lesson summary could not be recorded.",
+    "finLost": "Connection to the server lost. The summary of this lesson could not be saved.",
+    "finTimeout": "The tutor did not return the lesson summary in time. The lesson is counted, but the words and mistakes of this session were not saved.",
+    "finNoConn": "No connection — the lesson summary could not be saved.",
+    "finishing": "Finishing the reply...",
+    "installed": "Done: the \"AI Tutor\" icon is now on your screen. Launch the app from there.",
+    "startHint": "Press \"Start lesson\" to begin",
+    "noKeyStatus": "Press ⚙ and paste your Google AI Studio key, then \"Start lesson\"",
+    "noKeyToast": "First paste your Google AI Studio key in settings ⚙",
+    "audioInit": "Initializing sound..."
+  },
+  "fr": {
+    "saved": "Paramètres enregistrés.",
+    "keyEmpty": "Clé API vide — la leçon ne peut pas démarrer sans elle.",
+    "keyOdd": "La clé semble inhabituelle (commence normalement par AIza).",
+    "storeFail": "Impossible d'écrire les paramètres dans le navigateur.",
+    "locked": "Paramètres accessibles hors session.",
+    "expDone": "Sauvegarde téléchargée.",
+    "impBig": "Fichier trop volumineux.",
+    "impConfirm": "Remplacer la mémoire actuelle par ce fichier ?",
+    "impDone": "Mémoire importée avec succès.",
+    "impBad": "Erreur de lecture du fichier.",
+    "undoNone": "Aucune version précédente.",
+    "undoConfirm": "Restaurer la version précédente de la mémoire ?",
+    "undoDone": "Mémoire restaurée.",
+    "rstLangConfirm": "Réinitialiser l'historique pour cette langue ?",
+    "rstLangDone": "Progrès de la langue effacés.",
+    "rstAllConfirm": "ATTENTION : supprimer TOUTES les données de profil ?",
+    "rstAllDone": "Profil entièrement réinitialisé.",
+    "memShrunk": "Mémoire enregistrée en mode sécurisé.",
+    "memWriteFail": "Échec d'écriture en mémoire.",
+    "backupChip": "💾 Faites une sauvegarde (⚙)",
+    "offline": "Pas de connexion Internet.",
+    "noNet": "Pas d'Internet",
+    "micDenied": "Accès au microphone refusé.",
+    "micNotFound": "Microphone introuvable.",
+    "micBusy": "Microphone utilisé par une autre application.",
+    "micFail": "Échec d'activation du micro.",
+    "micBack": "Microphone restauré.",
+    "micLost": "Terminez la leçon et recommencez.",
+    "clAuth": "Clé API non acceptée par Google.",
+    "clModel": "Modèle indisponible pour cette clé.",
+    "clQuota": "Quota Google AI Studio dépassé.",
+    "clConn": "Échec de connexion.",
+    "clGeneric": "Connexion fermée par le serveur{reason}",
+    "finSaved": "Leçon et progrès enregistrés.",
+    "finDone": "Leçon terminée.",
+    "finLostBeforeSave": "Connexion perdue avant la sauvegarde.",
+    "finLost": "Connexion au serveur perdue.",
+    "finTimeout": "Délai d'enregistrement dépassé.",
+    "finNoConn": "Pas de connexion — enregistrement impossible.",
+    "finishing": "Le tuteur termine sa réplique...",
+    "installed": "Application ajoutée à l'écran.",
+    "startHint": "Appuyez sur «Démarrer la leçon»",
+    "noKeyStatus": "Appuyez sur ⚙ et entrez votre clé API",
+    "noKeyToast": "Entrez votre clé API dans ⚙",
+    "audioInit": "Initialisation audio..."
+  },
+  "es": {
+    "saved": "Ajustes guardados.",
+    "keyEmpty": "Clave API vacía — la lección no puede iniciar.",
+    "keyOdd": "La clave parece inusual (normalmente empieza con AIza).",
+    "storeFail": "Error al guardar en el navegador.",
+    "locked": "Ajustes disponibles fuera de la lección.",
+    "expDone": "Copia de seguridad descargada.",
+    "impBig": "Archivo demasiado grande.",
+    "impConfirm": "¿Reemplazar la memoria actual con este archivo?",
+    "impDone": "Memoria importada con éxito.",
+    "impBad": "Error al leer el archivo.",
+    "undoNone": "No hay versión previa.",
+    "undoConfirm": "¿Restaurar la versión previa de la memoria?",
+    "undoDone": "Memoria restaurada.",
+    "rstLangConfirm": "¿Restablecer el progreso de este idioma?",
+    "rstLangDone": "Progreso del idioma borrado.",
+    "rstAllConfirm": "ATENCIÓN: ¿eliminar TODOS los datos del perfil?",
+    "rstAllDone": "Perfil completamente restablecido.",
+    "memShrunk": "Memoria guardada en modo seguro.",
+    "memWriteFail": "Error al escribir en la memoria.",
+    "backupChip": "💾 Haga una copia de seguridad (⚙)",
+    "offline": "Sin conexión a Internet.",
+    "noNet": "Sin Internet",
+    "micDenied": "Acceso al micrófono denegado.",
+    "micNotFound": "Micrófono no encontrado.",
+    "micBusy": "Micrófono ocupado por otra app.",
+    "micFail": "Error al activar el micrófono.",
+    "micBack": "Micrófono restaurado.",
+    "micLost": "Termine la lección e inicie de nuevo.",
+    "clAuth": "Clave API rechazada por Google.",
+    "clModel": "Modelo no disponible para esta clave.",
+    "clQuota": "Límite de Google AI Studio alcanzado.",
+    "clConn": "No se pudo conectar.",
+    "clGeneric": "Conexión cerrada por el servidor{reason}",
+    "finSaved": "Lección y progreso guardados.",
+    "finDone": "Lección terminada.",
+    "finLostBeforeSave": "Conexión perdida antes de guardar.",
+    "finLost": "Conexión con el servidor perdida.",
+    "finTimeout": "Tiempo de guardado agotado.",
+    "finNoConn": "Sin conexión — no se pudo guardar.",
+    "finishing": "El tutor está terminando...",
+    "installed": "Icono añadido a la pantalla.",
+    "startHint": "Pulse «Comenzar lección»",
+    "noKeyStatus": "Pulse ⚙ e ingrese su clave API",
+    "noKeyToast": "Primero ingrese su clave API en ⚙",
+    "audioInit": "Inicializando audio..."
   }
 };
 
-    Object.assign(I18N.ru, { lblUserName: "Ваше имя:",  lblVib: 'Вибрация:', optVibOn: 'Включена', optVibOff: 'Выключена', blk1: 'Блок 1 • Разминка и новые фразы', blk2: 'Блок 2 • Практика и диалоги', blk3: 'Блок 3 • Закрепление и итоги', statNone: 'Уроков пока нет — начнём? 🙂', statStreak: '🔥 Серия: {n} дн.', statMin: '⏱ {n} мин' });
-    Object.assign(I18N.uk, { lblUserName: "Ваше ім'я:",  lblVib: 'Вібрація:', optVibOn: 'Увімкнена', optVibOff: 'Вимкнена', blk1: 'Блок 1 • Розминка та нові фрази', blk2: 'Блок 2 • Практика та діалоги', blk3: 'Блок 3 • Закріплення та підсумки', statNone: 'Уроків поки немає — почнемо? 🙂', statStreak: '🔥 Серія: {n} дн.', statMin: '⏱ {n} хв' });
-    Object.assign(I18N.en, { lblUserName: "Your name:",  lblVib: 'Vibration:', optVibOn: 'On', optVibOff: 'Off', blk1: 'Block 1 • Warm-up and new phrases', blk2: 'Block 2 • Practice and dialogues', blk3: 'Block 3 • Review and summary', statNone: 'No lessons yet — shall we start? 🙂', statStreak: '🔥 Streak: {n} d.', statMin: '⏱ {n} min' });
-
     function t(key, params = {}) {
-      const l = cfg.uiLang || 'ru';
-      let dict = I18N[l] || I18N.en;
+      const l = cfg.uiLang || 'uk';
+      let dict = I18N[l] || I18N.uk || I18N.ru || I18N.en;
       let text = dict[key];
       if (!text && MSG[l]) text = MSG[l][key];
-      if (!text) { dict = I18N.en; text = dict[key] || (MSG.en ? MSG.en[key] : key); }
+      if (!text && I18N.uk) text = I18N.uk[key];
+      if (!text && MSG.uk) text = MSG.uk[key];
+      if (!text && I18N.ru) text = I18N.ru[key];
+      if (!text && MSG.ru) text = MSG.ru[key];
+      if (!text && I18N.en) text = I18N.en[key];
+      if (!text && MSG.en) text = MSG.en[key];
       if (!text) return key;
       for (const [k, v] of Object.entries(params)) text = text.replace('{'+k+'}', v);
       return text;
     }
     
-    
-    let deferredPrompt = null;
+        let deferredPrompt = null;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
@@ -1207,7 +1614,23 @@
 
     function langDisp(k) { return cfg.uiLang === 'ru' ? LANGS[k].ru : LANGS[k].label; }
 
-    function updateInterface() {
+  const LESSON_MODES = [
+    { value: 'standard', labels: { uk: 'Стандартний курс', ru: 'Стандартный курс', en: 'Standard course', fr: 'Cours standard', es: 'Curso estándar' } },
+    { value: 'small_talk', labels: { uk: 'Вільна розмова (Small Talk)', ru: 'Свободный разговор (Small Talk)', en: 'Free conversation (Small Talk)', fr: 'Conversation libre (Small Talk)', es: 'Conversación libre (Small Talk)' } },
+    { value: 'role_restaurant', labels: { uk: 'Ситуація: У ресторані / кафе', ru: 'Ситуация: В ресторане / кафе', en: 'Situation: At restaurant / cafe', fr: 'Situation : Au restaurant / café', es: 'Situación: En el restaurante / cafetería' } },
+    { value: 'role_airport', labels: { uk: 'Ситуація: Аеропорт / вокзал', ru: 'Ситуация: Аэропорт / вокзал', en: 'Situation: Airport / train station', fr: 'Situation : Aéroport / gare', es: 'Situación: Aeropuerto / estación de tren' } },
+    { value: 'role_hotel', labels: { uk: 'Ситуація: В готелі / оренда житла', ru: 'Ситуация: В отеле / аренда жилья', en: 'Situation: In hotel / accommodation', fr: 'Situation : À l\'hôtel / hébergement', es: 'Situación: En el hotel / alquiler' } },
+    { value: 'role_doctor', labels: { uk: 'Ситуація: Візит до лікаря та аптека', ru: 'Ситуация: Визит к врачу и аптека', en: 'Situation: Doctor visit and pharmacy', fr: 'Situation : Visite médicale et pharmacie', es: 'Situación: Visita al médico y farmacia' } },
+    { value: 'role_cinema', labels: { uk: 'Ситуація: У кінотеатрі (квитки, вибір фільму)', ru: 'Ситуация: В кинотеатре (билеты, выбор фильма)', en: 'Situation: At cinema (tickets, movie selection)', fr: 'Situation : Au cinéma (billets, choix du film)', es: 'Situación: En el cine (entradas, elección de película)' } },
+    { value: 'role_party', labels: { uk: 'Ситуація: На вечірці / в гостях', ru: 'Ситуация: На вечеринке / в гостях', en: 'Situation: At a party / visiting friends', fr: 'Situation : En soirée / chez des amis', es: 'Situación: En una fiesta / de visita' } },
+    { value: 'role_museum', labels: { uk: 'Ситуація: У музеї / на виставці', ru: 'Ситуация: В музее / на выставке', en: 'Situation: At a museum / exhibition', fr: 'Situation : Au musée / exposition', es: 'Situación: En el museo / exposición' } },
+    { value: 'role_culture', labels: { uk: 'Ситуація: Обговорення фільму чи книги', ru: 'Ситуация: Обсуждение фильма или книги', en: 'Situation: Film or book discussion', fr: 'Situation : Discussion de film ou livre', es: 'Situación: Debate sobre película o libro' } },
+    { value: 'interview', labels: { uk: 'Співбесіда на роботу', ru: 'Собеседование на работу', en: 'Job interview', fr: 'Entretien d\'embauche', es: 'Entrevista de trabajo' } },
+    { value: 'grammar', labels: { uk: 'Граматичний спринт', ru: 'Грамматический спринт', en: 'Grammar sprint', fr: 'Sprint de grammaire', es: 'Sprint de gramática' } },
+    { value: 'custom', labels: { uk: 'Своя ситуація (назвати голосом)', ru: 'Своя ситуация (назвать голосом)', en: 'Custom situation (speak aloud)', fr: 'Situation personnalisée (dire à voix haute)', es: 'Situación personalizada (decir en voz alta)' } }
+  ];
+
+  function updateInterface() {
       const setText = (id, key, params) => { const el = $(id); if (el) el.textContent = t(key, params); };
       document.documentElement.lang = cfg.uiLang;
 
@@ -1229,6 +1652,44 @@
       updatePwaInstallUI();
       if (btnAction && !isFinalizing) btnAction.textContent = isSessionActive ? t('btnStop') : t('btnStart');
 
+      // Шапка настроек и заголовки вкладок
+      setText('tabBtnLesson', 'tabLesson');
+      setText('tabBtnProfile', 'tabProfile');
+      setText('tabBtnSystem', 'tabSystem');
+      setText('lblSelectMode', 'lblSelectMode');
+
+      // Вкладки окна практики и словаря
+      setText('vocabTitle', 'vocabTitle');
+      setText('vtab-btn-homework', 'vtabHw');
+      setText('vtab-btn-trainer', 'vtabTr');
+      setText('vtab-btn-words', 'vtabWd');
+      setText('vtab-btn-memory', 'vtabMem');
+      setText('lblHwBanner', 'lblHwBanner');
+      setText('btnGoTrainer', 'btnGoTrainer');
+      setText('lblTrainerMethod', 'lblTrainerMethod');
+      setText('btnCardPrev', 'btnCardPrev');
+      setText('btnCardFlip', 'btnCardFlip');
+      setText('btnCardNext', 'btnCardNext');
+      setText('mtab-btn-err', 'mtabErr');
+      setText('mtab-btn-log', 'mtabLog');
+      setText('mtab-btn-prof', 'mtabProf');
+      setText('mtab-btn-raw', 'mtabRaw');
+
+      // Динамический рендеринг списка режимов и ситуаций на текущем языке интерфейса
+      const selMode = $('selectMode');
+      if (selMode) {
+        const curMode = selMode.value || cfg.mode || 'standard';
+        selMode.innerHTML = '';
+        LESSON_MODES.forEach(m => {
+          const opt = document.createElement('option');
+          opt.value = m.value;
+          opt.textContent = m.labels[cfg.uiLang] || m.labels.uk || m.labels.ru;
+          if (m.value === curMode) opt.selected = true;
+          selMode.appendChild(opt);
+        });
+        selMode.value = curMode;
+      }
+
       const setOpts = (id, keys) => {
         const sel = $(id);
         if (!sel) return;
@@ -1237,8 +1698,7 @@
       setOpts('selectStorageMode', ['optLocal', 'optSession']);
       setOpts('selectTeacher', ['optFemale', 'optMale']);
       setOpts('selectStudentGender', ['optAutoGen', 'optMale', 'optFemale']);
-      setOpts('selectNativeLang', [null, null, 'optAutoNat']);
-      setOpts('selectAudioMode', ['optAutoAud', 'optHalf', 'optFull']);
+      setOpts('selectAudioMode', ['optHalf', 'optAutoAud', 'optFull']);
       setOpts('selectStrict', ['optStrict', 'optSoft']);
       setOpts('selectVad', ['optDef', 'optPat', 'optVery']);
       setOpts('selectCaptions', ['optOff', 'optOn']);
@@ -1359,7 +1819,7 @@
     },
     role_doctor: {
       id: 'role_doctor',
-      title: { ru: 'У врача / в аптеке', uk: 'У лікаря / в аптеці' },
+      title: { ru: 'Визит к врачу и аптека', uk: 'Візит до лікаря та аптека' },
       emoji: '🩺',
       total: 4,
       parts: [
@@ -1607,7 +2067,7 @@
     student: store.get('student_gender', 'auto'),
     lang: store.get('target_language', 'french'),
     mode: store.get('lesson_mode', 'standard'),
-    native: store.get('native_lang', 'ru'),
+    native: store.get('native_lang', 'auto'),
     audio: store.get('audio_mode', 'half'),
     model: store.get('model_id', MODELS[0].id),
     vad: store.get('vad_mode', 'default'),
@@ -1615,7 +2075,7 @@
     strict: store.get('strict_mode', 'strict'),
     level: store.get('level_hint', 'auto'),
     minutes: parseInt(store.get('lesson_minutes', '15'), 10) || 15,
-    uiLang: store.get('ui_lang', 'ru'),
+    uiLang: store.get('ui_lang', 'uk'),
     userName: store.get('user_name', ''),
     vibration: store.get('vibration', 'on')
   };
@@ -1630,7 +2090,9 @@
     const targetTab = document.getElementById(tabId);
     if (targetTab) targetTab.classList.add('active');
   };
-  if (!['ru', 'uk', 'en'].includes(cfg.uiLang)) cfg.uiLang = 'ru';
+  if (!['ru', 'uk', 'en', 'fr', 'es'].includes(cfg.uiLang)) cfg.uiLang = 'uk';
+  if (!['female', 'male'].includes(cfg.teacher)) cfg.teacher = 'female';
+  if (!['half', 'auto', 'full'].includes(cfg.audio)) cfg.audio = 'half';
   if (!['on', 'off'].includes(cfg.vibration)) cfg.vibration = 'on';
   if (!LANGS[cfg.lang]) cfg.lang = 'french';
   if (!MODELS.some(m => m.id === cfg.model)) cfg.model = MODELS[0].id;
@@ -1907,19 +2369,217 @@
      Личный словарь, домашка и речевой тренажёр (Shadowing)
      ========================================================================== */
   function parseMem(txt) {
-    const sections = {};
+    const sections = {
+      [SEC_LOG]: [],
+      [SEC_VOC]: [],
+      [SEC_ERR]: [],
+      [SEC_NEXT]: [],
+      'other': []
+    };
     let cur = 'other';
-    (txt || '').split('\n').forEach(line => {
-      const trimmed = line.trim();
-      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const lines = (txt || '').split('\n');
+
+    for (let rawLine of lines) {
+      const trimmed = rawLine.trim();
+      if (!trimmed) continue;
+
+      const cleanHeader = trimmed.replace(/^[#*\s_]+|[#*\s_:]+$/g, '').trim();
+      const bracketMatch = cleanHeader.match(/\[([^\]]+)\]/);
+      const headerTitle = (bracketMatch ? bracketMatch[1] : cleanHeader).toUpperCase();
+
+      if (/СЛОВАР|СЛОВНИК|VOCAB|WORDS|ФРАЗ|PHRASES/.test(headerTitle)) {
+        cur = SEC_VOC;
+        continue;
+      } else if (/ОШИБОК|ПОМИЛОК|ERROR|MISTAKE|ЗАКРЕПЛ/.test(headerTitle)) {
+        cur = SEC_ERR;
+        continue;
+      } else if (/ЖУРНАЛ|УРОК|LOG|HISTORY|LESSON/.test(headerTitle)) {
+        cur = SEC_LOG;
+        continue;
+      } else if (/СЛЕДУЮЩ|НАСТУПН|NEXT|FUTURE|PLAN/.test(headerTitle)) {
+        cur = SEC_NEXT;
+        continue;
+      } else if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
         cur = trimmed;
         if (!sections[cur]) sections[cur] = [];
-      } else if (trimmed) {
-        if (!sections[cur]) sections[cur] = [];
-        sections[cur].push(trimmed);
+        continue;
       }
-    });
+
+      if (!sections[cur]) sections[cur] = [];
+      sections[cur].push(trimmed);
+    }
+
+    if (sections[SEC_VOC].length === 0) {
+      lines.forEach(l => {
+        const clean = l.replace(/^[#*\s_\-•]+\s*/, '').trim();
+        if (clean && (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : '))) {
+          if (!/СЛОВАР|СЛОВНИК|ЖУРНАЛ|ОШИБОК|LOG|NEXT|202\d-\d\d-\d\d/i.test(clean)) {
+            sections[SEC_VOC].push(clean);
+          }
+        }
+      });
+    }
+
     return sections;
+  }
+
+  function getSituationPresetPhrases(mode, partNum, lang) {
+    const l = lang || cfg.lang || 'french';
+    const presets = {
+      role_doctor: {
+        french: [
+          "Je voudrais prendre rendez-vous avec un médecin — Я хотел бы записаться к врачу",
+          "Avez-vous une place libre aujourd'hui? — У вас есть свободное место на сегодня?",
+          "J'ai très mal à la tête et de la fièvre — У меня сильно болит голова и температура",
+          "Où avez-vous mal exactement? — Где именно у вас болит?",
+          "Depuis quand avez-vous ces symptômes? — С какого времени у вас эти симптомы?",
+          "Prenez ce médicament deux fois par jour — Принимайте это лекарство два раза в день",
+          "Voici l'ordonnance pour la pharmacie — Вот рецепт для аптеки",
+          "Est-ce que c'est grave, docteur? — Это серьёзно, доктор?"
+        ],
+        english: [
+          "I would like to make an appointment with a doctor — Я хотел бы записаться к врачу",
+          "Do you have any availability today? — У вас есть свободное время сегодня?",
+          "I have a bad headache and a fever — У меня сильно болит голова и температура",
+          "Where does it hurt exactly? — Где именно болит?",
+          "How long have you had these symptoms? — Как давно у вас эти симптомы?",
+          "Take this medicine twice a day — Принимайте это лекарство дважды в день",
+          "Here is the prescription for the pharmacy — Вот рецепт для аптеки",
+          "Is it serious, doctor? — Это серьёзно, доктор?"
+        ],
+        spanish: [
+          "Quisiera pedir cita con el médico — Я хотел бы записаться к врачу",
+          "¿Tiene hora libre hoy? — У вас есть свободное время сегодня?",
+          "Me duele mucho la cabeza y tengo fiebre — У меня сильно болит голова и температура",
+          "¿Dónde le duele exactamente? — Где именно у вас болит?",
+          "¿Desde cuándo tiene estos síntomas? — С какого времени у вас эти симптомы?",
+          "Tome este medicamento dos veces al día — Принимайте это лекарство два раза в день",
+          "Aquí tiene la receta para la farmacia — Вот рецепт для аптеки",
+          "¿Es grave, doctor? — Это серьёзно, доктор?"
+        ]
+      },
+      role_restaurant: {
+        french: [
+          "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
+          "La carte des vins et le menu, s'il vous plaît — Винную карту и меню, пожалуйста",
+          "Quel est le plat du jour aujourd'hui? — Какое сегодня блюдо дня?",
+          "Je voudrais commander une carafe d'eau — Я хотел бы заказать графин воды",
+          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
+          "C'est délicieux, mes compliments au chef! — Это очень вкусно, мои комплименты шефу!",
+          "L'addition, s'il vous plaît — Счёт, пожалуйста",
+          "Est-ce que le service est compris? — Обслуживание включено?"
+        ],
+        english: [
+          "A table for two, please — Столик на двоих, пожалуйста",
+          "Could we see the menu, please? — Можно меню, пожалуйста?",
+          "What is the dish of the day? — Какое блюдо дня?",
+          "I would like to order a bottle of water — Я хотел бы заказать бутылку воды",
+          "I will have the grilled salmon, please — Я возьму лосось на гриле",
+          "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
+          "Could we have the bill, please? — Можно счёт, пожалуйста?",
+          "Do you accept credit cards? — Вы принимаете банковские карты?"
+        ],
+        spanish: [
+          "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
+          "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
+          "¿Cuál es el plato del día? — Какое блюдо дня?",
+          "Quisiera pedir una botella de agua — Я хотел бы заказать бутылку воды",
+          "Para mí, el salmón a la plancha — Для меня лосось на гриле",
+          "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
+          "La cuenta, por favor — Счёт, пожалуйста",
+          "¿Se puede pagar con tarjeta? — Можно оплатить картой?"
+        ]
+      },
+      role_airport: {
+        french: [
+          "Où se trouve le comptoir d'enregistrement? — Где находится стойка регистрации?",
+          "Voici mon passeport et mon billet — Вот мой паспорт и билет",
+          "Je voudrais une place côté fenêtre — Я хотел бы место у окна",
+          "Combien de bagages en soute avez-vous? — Сколько мест багажа вы сдаете?",
+          "À quelle heure commence l'embarquement? — Во сколько начинается посадка?",
+          "Où se trouve la porte d'embarquement B12? — Где находится выход на посадку B12?",
+          "Mon vol a-t-il du retard? — Мой рейс задерживается?",
+          "Bon vol et bon voyage! — Приятного полёта и счастливого пути!"
+        ],
+        english: [
+          "Where is the check-in desk? — Где находится стойка регистрации?",
+          "Here is my passport and ticket — Вот мой паспорт и билет",
+          "I would prefer a window seat — Я предпочёл бы место у окна",
+          "How many bags are you checking in? — Сколько мест багажа вы сдаете?",
+          "What time does boarding start? — Во сколько начинается посадка?",
+          "Where is gate B12? — Где находится выход на посадку B12?",
+          "Is my flight delayed? — Мой рейс задерживается?",
+          "Have a great flight! — Приятного полёта!"
+        ],
+        spanish: [
+          "¿Dónde está el mostrador de facturación? — Где стойка регистрации?",
+          "Aquí tiene mi pasaporte y billete — Вот мой паспорт и билет",
+          "Prefiero un asiento de ventanilla — Я предпочитаю место у окна",
+          "¿Cuántas maletas va a facturar? — Сколько чемоданов вы сдаете?",
+          "¿A qué hora empieza el embarque? — Во сколько начинается посадка?",
+          "¿Dónde está la puerta de embarque B12? — Где выход на посадку B12?",
+          "¿Mi vuelo tiene retraso? — Мой рейс задерживается?",
+          "¡Buen vuelo y buen viaje! — Приятного полёта и хорошей поездки!"
+        ]
+      },
+      role_hotel: {
+        french: [
+          "J'ai une réservation pour trois nuits — У меня бронь на три ночи",
+          "À quelle heure est servi le petit-déjeuner? — Во сколько подаётся завтрак?",
+          "Quel est le mot de passe du Wi-Fi? — Какой пароль от Wi-Fi?",
+          "La climatisation ne fonctionne pas bien — Кондиционер плохо работает",
+          "Pourriez-vous m'apporter une serviette propre? — Не могли бы вы принести чистое полотенце?",
+          "À quelle heure doit-on libérer la chambre? — Во сколько нужно освободить номер?",
+          "Pouvez-vous me commander un taxi pour la gare? — Можете вызвать мне такси на вокзал?",
+          "Merci pour votre accueil chaleureux — Спасибо за теплый приём"
+        ],
+        english: [
+          "I have a reservation for three nights — У меня бронь на три ночи",
+          "What time is breakfast served? — Во сколько подаётся завтрак?",
+          "What is the Wi-Fi password? — Какой пароль от Wi-Fi?",
+          "The air conditioning is not working properly — Кондиционер плохо работает",
+          "Could you bring an extra towel, please? — Принесите дополнительное полотенце, пожалуйста",
+          "What time is check-out? — Во сколько выезд из отеля?",
+          "Could you call a taxi for the station? — Можете вызвать такси на вокзал?",
+          "Thank you for the warm hospitality — Спасибо за гостеприимство"
+        ],
+        spanish: [
+          "Tengo una reserva para tres noches — У меня бронь на три ночи",
+          "¿A qué hora se sirve el desayuno? — Во сколько подаётся завтрак?",
+          "¿Cuál es la contraseña del wifi? — Какой пароль от Wi-Fi?",
+          "El aire acondicionado no funciona bien — Кондиционер плохо работает",
+          "¿Podría traerme una toalla limpia? — Не могли бы вы принести чистое полотенце?",
+          "¿A qué hora es la salida del hotel? — Во сколько выезд?",
+          "¿Puede pedirme un taxi para la estación? — Можете вызвать мне такси на вокзал?",
+          "Muchas gracias por su hospitalidad — Большое спасибо за гостеприимство"
+        ]
+      }
+    };
+    const s = presets[mode];
+    if (s && s[l]) return s[l];
+    if (presets.role_doctor[l]) return presets.role_doctor[l];
+    return presets.role_doctor.french;
+  }
+
+  function extractHomeworkPhrases() {
+    const mem = parseMem(getLangMem(cfg.lang));
+    let words = mem[SEC_VOC] || [];
+    if (words.length === 0) {
+      try {
+        const draft = sessionStorage.getItem('active_lesson_draft');
+        if (draft) {
+          const draftMem = parseMem(draft);
+          if (draftMem[SEC_VOC] && draftMem[SEC_VOC].length > 0) words = draftMem[SEC_VOC];
+        }
+      } catch (e) {}
+    }
+    if (words.length === 0 && ROLEPLAY_SERIES[cfg.mode]) {
+      const rp = getRoleplayProgress(cfg.mode, cfg.lang);
+      if (rp) {
+        words = getSituationPresetPhrases(cfg.mode, rp.partNumber, cfg.lang);
+      }
+    }
+    return words;
   }
 
   let cachedVocabWords = [];
@@ -1990,9 +2650,7 @@
   function renderHomework() {
     const hwList = $('homeworkList');
     if (!hwList) return;
-    const mem = parseMem(getLangMem(cfg.lang));
-    const words = mem[SEC_VOC] || [];
-    // 12 последних фраз (последние уроки)
+    const words = extractHomeworkPhrases();
     const recent = words.slice(-12).reverse();
     if (recent.length === 0) {
       hwList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 24px; text-align: center;">Фраз последних уроков пока нет. Пройдите первый урок с репетитором!</div>';
@@ -2018,8 +2676,7 @@
   }
 
   function initFlashcards() {
-    const mem = parseMem(getLangMem(cfg.lang));
-    const words = mem[SEC_VOC] || [];
+    const words = extractHomeworkPhrases();
     const source = words.slice(-12).reverse();
     flashcardList = source.map(w => {
       const clean = w.replace(/^[-•*]\s*/, '');
@@ -2477,8 +3134,8 @@
       rpRole = rp.currentPart.partnerRole[u] || rp.currentPart.partnerRole.ru;
     }
 
-    const roleplayRepeatScenario = `1. РОЛЕВОЙ УРОК - ХОД 1 (ТОЛЬКО ПРИВЕТСТВИЕ И НАСТРОЕНИЕ): Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН дружеский вопрос о настроении ${langAdverb} БЕЗ перевода на русский/украинский. И СРАЗУ ЗАМОЛКНИ! Жди ответа!
-2. РОЛЕВОЙ УРОК - ХОД 2 (ОТВЕТ + АНОНС СЕРИИ ТЕМЫ): Живо отреагируй на ответ ${langAdverb}. ЗАТЕМ сразу объяви сегодняшнюю серию: «Отлично! Сегодня мы отрабатываем тему "${rpModeTitle}", урок ${rpPartNum} из ${rpTotal}: "${rpPartTitle}". Сначала мы разберем ключевые фразы, которые скажешь ты, и обязательно фразы, которые тебе ответит ${rpRole}, а затем разыграем живую сценку по ролям!». И СРАЗУ переходи к обучению первой ключевой фразе ученика строго по «Главному алгоритму обучения» (смысл на родном -> САМ(А) ДВАЖДЫ медленно ${langAdverb} с паузой 2-3 сек ... ... -> «Повтори»)! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО спрашивать, какую тему выбрать, — тема уже выбрана в настройках!`;
+    const roleplayRepeatScenario = `1. СИТУАЦИЯ - ХОД 1 (ТОЛЬКО ПРИВЕТСТВИЕ И НАСТРОЕНИЕ): Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН дружеский вопрос о настроении ${langAdverb} БЕЗ перевода на русский/украинский. И СРАЗУ ЗАМОЛКНИ! Жди ответа!
+2. СИТУАЦИЯ - ХОД 2 (ОТВЕТ + АНОНС СЕРИИ ТЕМЫ): Живо отреагируй на ответ ${langAdverb}. ЗАТЕМ сразу объяви сегодняшнюю серию: «Отлично! Сегодня мы отрабатываем ситуацию "${rpModeTitle}", часть ${rpPartNum} из ${rpTotal}: "${rpPartTitle}". Сначала мы разберем ключевые фразы, которые скажешь ты, и обязательно фразы, которые тебе ответит ${rpRole}, а затем разыграем живую сценку в этой ситуации!». И СРАЗУ переходи к обучению первой ключевой фразе ученика строго по «Главному алгоритму обучения» (смысл на родном -> САМ(А) ДВАЖДЫ медленно ${langAdverb} с паузой 2-3 сек ... ... -> «Повтори»)! КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО спрашивать, какую тему выбрать, — тема уже выбрана в настройках!`;
 
     const repeatScenario = `1. ПОВТОРНЫЕ УРОКИ - ХОД 1 (ТОЛЬКО ПРИВЕТСТВИЕ И SMALL TALK): Радостно поздоровайся по имени. Задай ТОЛЬКО ОДИН дружеский вопрос о делах/настроении ${langAdverb} БЕЗ перевода на русский/украинский. И СРАЗУ ЗАМОЛКНИ! Никаких проверок слов и тем уроков в этой реплике! Жди ответа!
 2. ПОВТОРНЫЕ УРОКИ - ХОД 2 (АНАЛИЗ ОТВЕТА + СИГНАЛ ПЕРЕХОДА К ПОВТОРЕНИЮ + ВОПРОС 1): Внимательно выслушай, что ответил ученик. Живо и тепло отреагируй на его слова ${langAdverb} (например: «Здорово, я ${RADA}!»). ЗАТЕМ дай явный сигнал-мостик перехода на родном языке ученика: «Отлично! Перед новой темой давай разомнемся и вспомним пару слов, которые мы проходили на прошлых уроках». Выдержи небольшую тишину и задай ВОПРОС 1 (выбери слово или фразу не только из последнего урока, а распределенно из материала прошлых 2–3 занятий из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] для интервального повторения) строго по методике проверки. И СРАЗУ ЗАМОЛКНИ!
@@ -2560,10 +3217,15 @@ ${genderDirective}
 ${startScenario}
 ЗАВЕРШЕНИЕ УРОКА (ИТОГ И МОСТИК НА БУДУЩЕЕ): Наступает ТОЛЬКО при системной подсказке о финале времени (менее 2 мин). Действуй строго по шагам:
 1) Задай 2 контрольных вопроса по сегодняшнему материалу двусторонней методикой.
-2) Подведи короткий итог (что удалось освоить, а что нужно будет повторить в следующий раз).
-3) Спроси пожелание ученика: «Какую тему разберем в следующий раз? Или мне подготовить план?», зафиксируй тему на будущее.
-4) ОБЯЗАТЕЛЬНО ПРОИЗНЕСИ ГОЛОСОМ теплую фразу прощания на изучаемом языке (${langAdverb}) и родном языке («Отлично, договорились! До встречи на следующем уроке, ${L.farewell}»).
-КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО вызывать функцию saveStudentProfile ВМЕСТО фразы прощания! Сначала скажи прощание вслух, и только после этого (или по системной команде) сохраняй профиль.`;
+2) Подведи короткий теплый итог (что удалось освоить, похвали за успехи).
+3) АНОНС СЛЕДУЮЩЕГО УРОКА И ТЕМЫ:
+   - ЕСЛИ ТЕКУЩИЙ УРОК — СИТУАЦИЯ (СЕРИЯ): Тема следующего урока известна заранее!
+     Если это была часть ${rpPartNum} из ${rpTotal}: четко анонсируй продолжение темы: «На следующем уроке мы продолжим эту тему и разберем часть ${Math.min(rpPartNum + 1, rpTotal)} из ${rpTotal}. До встречи, ${L.farewell}».
+     Если это была финальная часть серии: поздравь с успешным завершением всего цикла ситуации!
+     СТРОЖАЙШИЙ ЗАПРЕТ: КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО задавать открытый вопрос «что бы ты хотел выучить» и тут же самому отвечать «отлично»!
+   - ЕСЛИ СТАНДАРТНЫЙ УРОК: Кратко согласуй тему и тепло попрощайся: «До встречи на следующем уроке, ${L.farewell}».
+4) ОБЯЗАТЕЛЬНО ПРОИЗНЕСИ ГОЛОСОМ теплую фразу прощания на изучаемом языке (${langAdverb}) и родном языке.
+${oldEndEnd}`;
 
     let settingLanguageDirective = '';
     if (cfg.native === 'ru') {
@@ -2593,36 +3255,40 @@ ${startScenario}
       const pDesc = rp.currentPart.partnerPhrasesDesc[u] || rp.currentPart.partnerPhrasesDesc.ru;
 
       modeInstructions = `\n\n======================================================
-РЕЖИМ: РОЛЕВАЯ СИТУАЦИЯ С ДВУСТОРОННИМ ДИАЛОГОМ И СЦЕНКОЙ!
-ТЕМА СЕРИИ: "${rpModeTitle}".
+РЕЖИМ: СИТУАЦИЯ С ДВУСТОРОННИМ ДИАЛОГОМ И СЦЕНКОЙ!
+ТЕМА СИТУАЦИИ: "${rpModeTitle}".
 СЕРИЯ: Урок ${rpPartNum} из ${rpTotal} — "${rpPartTitle}".
 ТВОЯ РОЛЬ В СЦЕНКЕ: ${rpRole}.
 СОДЕРЖАНИЕ СЕРИИ:
 - Реплики ученика: ${myDesc}.
-- Реплики собеседника (${rpRole}), которые ученик ОБЯЗАН понимать на слух: ${pDesc}.
+- Реплики собеседника (${rpRole}), которые ученик ОБЯЗАН разучить и понимать: ${pDesc}.
 
-СТРОГАЯ ДВУХФАЗНАЯ МЕТОДИКА РОЛЕВОГО УРОКА:
-Урок делится ровно на 2 фазы (по времени урока):
+СТРОГАЯ ДВУХФАЗНАЯ МЕТОДИКА СИТУАЦИИ:
+Урок делится ровно на 2 фазы:
 
-ФАЗА 1: РАЗУЧИВАНИЕ ФРАЗ И ПОНИМАНИЕ СОБЕСЕДНИКА НА СЛУХ (первая половина урока, ~6-7 минут):
+ФАЗА 1: РАЗУЧИВАНИЕ ФРАЗ ОБЕИХ СТОРОН ПО ГЛАВНОМУ АЛГОРИТМУ (первая половина урока, ~6-7 минут):
 1. В СТАРТЕ УРОКА: Объяви программу серии и СРАЗУ переходи к материалу темы.
-2. ДВУСТОРОННЕЕ РАЗУЧИВАНИЕ (СТРОЖАЙШЕ ОБЯЗАТЕЛЬНО!):
-   Ученик не сможет вести диалог, если не понимает на слух, ЧТО ему скажет собеседник!
-   - Шаг А: Разучи 2–3 ключевые реплики самого ученика по Главному алгоритму (смысл на родном -> 2 раза медленно на иностранном с паузой 2–3 сек ... ... -> "Повтори").
-   - Шаг Б: ОБЯЗАТЕЛЬНО обучи понимать на слух 2–3 реплики собеседника (${rpRole}):
-     «А теперь давай разберем, что тебе ответит ${rpRole}. Послушай: [фраза ${langAdverb}] — это значит [перевод на русский/украинский]. Давай проверим: если я скажу тебе [фраза ${langAdverb}], как ты это поймёшь? Что это значит?».
-     Ученик должен перевести или подтвердить понимание услышанной фразы собеседника!
+2. ДВУСТОРОННЕЕ РАЗУЧИВАНИЕ ПО ГЛАВНОМУ АЛГОРИТМУ (СТРОЖАЙШЕ ОБЯЗАТЕЛЬНО!):
+   Ученик обязан разучить и уметь произносить фразы ОБЕИХ сторон диалога (и свои, и собеседника):
+   - Шаг А (Реплики ученика): Разучи 2–3 ключевые фразы самого ученика строго по Главному алгоритму обучения:
+     1) Смысл на родном языке ученика.
+     2) САМ(А) произнеси эталон ${langAdverb} ДВАЖДЫ медленно с паузой 2–3 сек (... ...).
+     3) Команда «Повтори» и замолчи. Ученик повторяет.
+   - Шаг Б (Реплики собеседника — ${rpRole}): Обучи 2–3 ключевым фразам, которые ученику скажет ${rpRole}.
+     ОБУЧАЙ ИХ ТОЧНО ТАК ЖЕ ПО ГЛАВНОМУ АЛГОРИТМУ ОБУЧЕНИЯ (смысл -> ДВАЖДЫ эталон -> команда «Повтори»)!
+     Объясни: «А теперь разберем полезную фразу, которую тебе ответит ${rpRole}. Давай её тоже разучим и повторим: [смысл фразы] -> [ДВАЖДЫ медленно ${langAdverb}] -> Повтори!».
+     Ученик ОБЯЗАН сам произнести и отработать эту фразу на иностранном языке!
+     СТРОЖАЙШИЙ ЗАПРЕТ: КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО сразу после перевода переспрашивать ученика «как ты это понимаешь?» или требовать перевод на родной язык! Ученик должен тренировать и повторять иностранную речь!
 
-ФАЗА 2: ЖИВАЯ РОЛЕВАЯ СЦЕНКА В ПЕРСОНАЖАХ (вторая половина урока, ~7-8 минут):
+ФАЗА 2: ЖИВАЯ СЦЕНКА В ПЕРСОНАЖАХ (вторая половина урока, ~7-8 минут):
 3. ЯВНЫЙ ПЕРЕХОД К СЦЕНКЕ:
-   Как только ключевые фразы обеих сторон разобраны, КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО надиктовывать новые фразы или изолированно спрашивать перевод! Сделай яркий игровой переход:
+   Как только ключевые фразы обеих сторон разобраны, сделай плавный игровой переход:
    «Отлично, теперь мы полностью готовы! Давай разыграем живую сценку. Я буду ${rpRole}, а ты — клиент/пациент/гость. Приготовились... [сымитируй звонок или шаг: Дзынь-дзынь... / Стук в дверь...] Здравствуйте, слушаю вас!».
 4. ИГРА В ОБРАЗЕ:
-   - Общайся ТОЛЬКО в своей роли (${rpRole}). Задавай естественные вопросы (время, дату, детали, пожелания).
+   - Общайся ТОЛЬКО в своей роли (${rpRole}). Задавай естественные вопросы по ситуации.
    - Живо и реалистично реагируй на ответы ученика.
-   - Если ученик запинается, молчит или затрудняется — выйди на 2 секунды из роли и дай мягкую короткую подсказку шёпотом («Скажи: ...»), а затем возвращайся в роль.
-   - Во второй половине урока — НИКАКОЙ СУХОЙ ЗУБРЁЖКИ, ТОЛЬКО ЖИВОЙ РОЛЕВОЙ ДИАЛОГ!
-======================================================`;
+   - Если ученик запинается или молчит — дай мягкую короткую подсказку шёпотом («Скажи: ...»), а затем продолжай диалог.
+   - Во второй половине урока — НИКАКОЙ СУХОЙ ЗУБРЁЖКИ, ТОЛЬКО ЖИВОЙ ДИАЛОГ!======================================================`;
     } else if (cfg.mode && cfg.mode !== 'standard') {
       const modeDict = {
         'small_talk': 'РЕЖИМ: Свободный разговор (Small Talk). Твоя цель — поддерживать легкую непринужденную беседу. Меньше формальных упражнений, больше вопросов о жизни, мнениях, интересах. Если ученик делает ошибки, мягко исправляй.',
@@ -2751,7 +3417,7 @@ ${levelBlock}
 ${langDirective}
 СТАРАЯ БАЗА О ЖИЗНИ: ${sessionGlobalMem || 'пусто'}
 СТАРАЯ НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА: ${sessionLangMem || 'пусто'}
-Вызови saveStudentProfile с полными объединенными данными. Голосом ничего не говори!]`;
+Используй ТОЧНЫЕ заголовки разделов в квадратных скобках (БЕЗ знаков Markdown # и *): [ЖУРНАЛ УРОКОВ], [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], [БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ], [СОГЛАСОВАННАЯ ТЕМА СЛЕДУЮЩЕГО УРОКА]. ОБЯЗАТЕЛЬНО включи в [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ] не менее 8-12 ключевых фраз сегодняшнего занятия в формате: Иностранная фраза — Перевод на родной язык. Вызови saveStudentProfile с полными объединенными данными. Голосом ничего не говори!]`;
   }
 
   /* ==========================================================================
@@ -3060,9 +3726,13 @@ ${langDirective}
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
     if (activeAudioSources.length > 0) return;
     if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
-    if (Date.now() - lastAudioChunkAt < 1800) return;
+    if (Date.now() - lastAudioChunkAt < 5000) return;
+    if (isWaitingForResponse && !receivedAudioThisTurn) return;
+
     isServerTurnActive = false;
     isBotSpeaking = false;
+    isWaitingForResponse = false;
+    receivedAudioThisTurn = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
 
@@ -3073,7 +3743,7 @@ ${langDirective}
       return;
     }
 
-    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+    if (!isExtractingMemory && !isFinalizing) {
       btnEndTurn.style.display = 'block';
       if (turnHint) turnHint.style.display = 'block';
       setStatus(st('yourTurn'));
@@ -3086,16 +3756,19 @@ ${langDirective}
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 200 мс
+      botSpeechDrainTimeout = setTimeout(() => {
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
+          if (isWaitingForResponse && !receivedAudioThisTurn) return;
+
           isBotSpeaking = false;
+          isWaitingForResponse = false;
+          receivedAudioThisTurn = false;
           lastBotSpeechEndedAt = Date.now();
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
 
-          // Репетитор только что закончил свою речь. Если основное время урока истекло — мягко завершаем!
           if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
             clearInterval(lessonTimerInterval);
             setStatus(t('msgTimeDone'));
@@ -3103,7 +3776,7 @@ ${langDirective}
             return;
           }
 
-          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+          if (!isExtractingMemory && !isFinalizing) {
             btnEndTurn.style.display = 'block';
             if (turnHint) turnHint.style.display = 'block';
             setStatus(st('yourTurn'));
@@ -3111,7 +3784,7 @@ ${langDirective}
           }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
-      }, 200);
+      }, 250);
     }
   }
 
@@ -3164,7 +3837,7 @@ ${langDirective}
         if (r > totalSec * 0.45) {
           progressPill.textContent = `${em} ${sTitle} • ${rp.partNumber}/${rp.total}: ${pTitle} • 1: Фразы`;
         } else if (r > 120) {
-          progressPill.textContent = `${em} ${sTitle} • ${rp.partNumber}/${rp.total} • 2: Ролевой диалог`;
+          progressPill.textContent = `${em} ${sTitle} • ${rp.partNumber}/${rp.total} • 2: Діалог в ситуації`;
         } else {
           progressPill.textContent = `${em} ${sTitle} • ${rp.partNumber}/${rp.total} • Итоги`;
         }
@@ -3260,22 +3933,29 @@ ${langDirective}
     setStatus(st('thinking'));
     vibrate(30);
 
-    // Безопасная передача хода через стандартный sendText (без сбоя сокета)
+    // 1. Отправляем 400 мс цифровой тишины (PCM 0), чтобы серверный VAD мгновенно зафиксировал окончание речи ученика
+    try {
+      const zeroBuf = new ArrayBuffer(6400 * 2);
+      socket.send(JSON.stringify({
+        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(zeroBuf)) }] }
+      }));
+    } catch (e) {}
+
+    // 2. Отправляем штатный маркер передачи хода
     sendText('[TURN_COMPLETE]', true);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
-      if (isWaitingForResponse) {
+      if (isWaitingForResponse && !isBotSpeaking && isSessionActive) {
         isWaitingForResponse = false;
         btnEndTurn.style.display = 'block';
         if (turnHint) turnHint.style.display = 'block';
         setStatus(st('yourTurn'));
         vibrate([50, 50, 50]);
       }
-    }, 12000);
+    }, 15000);
   };
 
-  // Кнопка ✋ теперь действительно прерывает: раньше глушился только локальный звук, а сервер продолжал присылать остаток реплики.
   btnInterrupt.onclick = () => {
     if (!isBotSpeaking && !isServerTurnActive) return;
     stopBotSpeech();
@@ -3611,7 +4291,6 @@ ${langDirective}
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
           if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
           clearTimeout(watchdogTimer);
-          isWaitingForResponse = false;
           interruptedPending = false;
           receivedAudioThisTurn = true;
           isServerTurnActive = true;
