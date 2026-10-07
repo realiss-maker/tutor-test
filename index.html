@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.38.5</title>
+  <title>AI Language Tutor v3.39.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -724,7 +724,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.38.5';
+  const APP_VERSION = '3.39.0';
 
     const I18N = {
   "uk": {
@@ -3821,16 +3821,12 @@ ${langDirective}
   // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
   function releaseBotIfStuck() {
     if (!isSessionActive || !isBotSpeaking) return;
-    if (isWaitingForResponse && !receivedAudioThisTurn) return;
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
     if (activeAudioSources.length > 0) return;
     if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
-    if (Date.now() - lastAudioChunkAt < 10000) return;
-
+    if (Date.now() - lastAudioChunkAt < 1800) return;
     isServerTurnActive = false;
     isBotSpeaking = false;
-    isWaitingForResponse = false;
-    receivedAudioThisTurn = false;
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
 
@@ -3841,7 +3837,7 @@ ${langDirective}
       return;
     }
 
-    if (!isExtractingMemory && !isFinalizing) {
+    if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
       btnEndTurn.style.display = 'block';
       if (turnHint) turnHint.style.display = 'block';
       setStatus(st('yourTurn'));
@@ -3852,31 +3848,17 @@ ${langDirective}
 
   function checkBotSpeakingEnded() {
     if (isServerTurnActive) return;
-    if (!isBotSpeaking && !receivedAudioThisTurn) {
-      if (isWaitingForResponse && isSessionActive && !isExtractingMemory && !isFinalizing) {
-        isWaitingForResponse = false;
-        btnEndTurn.style.display = 'block';
-        if (turnHint) turnHint.style.display = 'block';
-        setStatus(st('yourTurn'));
-        vibrate([50, 50, 50]);
-      }
-      return;
-    }
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {
+      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 200 мс
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
-          if (isWaitingForResponse && !receivedAudioThisTurn) return;
-
           isBotSpeaking = false;
-          isWaitingForResponse = false;
-          receivedAudioThisTurn = false;
-          lastBotSpeechEndedAt = Date.now();
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
 
+          // Репетитор только что закончил свою речь. Если основное время урока истекло — мягко завершаем!
           if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
             clearInterval(lessonTimerInterval);
             setStatus(t('msgTimeDone'));
@@ -3884,7 +3866,7 @@ ${langDirective}
             return;
           }
 
-          if (!isExtractingMemory && !isFinalizing) {
+          if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
             btnEndTurn.style.display = 'block';
             if (turnHint) turnHint.style.display = 'block';
             setStatus(st('yourTurn'));
@@ -3892,7 +3874,7 @@ ${langDirective}
           }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
-      }, 250);
+      }, 200);
     }
   }
 
@@ -4029,6 +4011,17 @@ ${langDirective}
     }
   };
 
+  function sendVadSilenceFlush() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    const vadMs = cfg.vad === 'very' ? 3600 : (cfg.vad === 'patient' ? 2600 : 1800);
+    // 16000 Гц, 16 бит моно = 32 байта на мс. В Base64 каждые 3 нулевых байта кодируются как 'AAAA'
+    const numZeros = Math.ceil(vadMs * 32 / 3) * 3;
+    const silenceBase64 = 'A'.repeat(numZeros * 4 / 3);
+    socket.send(JSON.stringify({
+      realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: silenceBase64 }] }
+    }));
+  }
+
   btnEndTurn.onclick = () => {
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
     if (isWaitingForResponse || isBotSpeaking) return;
@@ -4041,16 +4034,7 @@ ${langDirective}
     setStatus(st('thinking'));
     vibrate(30);
 
-    // 1. Отправляем 400 мс цифровой тишины (PCM 0), чтобы серверный VAD мгновенно зафиксировал окончание речи ученика
-    try {
-      const zeroBuf = new ArrayBuffer(6400 * 2);
-      socket.send(JSON.stringify({
-        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(zeroBuf)) }] }
-      }));
-    } catch (e) {}
-
-    // 2. Отправляем штатный маркер передачи хода
-    sendText('[TURN_COMPLETE]', true);
+    sendVadSilenceFlush();
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
@@ -4059,9 +4043,8 @@ ${langDirective}
         btnEndTurn.style.display = 'block';
         if (turnHint) turnHint.style.display = 'block';
         setStatus(st('yourTurn'));
-        vibrate([50, 50, 50]);
       }
-    }, 35000);
+    }, 12000);
   };
 
   btnInterrupt.onclick = () => {
@@ -4358,7 +4341,7 @@ ${langDirective}
         if (turnHint) turnHint.style.display = 'block';
         setStatus(st('yourTurn'));
       }
-    }, 35000);
+    }, 12000);
   }
 
   function handleServerMessage(msg) {
@@ -4403,16 +4386,14 @@ ${langDirective}
     }
 
     if (sc.modelTurn && sc.modelTurn.parts) {
-      if (!isBotSpeaking && !isWaitingForResponse) {
-        isWaitingForResponse = true;
-        btnEndTurn.style.display = 'none';
-        if (turnHint) turnHint.style.display = 'none';
-        setStatus(st('thinking'));
-      }
       for (const part of sc.modelTurn.parts) {
+        if (part.text && !isExtractingMemory && !suppressIncomingAudio) {
+          pushCaption('tutor', part.text);
+        }
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
           if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
           clearTimeout(watchdogTimer);
+          isWaitingForResponse = false;
           interruptedPending = false;
           receivedAudioThisTurn = true;
           isServerTurnActive = true;
@@ -4431,7 +4412,8 @@ ${langDirective}
     }
 
     if (sc.generationComplete) {
-      // Промежуточная генерация фрагмента завершена; serverTurnActive сбрасывается ТОЛЬКО по sc.turnComplete
+      isServerTurnActive = false;
+      checkBotSpeakingEnded();
     }
 
     if (sc.turnComplete) {
@@ -4440,6 +4422,14 @@ ${langDirective}
       clearSuppress();
       captionNewTurn = true;
       if (capUser) capUser.dataset.fresh = '1';
+
+      clearTimeout(watchdogTimer);
+      // Если модель ничего не сказала (пустой ход или прерывание), возвращаем очередь ученику без зависания
+      if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
+        isWaitingForResponse = false;
+        setStatus(st('yourTurn'));
+      }
+      receivedAudioThisTurn = false;
 
       // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
       if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
