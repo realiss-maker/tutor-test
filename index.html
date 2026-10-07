@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.38.1</title>
+  <title>AI Language Tutor v3.38.2</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -724,7 +724,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.38.1';
+  const APP_VERSION = '3.38.2';
 
     const I18N = {
   "uk": {
@@ -3710,6 +3710,7 @@ ${langDirective}
     activeAudioSources = [];
     isBotSpeaking = false;
     isServerTurnActive = false;
+    receivedAudioThisTurn = false;
     lastBotSpeechEndedAt = Date.now();
     scheduledPlayTime = 0;
     avatarCard.classList.remove('speaking');
@@ -3739,8 +3740,7 @@ ${langDirective}
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
     if (activeAudioSources.length > 0) return;
     if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
-    if (Date.now() - lastAudioChunkAt < 5000) return;
-    if (isWaitingForResponse && !receivedAudioThisTurn) return;
+    if (Date.now() - lastAudioChunkAt < 2500) return;
 
     isServerTurnActive = false;
     isBotSpeaking = false;
@@ -4340,7 +4340,10 @@ ${langDirective}
       clearSuppress();
       captionNewTurn = true;
       if (capUser) capUser.dataset.fresh = '1';
-      receivedAudioThisTurn = false;
+      if (!receivedAudioThisTurn) {
+        // Ответ завершился без аудио — сбрасываем ожидание, чтобы вернуть ход ученику
+        isWaitingForResponse = false;
+      }
 
       // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
       if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
