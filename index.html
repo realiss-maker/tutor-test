@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.35.1</title>
+  <title>AI Language Tutor v3.36.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -303,6 +303,46 @@
     }
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+    /* Полноэкранный экран материалов, домашки и тренажёра */
+    #modalVocab {
+      padding: 0;
+      background: rgba(15, 23, 42, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 60;
+    }
+    #modalVocab .modal-content {
+      width: 100%;
+      max-width: 600px;
+      height: 100%;
+      max-height: 100vh;
+      border-radius: 0;
+      padding: calc(14px + env(safe-area-inset-top, 0px)) 18px calc(14px + env(safe-area-inset-bottom, 0px)) 18px;
+      background: transparent;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .flashcard-box {
+      min-height: 220px;
+      border-radius: 20px;
+      padding: 24px 20px;
+      background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, border-color 0.2s ease;
+    }
+    .flashcard-box:active { transform: scale(0.98); }
+
     @media (prefers-reduced-motion: reduce) {
       .avatar-card.speaking, .timer-warning { animation: none; }
       .avatar-card img, .btn-main, .toast { transition: none; }
@@ -326,6 +366,7 @@
 
       <div class="header-right">
         <div class="timer-badge" id="timerBadge">15:00</div>
+        <button class="btn-icon" id="btnVocabTop" title="Материалы и словарь" aria-label="Материалы и словарь" style="font-size: 1.3rem;">📖</button>
         <button class="btn-icon" id="btnSettings" title="Настройки" aria-label="Настройки">⚙</button>
       </div>
     </header>
@@ -551,56 +592,92 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Личный словарь и банк ошибок -->
+  <!-- Полноэкранный интерфейс: Практика, Домашка и Словарь -->
   <div class="modal" id="modalVocab" role="dialog" aria-modal="true" aria-labelledby="vocabTitle">
-    <div class="modal-content" style="max-width: 480px; height: 85vh; max-height: 85vh; padding: 18px 20px; display: flex; flex-direction: column;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <button type="button" onclick="closeVocabModal()" style="background: rgba(255,255,255,0.1); border: none; color: #f8fafc; border-radius: 50%; width: 32px; height: 32px; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
-          <h3 id="vocabTitle" style="margin: 0; font-size: 1.1rem; text-align: left;">Словарь и память</h3>
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <button type="button" onclick="closeVocabModal()" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 50%; width: 36px; height: 36px; font-size: 17px; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+          <div>
+            <h3 id="vocabTitle" style="margin: 0; font-size: 1.15rem; text-align: left; color: #f8fafc;">Практика и словарь</h3>
+          </div>
         </div>
-        <span id="vocabLangBadge" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 2px 8px; border-radius: 6px;">Français</span>
+        <span id="vocabLangBadge" style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); padding: 3px 10px; border-radius: 999px;">Français</span>
       </div>
 
-      <div class="tabs-header" style="margin-bottom: 10px;">
-        <button type="button" class="tab-btn active" id="vtab-btn-words" onclick="switchVocabTab('words')">Словарь</button>
-        <button type="button" class="tab-btn" id="vtab-btn-errors" onclick="switchVocabTab('errors')">Ошибки</button>
-        <button type="button" class="tab-btn" id="vtab-btn-lessons" onclick="switchVocabTab('lessons')">Журнал</button>
-        <button type="button" class="tab-btn" id="vtab-btn-profile" onclick="switchVocabTab('profile')">Профиль</button>
-        <button type="button" class="tab-btn" id="vtab-btn-raw" onclick="switchVocabTab('raw')">Текст</button>
+      <div class="tabs-header" style="margin-bottom: 6px;">
+        <button type="button" class="tab-btn active" id="vtab-btn-homework" onclick="switchVocabTab('homework')">Домашка</button>
+        <button type="button" class="tab-btn" id="vtab-btn-trainer" onclick="switchVocabTab('trainer')">Тренажёр</button>
+        <button type="button" class="tab-btn" id="vtab-btn-words" onclick="switchVocabTab('words')">Словарь</button>
+        <button type="button" class="tab-btn" id="vtab-btn-memory" onclick="switchVocabTab('memory')">Память</button>
       </div>
 
-      <!-- Вкладка: Словарь -->
-      <div id="vtab-words" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <input type="text" id="vocabSearch" placeholder="🔍 Поиск по словам или переводу..." oninput="filterVocabWords()" style="height: 38px; font-size: 0.88rem;">
+      <!-- Вкладка 1: Домашка (Фразы последних уроков) -->
+      <div id="vtab-homework" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 10px;">
+        <div style="background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(14,165,233,0.15)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <div style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.35;">
+            🎯 <b>Фразы последних уроков</b> для заучивания вслух
+          </div>
+          <button type="button" onclick="switchVocabTab('trainer')" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
+            ▶ Тренажёр
+          </button>
+        </div>
+        <div id="homeworkList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;"></div>
+      </div>
+
+      <!-- Вкладка 2: Речевой тренажёр (Shadowing / Самосверка) -->
+      <div id="vtab-trainer" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 12px; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+          <span id="flashcardCounter" style="font-size: 0.84rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 3px 8px;">1 / 8</span>
+          <span style="font-size: 0.78rem; color: #94a3b8;">Методика самосверки и эталона</span>
+        </div>
+
+        <div class="flashcard-box" id="flashcardElement" onclick="flipFlashcard()">
+          <!-- динамически рендерится карточка -->
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: auto; padding-bottom: 4px;">
+          <button type="button" onclick="prevFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+            ← Назад
+          </button>
+          <button type="button" onclick="flipFlashcard()" style="flex: 1; background: #0284c7; color: #fff; border: none; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer; box-shadow: 0 4px 12px rgba(2,132,199,0.35);">
+            🔄 Проверить
+          </button>
+          <button type="button" onclick="nextFlashcard()" style="flex: 1; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; border-radius: 10px; padding: 12px; font-weight: 600; font-size: 0.88rem; cursor: pointer;">
+            Далее ➔
+          </button>
+        </div>
+      </div>
+
+      <!-- Вкладка 3: Весь словарь -->
+      <div id="vtab-words" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <input type="text" id="vocabSearch" placeholder="🔍 Поиск по словам или переводу..." oninput="filterVocabWords()" style="height: 40px; font-size: 0.9rem;">
         <div id="vocabWordsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
       </div>
 
-      <!-- Вкладка: Ошибки -->
-      <div id="vtab-errors" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <div style="font-size: 0.8rem; color: #94a3b8;">Сложные моменты, которые репетитор будет закреплять:</div>
-        <div id="vocabErrorsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
+      <!-- Вкладка 4: Ошибки и память -->
+      <div id="vtab-memory" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+        <div class="tabs-header" style="margin-bottom: 4px; border-bottom: 1px solid #334155;">
+          <button type="button" class="tab-btn active" id="mtab-btn-err" onclick="switchMemorySubTab('err')">Ошибки</button>
+          <button type="button" class="tab-btn" id="mtab-btn-log" onclick="switchMemorySubTab('log')">Журнал</button>
+          <button type="button" class="tab-btn" id="mtab-btn-prof" onclick="switchMemorySubTab('prof')">Профиль</button>
+          <button type="button" class="tab-btn" id="mtab-btn-raw" onclick="switchMemorySubTab('raw')">RAW-текст</button>
+        </div>
+        <div id="mtab-err" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+          <div id="vocabErrorsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+        <div id="mtab-log" style="display: none; flex: 1; overflow-y: auto; flex-direction: column; gap: 6px; padding-right: 4px;">
+          <div id="vocabLessonsList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+        <div id="mtab-prof" style="display: none; flex: 1; overflow-y: auto; flex-direction: column; gap: 6px; padding-right: 4px;">
+          <div id="vocabProfileList" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+        <div id="mtab-raw" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
+          <div style="font-size: 0.78rem; color: #94a3b8;">Прямой текст памяти текущего языка:</div>
+          <textarea id="rawMemoryText" style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-family: monospace; font-size: 0.78rem; padding: 10px; resize: none;"></textarea>
+          <button type="button" onclick="saveRawMemory()" style="background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer;">Сохранить правки</button>
+        </div>
       </div>
-
-      <!-- Вкладка: Журнал уроков -->
-      <div id="vtab-lessons" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <div id="vocabLessonsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
-      </div>
-
-      <!-- Вкладка: Профиль ученика -->
-      <div id="vtab-profile" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <div style="font-size: 0.8rem; color: #94a3b8;">Факты о вас, которые репетитор помнит для поддержания беседы:</div>
-        <div id="vocabProfileList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
-      </div>
-
-      <!-- Вкладка: RAW редактор -->
-      <div id="vtab-raw" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <div style="font-size: 0.78rem; color: #94a3b8;">Прямой текст памяти текущего языка (можно редактировать):</div>
-        <textarea id="rawMemoryText" style="flex: 1; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-family: monospace; font-size: 0.78rem; padding: 10px; resize: none;"></textarea>
-        <button type="button" onclick="saveRawMemory()" style="background: #2563eb; color: white; border: none; border-radius: 8px; padding: 10px; font-weight: 600; cursor: pointer;">Сохранить правки</button>
-      </div>
-
-      <button type="button" class="btn-close" onclick="closeVocabModal()" style="margin-top: 8px;">Закрыть</button>
     </div>
   </div>
 
@@ -647,7 +724,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.35.1';
+  const APP_VERSION = '3.36.0';
 
     const I18N = {
   "uk": {
@@ -1788,6 +1865,10 @@
   }
   window.closeSettings = () => { modalSettings.style.display = 'none'; };
   $('btnSettings').onclick = openSettings;
+  if ($('btnVocabTop')) $('btnVocabTop').onclick = () => {
+    if (isSessionActive || isFinalizing) { toast('Завершите урок перед просмотром материалов', 3000); return; }
+    openVocabModal();
+  };
   $('btnCloseModal').onclick = closeSettings;
   modalSettings.addEventListener('click', e => { if (e.target === modalSettings) closeSettings(); });
   const mIos = $('modalIosInstall');
@@ -1800,7 +1881,30 @@
   });
 
   /* ==========================================================================
-     Личный словарь, банк ошибок и упаковка памяти (Раздел 4)
+     Озвучка речи (Web Speech API / speechSynthesis)
+     ========================================================================== */
+  window.speakPhrase = function(text, lang) {
+    if (!text) return;
+    if (!('speechSynthesis' in window)) {
+      toast('Озвучка речи не поддерживается в этом браузере', 3000);
+      return;
+    }
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/[\(\)\[\]«»"']/g, '').trim();
+      const u = new SpeechSynthesisUtterance(clean);
+      const l = lang || cfg.lang;
+      const langMap = { french: 'fr-FR', english: 'en-US', spanish: 'es-ES' };
+      u.lang = langMap[l] || 'fr-FR';
+      u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      console.warn('SpeechSynthesis error:', e);
+    }
+  };
+
+  /* ==========================================================================
+     Личный словарь, домашка и речевой тренажёр (Shadowing)
      ========================================================================== */
   function parseMem(txt) {
     const sections = {};
@@ -1819,19 +1923,24 @@
   }
 
   let cachedVocabWords = [];
+  let flashcardList = [];
+  let flashcardIndex = 0;
+  let flashcardFlipped = false;
 
   window.openVocabModal = () => {
     const m = $('modalVocab');
     if (!m) return;
     $('vocabLangBadge').textContent = (LANGS[cfg.lang] && LANGS[cfg.lang].label) || cfg.lang;
-    switchVocabTab('words');
+    switchVocabTab('homework');
     renderVocab();
+    renderHomework();
     m.style.display = 'flex';
   };
 
   window.closeVocabModal = () => {
     const m = $('modalVocab');
     if (m) m.style.display = 'none';
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   };
 
   const mVocab = $('modalVocab');
@@ -1840,13 +1949,28 @@
   }
 
   window.switchVocabTab = tab => {
-    ['words', 'errors', 'lessons', 'profile', 'raw'].forEach(t => {
+    ['homework', 'trainer', 'words', 'memory'].forEach(t => {
       const btn = $('vtab-btn-' + t);
       const pane = $('vtab-' + t);
       if (btn) btn.classList.toggle('active', t === tab);
       if (pane) pane.style.display = t === tab ? 'flex' : 'none';
     });
-    if (tab === 'raw') {
+    if (tab === 'trainer') {
+      initFlashcards();
+    }
+    if (tab === 'memory') {
+      switchMemorySubTab('err');
+    }
+  };
+
+  window.switchMemorySubTab = sub => {
+    ['err', 'log', 'prof', 'raw'].forEach(s => {
+      const btn = $('mtab-btn-' + s);
+      const pane = $('mtab-' + s);
+      if (btn) btn.classList.toggle('active', s === sub);
+      if (pane) pane.style.display = s === sub ? 'flex' : 'none';
+    });
+    if (sub === 'raw') {
       const raw = $('rawMemoryText');
       if (raw) raw.value = getLangMem(cfg.lang);
     }
@@ -1859,7 +1983,116 @@
     store.set(memKey(cfg.lang), val);
     refreshMemInfo();
     renderVocab();
+    renderHomework();
     toast('Память языка успешно сохранена!', 4000);
+  };
+
+  function renderHomework() {
+    const hwList = $('homeworkList');
+    if (!hwList) return;
+    const mem = parseMem(getLangMem(cfg.lang));
+    const words = mem[SEC_VOC] || [];
+    // 12 последних фраз (последние уроки)
+    const recent = words.slice(-12).reverse();
+    if (recent.length === 0) {
+      hwList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 24px; text-align: center;">Фраз последних уроков пока нет. Пройдите первый урок с репетитором!</div>';
+      return;
+    }
+    hwList.innerHTML = recent.map(w => {
+      const clean = w.replace(/^[-•*]\s*/, '');
+      const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
+      const foreign = parts[0] ? parts[0].trim() : clean;
+      const trans = parts.slice(1).join(' — ').trim();
+      const enc = encodeURIComponent(foreign);
+      return `
+        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-weight: 600; color: #38bdf8; font-size: 0.98rem; line-height: 1.35; margin-bottom: 2px;">${foreign}</div>
+            ${trans ? `<div style="color: #94a3b8; font-size: 0.85rem; line-height: 1.3;">${trans}</div>` : ''}
+          </div>
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}')" title="Прослушать произношение" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+            🔈
+          </button>
+        </div>`;
+    }).join('');
+  }
+
+  function initFlashcards() {
+    const mem = parseMem(getLangMem(cfg.lang));
+    const words = mem[SEC_VOC] || [];
+    const source = words.slice(-12).reverse();
+    flashcardList = source.map(w => {
+      const clean = w.replace(/^[-•*]\s*/, '');
+      const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
+      const foreign = parts[0] ? parts[0].trim() : clean;
+      const trans = parts.slice(1).join(' — ').trim();
+      return { foreign, trans: trans || foreign };
+    });
+    flashcardIndex = 0;
+    flashcardFlipped = false;
+    renderFlashcard();
+  }
+
+  function renderFlashcard() {
+    const cardEl = $('flashcardElement');
+    const counterEl = $('flashcardCounter');
+    if (!cardEl) return;
+    if (flashcardList.length === 0) {
+      if (counterEl) counterEl.textContent = '0 / 0';
+      cardEl.innerHTML = `
+        <div style="font-size: 2rem; margin-bottom: 8px;">📭</div>
+        <div style="font-size: 1rem; color: #cbd5e1; margin-bottom: 6px; font-weight: 600;">Фраз для тренировки пока нет</div>
+        <div style="font-size: 0.82rem; color: #94a3b8;">Пройдите первый урок с репетитором, чтобы слова появились в домашке!</div>`;
+      return;
+    }
+    const cur = flashcardList[flashcardIndex];
+    if (counterEl) counterEl.textContent = `${flashcardIndex + 1} / ${flashcardList.length}`;
+    const L = LANGS[cfg.lang] || LANGS.french;
+    const adv = L.adv || 'на иностранном';
+
+    if (!flashcardFlipped) {
+      cardEl.innerHTML = `
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">🗣️ Произнесите вслух ${adv}:</div>
+        <div style="font-size: 1.25rem; font-weight: 600; color: #f8fafc; line-height: 1.4; padding: 4px 10px;">${cur.trans}</div>
+        <div style="font-size: 0.78rem; color: #64748b; margin-top: 8px;">Нажмите на карточку для проверки эталона ➔</div>`;
+    } else {
+      cardEl.innerHTML = `
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #34d399; font-weight: 700;">✅ Эталон произношения:</div>
+        <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; line-height: 1.4; padding: 4px 10px;">${cur.foreign}</div>
+        <div style="font-size: 0.88rem; color: #94a3b8;">${cur.trans}</div>
+        <button type="button" onclick="event.stopPropagation(); repeatCurrentFlashcard();" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-top: 8px;">
+          🔊 Послушать ещё раз
+        </button>`;
+    }
+  }
+
+  window.repeatCurrentFlashcard = function() {
+    if (flashcardList.length === 0) return;
+    const cur = flashcardList[flashcardIndex];
+    if (cur) speakPhrase(cur.foreign, cfg.lang);
+  };
+
+  window.flipFlashcard = function() {
+    if (flashcardList.length === 0) return;
+    flashcardFlipped = !flashcardFlipped;
+    renderFlashcard();
+    if (flashcardFlipped) {
+      repeatCurrentFlashcard();
+    }
+  };
+
+  window.nextFlashcard = function() {
+    if (flashcardList.length === 0) return;
+    flashcardIndex = (flashcardIndex + 1) % flashcardList.length;
+    flashcardFlipped = false;
+    renderFlashcard();
+  };
+
+  window.prevFlashcard = function() {
+    if (flashcardList.length === 0) return;
+    flashcardIndex = (flashcardIndex - 1 + flashcardList.length) % flashcardList.length;
+    flashcardFlipped = false;
+    renderFlashcard();
   };
 
   function renderVocab() {
@@ -1873,7 +2106,10 @@
     cachedVocabWords = words.map(w => w.replace(/^[-•*]\s*/, ''));
     filterVocabWords();
 
-    // 2. Ошибки
+    // 2. Домашка
+    renderHomework();
+
+    // 3. Ошибки
     const errs = mem[SEC_ERR] || [];
     if (errorsList) {
       errorsList.innerHTML = errs.length === 0
@@ -1884,7 +2120,7 @@
           </div>`).join('');
     }
 
-    // 3. Журнал
+    // 4. Журнал
     const lessons = mem[SEC_LOG] || [];
     if (lessonsList) {
       lessonsList.innerHTML = lessons.length === 0
@@ -1895,7 +2131,7 @@
           </div>`).join('');
     }
 
-    // 4. Профиль
+    // 5. Профиль
     const glob = getGlobalMem().split('\n').filter(x => x.trim());
     if (profileList) {
       profileList.innerHTML = glob.length === 0
@@ -1925,10 +2161,16 @@
       const parts = w.split(/\s+[—–\-]\s+|\s*:\s*/);
       const foreign = parts[0] ? parts[0].trim() : w;
       const trans = parts.slice(1).join(' — ').trim();
+      const enc = encodeURIComponent(foreign);
       return `
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-          <span style="font-weight: 600; color: #38bdf8; font-size: 0.9rem;">${foreign}</span>
-          ${trans ? `<span style="color: #94a3b8; font-size: 0.82rem; text-align: right;">${trans}</span>` : ''}
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+          <div style="flex: 1; min-width: 0;">
+            <span style="font-weight: 600; color: #38bdf8; font-size: 0.92rem; display: block; margin-bottom: 2px;">${foreign}</span>
+            ${trans ? `<span style="color: #94a3b8; font-size: 0.82rem; display: block;">${trans}</span>` : ''}
+          </div>
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}')" title="Прослушать" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+            🔈
+          </button>
         </div>`;
     }).join('');
   };
