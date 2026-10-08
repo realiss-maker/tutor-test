@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.42.1</title>
+  <title>AI Language Tutor v3.42.3</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -541,6 +541,7 @@
               <span style="font-size: 1.35rem; line-height: 1;">📲</span>
               <div>
                 <div id="pwaTitle" style="font-size: 0.88rem; font-weight: 600; color: #f8fafc;">Приложение на главный экран</div>
+                <div id="pwaDesc" style="font-size: 0.76rem; color: #94a3b8; margin-top: 2px;"></div>
               </div>
             </div>
             <button type="button" id="btnInstallApp" onclick="installApp()" style="background: #2563eb; color: #ffffff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
@@ -724,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.42.1';
+  const APP_VERSION = '3.42.3';
 
     const I18N = {
   "uk": {
@@ -2234,9 +2235,14 @@
   // Запись проверяется: при нехватке места или приватном режиме предупреждаем пользователя.
   function putWithRetry(k, v) { return store.set(k, v) || (store.remove(k + '__prev'), store.set(k, v)); }
 
-  function commitMemory(args, lang) {
-    const g = typeof args.global_memory === 'string' ? args.global_memory.trim() : '';
-    const l = typeof args.lang_memory === 'string' ? args.lang_memory.trim() : '';
+  function commitMemory(rawArgs, lang) {
+    let args = rawArgs;
+    if (typeof args === 'string') {
+      try { args = JSON.parse(args); } catch (e) { args = {}; }
+    }
+    if (!args || typeof args !== 'object') return false;
+    const g = (typeof args.global_memory === 'string' ? args.global_memory : (typeof args.globalMemory === 'string' ? args.globalMemory : '')).trim();
+    const l = (typeof args.lang_memory === 'string' ? args.lang_memory : (typeof args.langMemory === 'string' ? args.langMemory : '')).trim();
     let shrunk = false, writeFailed = false;
     if (g) {
       const old = getGlobalMem();
@@ -2253,6 +2259,8 @@
     if (writeFailed) toast(t('memWriteFail'), 8000);
     else if (shrunk) toast(t('memShrunk'), 6000);
     try { sessionStorage.removeItem('active_lesson_draft'); } catch (e) {}
+    refreshMemInfo();
+    renderVocab();
     return l.length > 0 && !writeFailed;
   }
 
@@ -2385,10 +2393,10 @@
       refreshMemInfo();
     };
   }
-  window.closeSettings = () => { modalSettings.style.display = 'none'; };
+  function closeSettings() { modalSettings.style.display = 'none'; }
+  window.closeSettings = closeSettings;
   $('btnSettings').onclick = openSettings;
   if ($('btnVocabTop')) $('btnVocabTop').onclick = () => {
-    if (isSessionActive || isFinalizing) { toast('Завершите урок перед просмотром материалов', 3000); return; }
     openVocabModal();
   };
   $('btnCloseModal').onclick = closeSettings;
@@ -2492,6 +2500,36 @@
   function getSituationPresetPhrases(mode, partNum, lang) {
     const l = lang || cfg.lang || 'french';
     const presets = {
+      standard: {
+        french: [
+          "Bonjour, comment allez-vous ? — Здравствуйте, как ваши дела?",
+          "Je voudrais acheter ceci, s'il vous plaît — Я хотел бы купить это, пожалуйста",
+          "Combien ça coûte ? — Сколько это стоит?",
+          "Où se trouve le magasin le plus proche ? — Где находится ближайший магазин?",
+          "Pouvez-vous répéter plus lentement ? — Можете повторить медленнее?",
+          "Je cherche du pain et du fromage — Я ищу хлеб и сыр",
+          "Je peux payer par carte ? — Я могу оплатить картой?",
+          "Merci beaucoup et bonne journée ! — Большое спасибо и хорошего дня!"
+        ],
+        english: [
+          "Hello, how are you today? — Здравствуйте, как ваши дела?",
+          "I would like to buy this, please — Я хотел бы купить это, пожалуйста",
+          "How much does this cost? — Сколько это стоит?",
+          "Where is the nearest shop? — Где находится ближайший магазин?",
+          "Could you repeat that more slowly? — Можете повторить медленнее?",
+          "Can I pay by card? — Могу я оплатить картой?",
+          "Thank you very much, have a nice day! — Большое спасибо, хорошего дня!"
+        ],
+        spanish: [
+          "Hola, ¿cómo está usted? — Здравствуйте, как ваши дела?",
+          "Quisiera comprar esto, por favor — Я хотел бы купить это, пожалуйста",
+          "¿Cuánto cuesta esto? — Сколько это стоит?",
+          "¿Dónde está la tienda más cercana? — Где ближайший магазин?",
+          "¿Puede repetir más despacio? — Можете повторить медленнее?",
+          "¿Puedo pagar con tarjeta? — Могу я оплатить картой?",
+          "¡Muchas gracias y buen día! — Большое спасибо и хорошего дня!"
+        ]
+      },
       role_doctor: {
         french: [
           "Je voudrais prendre rendez-vous avec un médecin — Я хотел бы записаться к врачу",
@@ -2623,6 +2661,7 @@
     };
     const s = presets[mode];
     if (s && s[l]) return s[l];
+    if (presets.standard && presets.standard[l]) return presets.standard[l];
     if (presets.role_doctor[l]) return presets.role_doctor[l];
     return presets.role_doctor.french;
   }
@@ -2648,21 +2687,6 @@
       }
     }
 
-    if (words.length === 0) {
-      let targetMode = cfg.mode;
-      if (!ROLEPLAY_SERIES[targetMode]) {
-        const arr = readJSON('lesson_log', []);
-        const lastWithMode = arr.slice().reverse().find(x => x.m && ROLEPLAY_SERIES[x.m]);
-        if (lastWithMode) targetMode = lastWithMode.m;
-      }
-      if (ROLEPLAY_SERIES[targetMode]) {
-        const rp = getRoleplayProgress(targetMode, cfg.lang);
-        const part = rp ? rp.partNumber : 1;
-        words = getSituationPresetPhrases(targetMode, part, cfg.lang);
-      } else {
-        words = getSituationPresetPhrases('role_doctor', 1, cfg.lang);
-      }
-    }
     return words;
   }
 
@@ -2672,6 +2696,10 @@
   let flashcardFlipped = false;
 
   window.openVocabModal = () => {
+    if (isSessionActive || isFinalizing) {
+      toast(t('vocInLessonToast') || 'Завершите урок перед просмотром материалов', 3000);
+      return;
+    }
     const m = $('modalVocab');
     if (!m) return;
     $('vocabLangBadge').textContent = (LANGS[cfg.lang] && LANGS[cfg.lang].label) || cfg.lang;
@@ -4146,7 +4174,7 @@ ${langDirective}
       generationConfig: {
         responseModalities: ['AUDIO'],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: cfg.teacher === 'male' ? 'Puck' : 'Aoede' } } },
-        thinkingConfig: { thinkingBudget: 0 }
+        thinkingConfig: /gemini-3/i.test(modelId) ? { thinkingLevel: 'LOW' } : { thinkingBudget: 0 }
       },
       systemInstruction: { parts: [{ text: sessionSystemText }] },
       tools: [{
@@ -4250,7 +4278,7 @@ ${langDirective}
   function handleToolCalls(calls) {
     calls.forEach(call => {
       if (call.name === 'saveStudentProfile') {
-        const canSave = isExtractingMemory || isTimeWarningSent || remainingSeconds() <= 300;
+        const canSave = isExtractingMemory || isTimeWarningSent || (lessonStarted && (Date.now() - lessonStartedAtReal > 45000));
         if (canSave && call.args) {
           const ok = commitMemory(call.args, sessionLang);
           if (ok) memoryCommitted = true;
@@ -4491,6 +4519,12 @@ ${langDirective}
       if (mySession !== sessionId || isFinalizing) return;
     }
 
+    // Если память уже была успешно зафиксирована во время диалога:
+    if (memoryCommitted) {
+      scheduleFinishAfterSave();
+      return;
+    }
+
     // ТОЛЬКО ТЕПЕРЬ, когда вся прощальная речь репетитора прозвучала из динамиков,
     // включаем флаг сохранения памяти и запрашиваем функцию saveStudentProfile:
     isExtractingMemory = true;
@@ -4539,7 +4573,7 @@ ${langDirective}
     logLesson(memoryCommitted, sec);
 
     if (!isExtractingMemory && isAudioStillPlaying()) {
-      setStatus(t('finishing'));
+      setStatus(st('finishing'));
       await waitPlaybackDrain(10000);
     }
     if (mySession !== sessionId) return;
