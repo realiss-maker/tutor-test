@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.42.3</title>
+  <title>AI Language Tutor v3.43.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -725,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.42.3';
+  const APP_VERSION = '3.43.0';
 
     const I18N = {
   "uk": {
@@ -2238,11 +2238,37 @@
   function commitMemory(rawArgs, lang) {
     let args = rawArgs;
     if (typeof args === 'string') {
-      try { args = JSON.parse(args); } catch (e) { args = {}; }
+      try { args = JSON.parse(args); } catch (e) { args = { lang_memory: args }; }
     }
     if (!args || typeof args !== 'object') return false;
-    const g = (typeof args.global_memory === 'string' ? args.global_memory : (typeof args.globalMemory === 'string' ? args.globalMemory : '')).trim();
-    const l = (typeof args.lang_memory === 'string' ? args.lang_memory : (typeof args.langMemory === 'string' ? args.langMemory : '')).trim();
+
+    function extractString(val) {
+      if (!val) return '';
+      if (typeof val === 'string') return val;
+      if (Array.isArray(val)) {
+        return val.map(x => (typeof x === 'string' ? x : JSON.stringify(x))).join('\n');
+      }
+      if (typeof val === 'object') {
+        return Object.entries(val).map(([k, v]) => {
+          const header = k.startsWith('[') ? k : `[${k}]`;
+          const content = Array.isArray(v) ? v.join('\n') : (typeof v === 'object' ? JSON.stringify(v) : String(v));
+          return `${header}\n${content}`;
+        }).join('\n\n');
+      }
+      return String(val);
+    }
+
+    let rawG = args.global_memory ?? args.globalMemory ?? args.global ?? args['База жизни'] ?? '';
+    let rawL = args.lang_memory ?? args.langMemory ?? args.language_memory ?? args.memory ?? args['Архив языка'] ?? '';
+
+    let g = extractString(rawG).trim();
+    let l = extractString(rawL).trim();
+
+    if (!l && g && (/\[НАКОПИТЕЛЬНЫЙ СЛОВАРЬ\]/i.test(g) || /\[ЖУРНАЛ УРОКОВ\]/i.test(g))) {
+      l = g;
+      g = '';
+    }
+
     let shrunk = false, writeFailed = false;
     if (g) {
       const old = getGlobalMem();
@@ -2261,6 +2287,7 @@
     try { sessionStorage.removeItem('active_lesson_draft'); } catch (e) {}
     refreshMemInfo();
     renderVocab();
+    renderHomework();
     return l.length > 0 && !writeFailed;
   }
 
@@ -2300,7 +2327,7 @@
   let isFinalizing = false, isStopping = false;
   let lessonStarted = false, memoryCommitted = false, lessonLogged = false, finishScheduled = false;
   let suppressIncomingAudio = false, interruptedPending = false, receivedAudioThisTurn = false;
-  let saveNudges = 0, reconnectAttempts = 0, resumeHandle = null;
+  let saveNudges = 0, reconnectAttempts = 0, resumeHandle = null, turnNudgeSent = false, memoryTextBuffer = '';
   let sessionId = 0, sessionLang = 'french', sessionMode = 'standard', sessionGlobalMem = '', sessionLangMem = '', sessionSystemText = '';
   let lessonStartedAtReal = 0, lessonEndsAt = 0;
 
@@ -3670,9 +3697,9 @@ ${langDirective}
     micLevel = event.data.rms;
     if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
 
-    // 1. Акустический буфер (cool-off) после речи репетитора: 600 мс тишины,
+    // 1. Акустический буфер (cool-off) после речи репетитора: 250 мс тишины,
     // чтобы эхо из динамика смартфона или первый вдох не сработали как начало ответа ученика
-    if (Date.now() - lastBotSpeechEndedAt < 600) return;
+    if (Date.now() - lastBotSpeechEndedAt < 250) return;
 
     let allowTransmission = true;
     if (currentAudioMode() === 'half') {
@@ -3681,11 +3708,10 @@ ${langDirective}
 
     if (!allowTransmission) return;
 
-    // 2. Шумоподавитель (Noise Gate): если в комнате тишина / дыхание (rms < 0.009),
-    // отправляем чистые нули (цифровую тишину), чтобы ASR Google не галлюцинировал арабскими/ивритскими символами
-    // и серверный VAD не прерывал урок ложным «ответом» ученика
+    // 2. Шумоподавитель (Noise Gate): отсекаем только фоновый шелест/дыхание (rms < 0.003),
+    // чтобы ASR Google не галлюцинировал арабскими/ивритскими символами, но не глушил тихую человеческую речь
     let pcmToSend = event.data.pcm;
-    if (event.data.rms < 0.009) {
+    if (event.data.rms < 0.003) {
       pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
     }
 
@@ -4067,6 +4093,7 @@ ${langDirective}
     if (isWaitingForResponse || isBotSpeaking) return;
 
     isWaitingForResponse = true;
+    turnNudgeSent = false;
     receivedAudioThisTurn = false;
     stopBotSpeech();
     btnEndTurn.style.display = 'none';
@@ -4148,6 +4175,7 @@ ${langDirective}
       isTimeWarningSent = false; isTimeWarningPending = false;
       suppressIncomingAudio = false; interruptedPending = false; receivedAudioThisTurn = false;
       saveNudges = 0; reconnectAttempts = 0; resumeHandle = null; captionNewTurn = true;
+      turnNudgeSent = false; memoryTextBuffer = '';
       capUser.textContent = ''; capTutor.textContent = ''; captionsUserScrolled = false; if (captionsBox) captionsBox.scrollTop = 0;
       stopBotSpeech();
       statsRow.style.display = 'none';
@@ -4180,7 +4208,7 @@ ${langDirective}
       tools: [{
         functionDeclarations: [{
           name: 'saveStudentProfile',
-          description: 'Сохранить профиль ученика в постоянную память. ВНИМАНИЕ: Вызывать ТОЛЬКО по системной команде завершения урока в самом конце! Во время урока вызов СТРОГО ЗАПРЕЩЕН.',
+          description: 'Сохранить накопительный профиль ученика в постоянную память при завершении урока или взаимном прощании в конце диалога (содержит global_memory и lang_memory).',
           parameters: {
             type: 'OBJECT',
             properties: {
@@ -4432,6 +4460,7 @@ ${langDirective}
           if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
+          turnNudgeSent = false;
           interruptedPending = false;
           receivedAudioThisTurn = true;
           isServerTurnActive = true;
@@ -4449,6 +4478,17 @@ ${langDirective}
       }
     }
 
+    if (isExtractingMemory && !memoryCommitted) {
+      if (sc && sc.modelTurn && sc.modelTurn.parts) {
+        for (const p of sc.modelTurn.parts) {
+          if (p.text) memoryTextBuffer += p.text + '\n';
+        }
+      }
+      if (sc && sc.outputTranscription && sc.outputTranscription.text) {
+        memoryTextBuffer += sc.outputTranscription.text + ' ';
+      }
+    }
+
     if (sc.generationComplete) {
       isServerTurnActive = false;
       checkBotSpeakingEnded();
@@ -4462,10 +4502,35 @@ ${langDirective}
       if (capUser) capUser.dataset.fresh = '1';
 
       clearTimeout(watchdogTimer);
-      // Если модель ничего не сказала (пустой ход или прерывание), возвращаем очередь ученику без зависания
+
+      // Если в режиме сохранения модель прислала текстовый отчет вместо tool call
+      if (isExtractingMemory && !memoryCommitted && memoryTextBuffer) {
+        if (/\[НАКОПИТЕЛЬНЫЙ СЛОВАРЬ\]/i.test(memoryTextBuffer) || /\[СЛОВАРЬ\]/i.test(memoryTextBuffer) || /\[ЖУРНАЛ УРОКОВ\]/i.test(memoryTextBuffer) || memoryTextBuffer.includes(' — ') || memoryTextBuffer.includes(' – ')) {
+          const ok = commitMemory({ lang_memory: memoryTextBuffer, global_memory: sessionGlobalMem || '' }, sessionLang);
+          if (ok) {
+            memoryCommitted = true;
+            scheduleFinishAfterSave();
+          }
+        }
+      }
+
+      // Если ученик закончил говорить и ждал ответа, но модель прислала пустой ход без звука
       if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
-        isWaitingForResponse = false;
-        setStatus(st('yourTurn'));
+        if (!turnNudgeSent) {
+          turnNudgeSent = true;
+          sendText(cfg.native === 'uk'
+            ? '[Учень очікує на твою відповідь. Будь ласка, дай відповідь учню голосом!]'
+            : '[Ученик ждёт твой ответ. Пожалуйста, ответь ученику голосом!]', true);
+          setStatus(st('thinking'));
+        } else {
+          turnNudgeSent = false;
+          isWaitingForResponse = false;
+          btnEndTurn.style.display = 'block';
+          if (turnHint) turnHint.style.display = 'block';
+          setStatus(st('yourTurn'));
+        }
+      } else {
+        turnNudgeSent = false;
       }
       receivedAudioThisTurn = false;
 
@@ -4492,6 +4557,7 @@ ${langDirective}
 
   function sendMemoryDirective() {
     if (!socket || socket.readyState !== WebSocket.OPEN || !isSetupComplete) return false;
+    memoryTextBuffer = '';
     setStatus(st('saving'));
     sendText(memoryPromptText(), true);
     armSaveTimeout(25000);   // было 7.5 с: при росте памяти модель просто не успевала «договорить» вызов функции
