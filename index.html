@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.46.0</title>
+  <title>AI Language Tutor v3.47.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -725,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.46.0';
+  const APP_VERSION = '3.47.0';
 
     const I18N = {
   "uk": {
@@ -2235,6 +2235,21 @@
   // Запись проверяется: при нехватке места или приватном режиме предупреждаем пользователя.
   function putWithRetry(k, v) { return store.set(k, v) || (store.remove(k + '__prev'), store.set(k, v)); }
 
+  function appendPhrasesToVocab(memText, phrases) {
+    if (!phrases || phrases.length === 0) return memText || '';
+    const text = (memText || '').trim();
+    if (!text || !text.includes(SEC_VOC)) {
+      return (text ? text + '\n\n' : '') + `${SEC_VOC}:\n` + phrases.join('\n');
+    }
+    const idx = text.indexOf(SEC_VOC);
+    const nextSec = text.indexOf('\n[', idx + SEC_VOC.length);
+    if (nextSec !== -1) {
+      return text.slice(0, nextSec).trimEnd() + '\n' + phrases.join('\n') + '\n\n' + text.slice(nextSec + 1).trimStart();
+    } else {
+      return text.trimEnd() + '\n' + phrases.join('\n');
+    }
+  }
+
   function commitMemory(rawArgs, lang) {
     let args = rawArgs;
     if (typeof args === 'string') {
@@ -2269,7 +2284,7 @@
       g = '';
     }
 
-    // Гарантия словаря: если модель сохранила архив языка без [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ] или пустой
+    // Гарантия словаря: если модель сохранила архив языка без [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ] или без текущей темы
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
     const rpProg = getRoleplayProgress(curMode, lang);
     const partNum = rpProg ? rpProg.partNumber : 1;
@@ -2283,8 +2298,14 @@
           const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
           return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
         });
+        const newPhrases = presets.filter(p => {
+          const foreign = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
+          return !voc.some(e => e.toLowerCase().includes(foreign));
+        });
         if (voc.length === 0) {
           l = l.trim() + `\n\n${SEC_VOC}:\n` + presets.join('\n');
+        } else if (newPhrases.length > 0) {
+          l = appendPhrasesToVocab(l, newPhrases);
         }
       }
     }
@@ -2816,21 +2837,31 @@
   }
 
   function ensureVocabPopulatedIfHasHistory() {
-    const words = extractHomeworkPhrases();
-    if (words.length > 0) return;
+    const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
+    const rpProg = getRoleplayProgress(curMode, cfg.lang);
+    const partNum = rpProg ? rpProg.partNumber : 1;
+    const presets = getSituationPresetPhrases(curMode, partNum, cfg.lang);
+    if (!presets || presets.length === 0) return;
+
     const raw = getLangMem(cfg.lang);
     const logs = readJSON('lesson_log', []);
     const hasHistory = (logs && logs.length > 0) || (raw && raw.trim().length > 0);
-    if (hasHistory) {
-      const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-      const rpProg = getRoleplayProgress(curMode, cfg.lang);
-      const partNum = rpProg ? rpProg.partNumber : 1;
-      const presets = getSituationPresetPhrases(curMode, partNum, cfg.lang);
-      if (presets && presets.length > 0) {
-        const note = `${SEC_LOG} (${todayStr()}): проведён урок.\n\n${SEC_VOC}:\n` + presets.join('\n');
-        store.set(memKey(cfg.lang), raw ? raw.trim() + '\n\n' + note : note);
-        refreshMemInfo();
-      }
+    if (!hasHistory) return;
+
+    const parsed = parseMem(raw);
+    const existing = (parsed[SEC_VOC] || []).filter(w => {
+      const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+      return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
+    });
+    const newPhrases = presets.filter(p => {
+      const foreign = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
+      return !existing.some(e => e.toLowerCase().includes(foreign));
+    });
+
+    if (newPhrases.length > 0) {
+      const updated = appendPhrasesToVocab(raw, newPhrases);
+      store.set(memKey(cfg.lang), updated);
+      refreshMemInfo();
     }
   }
 
@@ -3487,13 +3518,14 @@ ${genderDirective}
 ${startScenario}
 ЗАВЕРШЕНИЕ УРОКА (ИТОГ И МОСТИК НА БУДУЩЕЕ):
 КАТЕГОРИЧЕСКИЙ ЗАПРЕТ НА САМОВОЛЬНЫЙ ДОСРОЧНЫЙ ФИНАЛ:
-- Урок длится полное запланированное время (${cfg.minutes} мин). Категорически запрещено прощаться или объявлять финал самовольно! Финал наступает только когда от суфлёра поступит тихое указание о том, что время занятия на исходе.
-- Если фразы темы разобраны или сценка завершена раньше времени — ПРОДОЛЖАЙ ЗАНЯТИЕ: разыграй продолжение ситуации с новыми деталями или тренируй вариации фраз в живой беседе.
+- Урок длится полное запланированное время (${cfg.minutes} мин). У тебя НЕТ встроенных часов, поэтому тебе КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО самостоятельно решать, сколько прошло времени или что урок подходит к концу!
+- Категорически запрещено произносить: «наш урок подходит к концу», «время занятия выходит», «давай закрепим фразы» или переходить к итогам, пока от суфлёра не пришло прямое тихое сообщение «У нас осталось 2 минуты до конца занятия»!
+- Если фразы темы разобраны или сценка подошла к паузе — НЕ ЗАКАНЧИВАЙ УРОК! Продолжай ролевую сценку и живой диалог: официант/собеседник предлагает десерт, приносит напитки, интересуется впечатлениями, предлагает счёт, завязывает естественную беседу!
 - СУПЕР-ЗАПРЕТ НА ОЗВУЧИВАНИЕ СУФЛЁРСКИХ УКАЗАНИЙ И СКОБОК:
   Любое служебное сообщение в скобках ( ... ) или [ ... ] — это невидимая подсказка суфлёра за кадром.
-  Категорически запрещено произносить вслух, цитировать или упоминать слова «служебная команда», «системная подсказка», «время урока выходит», «указание суфлёра», «маркер», скобки или текст ремарки! Сразу говори живые слова диалога ученику от первого лица репетитора!
+  Категорически запрещено произносить вслух, цитировать или упоминать любые служебные термины или ремарки суфлёра! Сразу говори живые слова диалога ученику от первого лица репетитора!
 
-КОГДА СУФЛЁР СООБЩИЛ, ЧТО ВРЕМЯ ЗАНЯТИЯ НА ИСХОДЕ: действуй строго по шагам:
+ТОЛЬКО КОГДА СУФЛЁР СООБЩИЛ «У нас осталось 2 минуты до конца занятия»: действуй строго по шагам:
 1) Задай 3 контрольных вопроса по сегодняшнему материалу двусторонней методикой (строго по одному вопросу за ход, выслушивая ответ ученика):
    - Вопрос 1: в прямом направлении (с родного на ${langAdverb});
    - Вопрос 2: в прямом направлении (с родного на ${langAdverb});
@@ -3562,7 +3594,7 @@ ${startScenario}
      Ученик ОБЯЗАН сам произнести и отработать эту фразу на иностранном языке!
      СТРОЖАЙШИЙ ЗАПРЕТ: КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО сразу после перевода переспрашивать ученика «как ты это понимаешь?» или требовать перевод на родной язык! Ученик должен тренировать и повторять иностранную речь!
 
-ФАЗА 2: ЖИВАЯ СЦЕНКА В ПЕРСОНАЖАХ (вторая половина урока, ~7-8 минут):
+ФАЗА 2: ЖИВАЯ СЦЕНКА В ПЕРСОНАЖАХ (продолжается ВСЁ оставшееся время до сигнала суфлёра):
 3. ЯВНЫЙ ПЕРЕХОД К СЦЕНКЕ:
    Как только ключевые фразы обеих сторон разобраны, сделай плавный игровой переход:
    «Отлично, теперь мы полностью готовы! Давай разыграем живую сценку. Я буду ${rpRole}, а ты — клиент/пациент/гость. Приготовились... [сымитируй звонок или шаг: Дзынь-дзынь... / Стук в дверь...] Здравствуйте, слушаю вас!».
@@ -3570,6 +3602,10 @@ ${startScenario}
    - Общайся ТОЛЬКО в своей роли (${rpRole}). Задавай естественные вопросы по ситуации.
    - Живо и реалистично реагируй на ответы ученика.
    - Если ученик запинается или молчит — дай мягкую короткую подсказку шёпотом («Скажи: ...»), а затем продолжай диалог.
+5. НЕПРЕРЫВНОЕ РАЗВИТИЕ СЮЖЕТА (СТРОЖАЙШИЙ ЗАПРЕТ ВЫХОДИТЬ ИЗ РОЛИ РАНЬШЕ СИГНАЛА СУФЛЁРА):
+   - КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО завершать сценку после 2-3 реплик!
+   - Развивай сюжет дальше: предлагай блюда, уточняй заказ, советуй десерт или кофе, приноси счёт, разыгрывай продолжение вечера!
+   - Играй в роли до тех пор, пока от суфлёра не придёт тихое сообщение «У нас осталось 2 минуты до конца занятия»!
    - Во второй половине урока — НИКАКОЙ СУХОЙ ЗУБРЁЖКИ, ТОЛЬКО ЖИВОЙ ДИАЛОГ!======================================================`;
     } else if (cfg.mode && cfg.mode !== 'standard') {
       const modeDict = {
@@ -3613,16 +3649,16 @@ ${levelBlock}
    - ОБЯЗАТЕЛЬНАЯ ЖИВАЯ СЦЕНКА: После разбора фраз репетитор ОБЯЗАН объявить ролевую игру: «Отлично! А теперь давай закрепим эти фразы в живой сценке (в магазине / кафе / отеле). Я продавец, а ты покупатель. Bonjour, vous désirez ?».
    - Обязательно проведи полноценную сценку минимум на 4–6 реплик (по 2–3 реплики с каждой стороны)! Играй роль персонажа естественно, реагируй на реплики ученика. Не выходи из роли продавца/собеседника преждевременно!
 3. БЛОК 3 (ЗАКРЕПЛЕНИЕ, ИТОГИ, ДОМАШКА И ПРОЩАНИЕ): 
-   - СТРОГИЙ ЗАПРЕТ НА ПРЕЖДЕВРЕМЕННЫЙ ФИНАЛ: Переход к Блоку 3 (контрольной проверке и завершению) наступает СТРОГО после того, как полностью сыгран ролевой диалог Блока 2 И по времени урока осталось менее 2–3 минут (или поступило тихое указание суфлёра о финале времени)!
-   - Запрещено комкать урок и начинать проверку раньше времени. Урок длится полные ${cfg.minutes} минут!
+   - СТРОГИЙ ЗАПРЕТ НА САМОВОЛЬНЫЙ ПЕРЕХОД: Переход к Блоку 3 (проверке, итогам и прощанию) разрешён ТОЛЬКО И ИСКЛЮЧИТЕЛЬНО после получения прямого указания суфлёра «У нас осталось 2 минуты до конца занятия»!
+   - До сигнала суфлёра — НИКАКИХ ИТОГОВ! Запрещено комкать урок. Урок длится полные ${cfg.minutes} минут в режиме непрерывной живой практики!
 
 ГРАММАТИКА, АРТИКЛИ И СЕРИИ ТЕМ (ДЕЛЕНИЕ БОЛЬШИХ ТЕМ НА СЕРИЮ УРОКОВ):
 1. ГРАММАТИЧЕСКИЙ ФОКУС: Органично включай грамматику — особенно артикли, мужской и женский род существительных, предлоги и формы глаголов. Всегда обучай существительным С АРТИКЛЕМ, чтобы ученик сразу запоминал род!
 2. СЕРИИ СВЯЗНЫХ УРОКОВ: Большие темы (например, «Артикли и грамматический род», «Отель и номер», «Вокзал и билеты», «В ресторане», «У врача», «Покупки») РАЗБИВАЙ НА СЕРИЮ ИЗ 2–4 УРОКОВ. Не пытайся вывалить всю тему за один раз. Пройдите базовый слой, а на следующем уроке углубляйте эту же тему новыми деталями и фразами, опираясь на [НАКОПИТЕЛЬНУЮ ПАМЯТЬ ЯЗЫКА].
 
 ОБЪЕМ УРОКА — ${totalPhrases} ФРАЗ (СТРОЖАЙШИЙ ЗАПРЕТ НА РАННИЙ ФИНАЛ):
-1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО после изучения полноценного объема фраз, проведения ОБЯЗАТЕЛЬНОГО ролевого диалога Блока 2 И при тихом указании суфлёра о финале времени (менее 2–3 мин)!
-2. Категорически запрещено говорить фразы вроде «на этом всё», «заканчиваем», проводить проверочные вопросы финала посреди занятия, пока не сыграна живая сценка Блока 2 и не подошло основное время урока!
+1. Пункт «3. ЗАВЕРШЕНИЕ УРОКА» наступает СТРОГО И ИСКЛЮЧИТЕЛЬНО при получении сообщения от суфлёра «У нас осталось 2 минуты до конца занятия»!
+2. Категорически запрещено говорить фразы вроде «на этом всё», «заканчиваем», «время урока выходит», проводить проверочные вопросы финала посреди занятия, пока суфлёр не прислал сигнал финала!
 3. СТРОЖАЙШИЙ ЗАПРЕТ НА ПОВТОРЕНИЕ: Категорически запрещено брать слова из [НАКОПИТЕЛЬНОГО СЛОВАРЯ] или слова, которые ТОЛЬКО ЧТО проверялись на разминке текущего урока, и преподавать их заново под видом новых!
 4. ПРИНЦИП УГЛУБЛЕНИЯ ТЕМЫ: Обучай жизненным фразам и действиям. Не останавливайся на 2-3 словах — развивай диалог! Урок длится полные ${cfg.minutes} минут!
 
@@ -4430,18 +4466,21 @@ ${langDirective}
   function handleToolCalls(calls) {
     calls.forEach(call => {
       if (call.name === 'saveStudentProfile') {
-        const canSave = isExtractingMemory || isTimeWarningSent || (lessonStarted && (Date.now() - lessonStartedAtReal > 45000));
+        const canSave = isExtractingMemory || isTimeWarningSent;
         if (canSave && call.args) {
           const ok = commitMemory(call.args, sessionLang);
           if (ok) memoryCommitted = true;
           respondToToolCall(call, { status: ok ? 'success' : 'error', note: ok ? undefined : 'lang_memory пуст' });
           if (!isExtractingMemory) {
-            // Урок органично завершился чуть раньше таймера — завершаем урок штатно
+            // Урок органично завершился по сигналу времени — завершаем урок штатно
             stopSession(false);
           }
         } else {
-          console.warn('saveStudentProfile вызван в начале урока — проигнорирован');
-          respondToToolCall(call, { status: 'ignored', note: 'Не вызывай функцию во время урока. Продолжай урок.' });
+          console.warn('saveStudentProfile вызван до сигнала суфлёра — отклонён, урок продолжается');
+          respondToToolCall(call, { status: 'ignored', note: 'Урок в самом разгаре! Не завершай урок и не прощайся. Продолжай живой ролевой диалог и практику в ситуации!' });
+          sendText(cfg.native === 'uk'
+            ? '(Вказівка суфлера: не читай це вголос): До кінця уроку ще багато часу! Не прощайся і не підбивай підсумки. Продовжуй живий діалог у ситуації!'
+            : '(Указание суфлёра: не читай это вслух): До конца урока ещё много времени! Не прощайся и не подводи итоги. Продолжай живой ролевой диалог в ситуации!', false);
         }
       } else {
         respondToToolCall(call, { status: 'error', note: 'unknown function' });
@@ -4743,14 +4782,15 @@ ${langDirective}
     let note = `${SEC_LOG} (${todayStr()}): проведён урок (~${min} мин).`;
 
     // Если словарь пуст или новые слова не были зафиксированы ИИ, гарантируем наличие фраз темы для домашки
-    const rpProg = getRoleplayProgress(sessionMode, sessionLang);
+    const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
+    const rpProg = getRoleplayProgress(curMode, sessionLang);
     const partNum = rpProg ? rpProg.partNumber : 1;
-    const presetPhrases = getSituationPresetPhrases(sessionMode, partNum, sessionLang);
+    const presetPhrases = getSituationPresetPhrases(curMode, partNum, sessionLang);
     if (presetPhrases && presetPhrases.length > 0) {
       const existing = parseMem(old)[SEC_VOC] || [];
       const newPhrases = presetPhrases.filter(p => {
-        const foreign = p.split(/\s+[—–\-]\s+/)[0].trim();
-        return !existing.some(e => e.includes(foreign));
+        const foreign = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
+        return !existing.some(e => e.toLowerCase().includes(foreign));
       });
       if (newPhrases.length > 0) {
         note += `\n\n${SEC_VOC}:\n` + newPhrases.join('\n');
