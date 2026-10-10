@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.49.0</title>
+  <title>AI Language Tutor v3.50.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -725,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.49.0';
+  const APP_VERSION = '3.50.0';
 
     const I18N = {
   "uk": {
@@ -2390,6 +2390,7 @@
   let isSessionActive = false, isSetupComplete = false, isBotSpeaking = false, isServerTurnActive = false;
   let isExtractingMemory = false, isWaitingForResponse = false, isTimeWarningPending = false, isTimeWarningSent = false;
   let isFinalizing = false, isStopping = false;
+  let farewellStep = 0, farewellSilenceTimer = null;
   let lessonStarted = false, memoryCommitted = false, lessonLogged = false, finishScheduled = false;
   let suppressIncomingAudio = false, interruptedPending = false, receivedAudioThisTurn = false;
   let saveNudges = 0, reconnectAttempts = 0, resumeHandle = null, turnNudgeSent = false, memoryTextBuffer = '';
@@ -2594,32 +2595,34 @@
     const presets = {
       standard: {
         french: [
-          "Bonjour, comment allez-vous ? — Здравствуйте, как ваши дела?",
-          "Je voudrais acheter ceci, s'il vous plaît — Я хотел бы купить это, пожалуйста",
-          "Combien ça coûte ? — Сколько это стоит?",
-          "Où se trouve le magasin le plus proche ? — Где находится ближайший магазин?",
-          "Pouvez-vous répéter plus lentement ? — Можете повторить медленнее?",
-          "Je cherche du pain et du fromage — Я ищу хлеб и сыр",
-          "Je peux payer par carte ? — Я могу оплатить картой?",
-          "Merci beaucoup et bonne journée ! — Большое спасибо и хорошего дня!"
+          "C'est un livre très intéressant — Это очень интересная книга (артикль un)",
+          "J'aime la musique et le cinéma — Я люблю музыку и кино (артикли la / le)",
+          "Il y a des amis ici — Здесь есть друзья (артикль des)",
+          "Je parle avec le professeur — Я говорю с преподавателем (мужской род le)",
+          "Comment dit-on ceci en français ? — Как это сказать по-французски?",
+          "Pouvez-vous m'expliquer cette règle ? — Можете объяснить мне это правило?",
+          "C'est une excellente idée — Это отличная идея (женский род une)",
+          "Je voudrais poser une question — Я хотел бы задать вопрос"
         ],
         english: [
-          "Hello, how are you today? — Здравствуйте, как ваши дела?",
-          "I would like to buy this, please — Я хотел бы купить это, пожалуйста",
-          "How much does this cost? — Сколько это стоит?",
-          "Where is the nearest shop? — Где находится ближайший магазин?",
-          "Could you repeat that more slowly? — Можете повторить медленнее?",
-          "Can I pay by card? — Могу я оплатить картой?",
-          "Thank you very much, have a nice day! — Большое спасибо, хорошего дня!"
+          "This is a very interesting book — Это очень интересная книга",
+          "I like the music and the movie — Я люблю музыку и кино",
+          "There are some good friends here — Здесь есть хорошие друзья",
+          "I am speaking with the teacher — Я говорю с преподавателем",
+          "How do you say this in English? — Как это сказать по-английски?",
+          "Could you explain this grammar rule? — Можете объяснить мне это правило?",
+          "That is an excellent idea — Это отличная идея",
+          "I would like to ask a question — Я хотел бы задать вопрос"
         ],
         spanish: [
-          "Hola, ¿cómo está usted? — Здравствуйте, как ваши дела?",
-          "Quisiera comprar esto, por favor — Я хотел бы купить это, пожалуйста",
-          "¿Cuánto cuesta esto? — Сколько это стоит?",
-          "¿Dónde está la tienda más cercana? — Где ближайший магазин?",
-          "¿Puede repetir más despacio? — Можете повторить медленнее?",
-          "¿Puedo pagar con tarjeta? — Могу я оплатить картой?",
-          "¡Muchas gracias y buen día! — Большое спасибо и хорошего дня!"
+          "Este es un libro muy interesante — Это очень интересная книга",
+          "Me gusta la música y el cine — Я люблю музыку и кино",
+          "Hay unos amigos aquí — Здесь есть друзья",
+          "Hablo con el profesor — Я говорю с преподавателем",
+          "¿Cómo se dice esto en español? — Как это сказать по-испански?",
+          "¿Puede explicarme esta regla? — Можете объяснить мне это правило?",
+          "Es una excelente idea — Это отличная идея",
+          "Quisiera hacer una pregunta — Я хотел бы задать вопрос"
         ]
       },
       role_doctor: {
@@ -2654,22 +2657,100 @@
           "¿Es grave, doctor? — Это серьёзно, доктор?"
         ]
       },
-      role_restaurant: {
+      role_restaurant_1: {
         french: [
           "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
-          "La carte des vins et le menu, s'il vous plaît — Винную карту и меню, пожалуйста",
-          "Quel est le plat du jour aujourd'hui? — Какое сегодня блюдо дня?",
-          "Je voudrais commander une carafe d'eau — Я хотел бы заказать графин воды",
-          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
-          "C'est délicieux, mes compliments au chef! — Это очень вкусно, мои комплименты шефу!",
-          "L'addition, s'il vous plaît — Счёт, пожалуйста",
-          "Est-ce que le service est compris? — Обслуживание включено?"
+          "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
+          "Est-ce possible d'avoir une table près de la fenêtre ? — Можно столик у окна?",
+          "Une table en terrasse ou à l'intérieur ? — Столик на террасе или внутри?",
+          "Suivez-moi, s'il vous plaît — Следуйте за мной, пожалуйста",
+          "Je voudrais commander une carafe d'eau — Я хотел бы заказать графин воды"
         ],
         english: [
           "A table for two, please — Столик на двоих, пожалуйста",
+          "We have a reservation under the name Serge — У нас бронь на имя Серж",
+          "Could we have a table by the window? — Можно столик у окна?",
+          "Would you like to sit inside or on the terrace? — Желаете сесть внутри или на террасе?",
+          "Please follow me — Следуйте за мной, пожалуйста",
+          "I would like to order a bottle of water — Я хотел бы заказать бутылку воды"
+        ],
+        spanish: [
+          "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
+          "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
+          "¿Sería posible una mesa junto a la ventana? — Можно столик у окна?",
+          "¿Prefieren dentro o en la terraza? — Предпочитаете внутри или на террасе?",
+          "Síganme, por favor — Следуйте за мной, пожалуйста",
+          "Quisiera pedir una jarra de agua — Я хотел бы заказать графин воды"
+        ]
+      },
+      role_restaurant_2: {
+        french: [
+          "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
+          "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
+          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
+          "Qu'est-ce que vous nous recommandez ? — Что вы нам порекомендуете?",
+          "Une bouteille d'eau minérale, s'il vous plaît — Бутылку минеральной воды, пожалуйста",
+          "Quelle cuisson désirez-vous pour la viande ? — Какую прожарку мяса вы желаете?"
+        ],
+        english: [
           "Could we see the menu, please? — Можно меню, пожалуйста?",
           "What is the dish of the day? — Какое блюдо дня?",
-          "I would like to order a bottle of water — Я хотел бы заказать бутылку воды",
+          "I will have the grilled salmon, please — Я возьму лосось на гриле",
+          "What do you recommend? — Что вы порекомендуете?",
+          "A bottle of sparkling water, please — Бутылку газированной воды, пожалуйста",
+          "How would you like your steak cooked? — Какую прожарку мяса вы желаете?"
+        ],
+        spanish: [
+          "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
+          "¿Cuál es el plato del día? — Какое блюдо дня?",
+          "Para mí, el salmón a la plancha — Для меня лосось на гриле",
+          "¿Qué nos recomienda? — Что вы нам порекомендуете?",
+          "Una botella de agua mineral, por favor — Бутылку минеральной воды, пожалуйста",
+          "¿Cómo prefiere el punto de la carne? — Какую прожарку мяса вы желаете?"
+        ]
+      },
+      role_restaurant_3: {
+        french: [
+          "Pourriez-vous nous apporter un peu de pain ? — Не могли бы вы принести нам немного хлеба?",
+          "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
+          "Prendrez-vous un café ou un dessert ? — Возьмёте кофе или десерт?",
+          "L'addition, s'il vous plaît — Счёт, пожалуйста",
+          "Est-ce que le service est compris ? — Обслуживание включено?",
+          "Puis-je payer par carte bancaire ? — Могу я оплатить банковской картой?"
+        ],
+        english: [
+          "Could you bring us some bread, please? — Не могли бы вы принести нам хлеба?",
+          "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
+          "Would you like dessert or coffee? — Желаете десерт или кофе?",
+          "Could we have the bill, please? — Можно счёт, пожалуйста?",
+          "Is the service included? — Обслуживание включено?",
+          "Do you accept credit cards? — Вы принимаете банковские карты?"
+        ],
+        spanish: [
+          "¿Nos podría traer un poco de pan? — Не могли бы вы принести нам немного хлеба?",
+          "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
+          "¿Desean postre o café? — Желаете десерт или кофе?",
+          "La cuenta, por favor — Счёт, пожалуйста",
+          "¿Está incluido el servicio? — Обслуживание включено?",
+          "¿Puedo pagar con tarjeta de crédito? — Могу я оплатить кредитной картой?"
+        ]
+      },
+      role_restaurant: {
+        french: [
+          "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
+          "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
+          "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
+          "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
+          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
+          "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
+          "L'addition, s'il vous plaît — Счёт, пожалуйста",
+          "Est-ce que le service est compris ? — Обслуживание включено?"
+        ],
+        english: [
+          "A table for two, please — Столик на двоих, пожалуйста",
+          "We have a reservation under the name Serge — У нас бронь на имя Серж",
+          "Could we see the menu, please? — Можно меню, пожалуйста?",
+          "What is the dish of the day? — Какое блюдо дня?",
           "I will have the grilled salmon, please — Я возьму лосось на гриле",
           "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
           "Could we have the bill, please? — Можно счёт, пожалуйста?",
@@ -2677,9 +2758,9 @@
         ],
         spanish: [
           "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
+          "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
           "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
           "¿Cuál es el plato del día? — Какое блюдо дня?",
-          "Quisiera pedir una botella de agua — Я хотел бы заказать бутылку воды",
           "Para mí, el salmón a la plancha — Для меня лосось на гриле",
           "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
           "La cuenta, por favor — Счёт, пожалуйста",
@@ -2752,6 +2833,21 @@
       }
     };
     const ukMap = {
+      "Это очень интересная книга (артикль un)": "Це дуже цікава книга (артикль un)",
+      "Я люблю музыку и кино (артикли la / le)": "Я люблю музику та кіно (артиклі la / le)",
+      "Здесь есть друзья (артикль des)": "Тут є друзі (артикль des)",
+      "Я говорю с преподавателем (мужской род le)": "Я розмовляю з викладачем (чоловічий рід le)",
+      "Как это сказать по-французски?": "Як це сказати французькою?",
+      "Можете объяснить мне это правило?": "Чи можете пояснити мені це правило?",
+      "Это отличная идея (женский род une)": "Це чудова ідея (жіночий рід une)",
+      "Я хотел бы задать вопрос": "Я хотів би поставити запитання",
+      "Это очень интересная книга": "Це дуже цікава книга",
+      "Я люблю музыку и кино": "Я люблю музику та кіно",
+      "Здесь есть хорошие друзья": "Тут є хороші друзі",
+      "Я говорю с преподавателем": "Я розмовляю з викладачем",
+      "Как это сказать по-английски?": "Як це сказати англійською?",
+      "Это отличная идея": "Це чудова ідея",
+      "Как это сказать по-испански?": "Як це сказати іспанською?",
       "Здравствуйте, как ваши дела?": "Доброго дня, як ваші справи?",
       "Я хотел бы купить это, пожалуйста": "Я хотів би купити це, будь ласка",
       "Сколько это стоит?": "Скільки це коштує?",
@@ -2775,22 +2871,40 @@
       "Вот рецепт для аптеки": "Ось рецепт для аптеки",
       "Это серьёзно, доктор?": "Це серйозно, лікарю?",
       "Столик на двоих, пожалуйста": "Столик на двох, будь ласка",
+      "У нас бронь на имя Серж": "У нас бронь на ім'я Серж",
+      "Можно столик у окна?": "Чи можна столик біля вікна?",
+      "Столик на террасе или внутри?": "Столик на терасі чи всередині?",
+      "Желаете сесть внутри или на террасе?": "Бажаєте сісти всередині чи на терасі?",
+      "Предпочитаете внутри или на террасе?": "Віддаєте перевагу всередині чи на терасі?",
+      "Следуйте за мной, пожалуйста": "Ходімо зі мною, будь ласка",
+      "Я хотел бы заказать графин воды": "Я хотів би замовити графин води",
+      "Я хотел бы заказать бутылку воды": "Я хотів би замовити пляшку води",
+      "Меню, пожалуйста": "Меню, будь ласка",
       "Винную карту и меню, пожалуйста": "Винну карту та меню, будь ласка",
       "Можно меню, пожалуйста?": "Можна меню, будь ласка?",
       "Принесите нам меню, пожалуйста": "Принесіть нам меню, будь ласка",
       "Какое сегодня блюдо дня?": "Яка сьогодні страва дня?",
       "Какое блюдо дня?": "Яка страва дня?",
-      "Я хотел бы заказать графин воды": "Я хотів би замовити графин води",
-      "Я хотел бы заказать бутылку воды": "Я хотів би замовити пляшку води",
       "Для меня жареный лосось": "Для мене смажений лосось",
       "Я возьму лосось на гриле": "Я візьму лосось на грилі",
       "Для меня лосось на гриле": "Для мене лосось на грилі",
+      "Что вы нам порекомендуете?": "Що ви нам порекомендуєте?",
+      "Что вы порекомендуете?": "Що ви порекомендуєте?",
+      "Бутылку минеральной воды, пожалуйста": "Пляшку мінеральної води, будь ласка",
+      "Бутылку газированной воды, пожалуйста": "Пляшку газованої води, будь ласка",
+      "Какую прожарку мяса вы желаете?": "Яку прожарку м'яса ви бажаєте?",
+      "Не могли бы вы принести нам немного хлеба?": "Чи не могли б ви принести нам трохи хліба?",
+      "Не могли бы вы принести нам хлеба?": "Чи не могли б ви принести нам хліба?",
       "Это очень вкусно, мои комплименты шефу!": "Це дуже смачно, мої компліменти шефу!",
       "Очень вкусно, мои комплименты шефу!": "Дуже смачно, мої компліменти шефу!",
+      "Возьмёте кофе или десерт?": "Візьмете каву чи десерт?",
+      "Желаете десерт или кофе?": "Бажаєте десерт чи каву?",
       "Счёт, пожалуйста": "Рахунок, будь ласка",
       "Можно счёт, пожалуйста?": "Можна рахунок, будь ласка?",
       "Обслуживание включено?": "Обслуговування включено?",
+      "Могу я оплатить банковской картой?": "Чи можу я оплатити банківською карткою?",
       "Вы принимаете банковские карты?": "Ви приймаєте банківські картки?",
+      "Могу я оплатить кредитной картой?": "Чи можу я оплатити кредитною карткою?",
       "Можно оплатить картой?": "Чи можна оплатити карткою?",
       "Где находится стойка регистрации?": "Де знаходиться стійка реєстрації?",
       "Где стойка регистрации?": "Де стійка реєстрації?",
@@ -2823,7 +2937,13 @@
       "Большое спасибо за гостеприимство": "Дуже дякую за гостинність"
     };
 
-    const s = presets[mode];
+    let key = mode;
+    if (mode === 'role_restaurant') {
+      const p = partNum || 1;
+      key = `role_restaurant_${p}`;
+      if (!presets[key]) key = 'role_restaurant';
+    }
+    const s = presets[key] || presets[mode];
     const rawList = (s && s[l]) ? s[l] : ((presets.standard && presets.standard[l]) || presets.role_doctor.french);
     const isUk = (cfg.native === 'uk' || cfg.uiLang === 'uk');
     if (!isUk) return rawList;
@@ -2876,37 +2996,48 @@
     saveLessonPhrasesHistory(hist, l);
   }
 
+  function isStaleShopList(list) {
+    if (!Array.isArray(list) || list.length === 0) return false;
+    return list.some(p => typeof p === 'string' && /pain et du fromage|magasin|магазин|хлеб и сыр|acheter ceci|купить это|combien.*coûte|сколько.*стоит/i.test(p));
+  }
+
   function seedLessonPhrasesIfEmpty(lang = cfg.lang) {
-    const hist = getLessonPhrasesHistory(lang);
+    let hist = getLessonPhrasesHistory(lang);
+    if (hist && hist.length > 0) {
+      const cleanHist = hist.filter(item => !isStaleShopList(item.phrases));
+      if (cleanHist.length !== hist.length) {
+        hist = cleanHist;
+        saveLessonPhrasesHistory(hist, lang);
+      }
+    }
+
+    // Очищаем старые фразы магазина из памяти [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], если они там застряли от старого шаблона:
+    const memStr = getLangMem(lang);
+    if (memStr && /magasin|магазин|pain et du fromage|хлеб и сыр|acheter ceci|купить это/i.test(memStr)) {
+      const cleanedMem = memStr.split('\n').filter(line => !/magasin|магазин|pain et du fromage|хлеб и сыр|acheter ceci|купить это/i.test(line)).join('\n');
+      store.set(memKey(lang), cleanedMem);
+    }
+
     if (hist && hist.length > 0) return;
 
-    const raw = getLangMem(lang);
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
     let targetMode = (curMode && curMode !== 'standard' && curMode.startsWith('role_')) ? curMode : null;
-    if (!targetMode && raw && /ресторан|restaurant/i.test(raw)) {
+    if (!targetMode && memStr && /ресторан|restaurant/i.test(memStr)) {
       targetMode = 'role_restaurant';
     }
-    if (!targetMode) targetMode = curMode || 'role_restaurant';
+    if (!targetMode) targetMode = 'role_restaurant';
 
-    const rpProg = getRoleplayProgress(targetMode, lang);
-    const partNum = rpProg ? rpProg.partNumber : 1;
-    const allPresets = getSituationPresetPhrases(targetMode, partNum, lang);
+    const p1 = getSituationPresetPhrases(targetMode, 1, lang);
+    const p2 = getSituationPresetPhrases(targetMode, 2, lang);
 
-    if (allPresets && allPresets.length > 0) {
-      const mid = Math.ceil(allPresets.length / 2);
-      const lesson1 = allPresets.slice(0, mid);
-      const lesson2 = allPresets.slice(mid);
-      const initialHist = [];
-      if (lesson1.length > 0) {
-        initialHist.push({ t: Date.now() - 86400000, m: targetMode, phrases: lesson1 });
-      }
-      if (lesson2.length > 0) {
-        initialHist.push({ t: Date.now(), m: targetMode, phrases: lesson2 });
-      } else if (lesson1.length > 0) {
-        initialHist.push({ t: Date.now(), m: targetMode, phrases: lesson1 });
-      }
-      saveLessonPhrasesHistory(initialHist, lang);
+    const initialHist = [];
+    if (p1 && p1.length > 0) {
+      initialHist.push({ t: Date.now() - 86400000, m: targetMode, phrases: p1 });
     }
+    if (p2 && p2.length > 0) {
+      initialHist.push({ t: Date.now(), m: targetMode, phrases: p2 });
+    }
+    saveLessonPhrasesHistory(initialHist, lang);
   }
 
   function extractHomeworkPhrases(lang = cfg.lang) {
@@ -4198,6 +4329,8 @@ ${langDirective}
 
   // Страховка: сервер иногда не присылает turnComplete (или присылает с большой задержкой).
   // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
+  // Страховка: сервер иногда не присылает turnComplete (или присылает с большой задержкой).
+  // Если звук уже доиграл и новых порций нет — возвращаем слово ученику сами, иначе микрофон остаётся закрыт.
   function releaseBotIfStuck() {
     if (!isSessionActive || !isBotSpeaking) return;
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
@@ -4209,9 +4342,16 @@ ${langDirective}
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
 
-    if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
-      clearInterval(lessonTimerInterval);
-      setStatus(t('msgTimeDone'));
+    if (farewellStep === 1) {
+      farewellStep = 2;
+      clearTimeout(farewellSilenceTimer);
+      farewellSilenceTimer = setTimeout(() => {
+        if (isSessionActive && farewellStep === 2) stopSession(false);
+      }, 12000);
+    } else if (farewellStep >= 3) {
+      farewellStep = 4;
+      clearTimeout(farewellSilenceTimer);
+      suppressIncomingAudio = true;
       stopSession(false);
       return;
     }
@@ -4237,10 +4377,25 @@ ${langDirective}
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
 
-          // Репетитор только что закончил свою речь. Если основное время урока истекло — мягко завершаем!
-          if (lessonEndsAt && Date.now() >= lessonEndsAt && !isStopping && !isFinalizing) {
-            clearInterval(lessonTimerInterval);
-            setStatus(t('msgTimeDone'));
+          if (farewellStep === 1) {
+            farewellStep = 2;
+            clearTimeout(farewellSilenceTimer);
+            farewellSilenceTimer = setTimeout(() => {
+              if (isSessionActive && farewellStep === 2) stopSession(false);
+            }, 12000);
+            if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
+              btnEndTurn.style.display = 'block';
+              if (turnHint) turnHint.style.display = 'block';
+              setStatus(st('yourTurn'));
+              vibrate([50, 50, 50]);
+            }
+            return;
+          }
+
+          if (farewellStep >= 3) {
+            farewellStep = 4;
+            clearTimeout(farewellSilenceTimer);
+            suppressIncomingAudio = true;
             stopSession(false);
             return;
           }
@@ -4273,6 +4428,8 @@ ${langDirective}
     lessonEndsAt = Math.max(Date.now(), lessonEndsAt) + mins * 60 * 1000;
     isTimeWarningSent = false;
     isTimeWarningPending = false;
+    farewellStep = 0;
+    clearTimeout(farewellSilenceTimer);
     timerBadge.classList.remove('timer-warning');
     updateTimerBadge();
     toast(cfg.native === 'uk' ? `Урок продовжено на ${mins} хв!` : `Урок продлён на ${mins} мин!`, 4000);
@@ -4285,6 +4442,8 @@ ${langDirective}
   function startLessonTimer() {
     lessonEndsAt = Date.now() + cfg.minutes * 60 * 1000;
     isTimeWarningPending = false; isTimeWarningSent = false;
+    farewellStep = 0;
+    clearTimeout(farewellSilenceTimer);
     timerBadge.style.display = 'block';
     timerBadge.title = cfg.uiLang === 'uk' ? 'Натисніть, щоб продовжити урок на 15 хв' : 'Нажмите, чтобы продлить урок на 15 мин';
     progressPill.style.display = 'inline-block';
@@ -4324,11 +4483,14 @@ ${langDirective}
 
       if (r <= 0) {
         timerBadge.classList.add('timer-warning');
-        // Не обрываем репетитора посреди слова: даём договорить фразу и попрощаться (до 45 сек)
-        const isBusy = isBotSpeaking || isAudioStillPlaying() || isServerTurnActive || isWaitingForResponse;
+        if (!isTimeWarningSent && !isTimeWarningPending) {
+          sendAutomaticTimeWarning();
+        }
+        // Не обрываем репетитора посреди слова: даём договорить фразу и завершить прощание (до 90 сек)
+        const isBusy = isBotSpeaking || isAudioStillPlaying() || isServerTurnActive || isWaitingForResponse || farewellStep > 0;
         const overtimeSec = Math.floor((Date.now() - lessonEndsAt) / 1000);
 
-        if (isBusy && overtimeSec < 45) {
+        if (isBusy && overtimeSec < 90) {
           return;
         }
 
@@ -4344,12 +4506,14 @@ ${langDirective}
     timerBadge.style.display = 'none';
     progressPill.style.display = 'none';
     isTimeWarningPending = false;
+    clearTimeout(farewellSilenceTimer);
   }
 
   function sendAutomaticTimeWarning() {
     if (!socket || socket.readyState !== WebSocket.OPEN || !isSessionActive || !isSetupComplete || isExtractingMemory || isTimeWarningSent) return;
     isTimeWarningSent = true;
     isTimeWarningPending = false;
+    farewellStep = 1;
     sendText(timeWarningText(), true);
   }
 
@@ -4404,6 +4568,11 @@ ${langDirective}
   btnEndTurn.onclick = () => {
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
     if (isWaitingForResponse || isBotSpeaking) return;
+
+    if (farewellStep === 2) {
+      farewellStep = 3;
+      clearTimeout(farewellSilenceTimer);
+    }
 
     isWaitingForResponse = true;
     turnNudgeSent = false;
@@ -4486,6 +4655,7 @@ ${langDirective}
       isSessionActive = true; isSetupComplete = false; isExtractingMemory = false; isWaitingForResponse = false;
       isStopping = false; isFinalizing = false; lessonStarted = false; memoryCommitted = false; lessonLogged = false; finishScheduled = false;
       isTimeWarningSent = false; isTimeWarningPending = false;
+      farewellStep = 0; clearTimeout(farewellSilenceTimer);
       suppressIncomingAudio = false; interruptedPending = false; receivedAudioThisTurn = false;
       saveNudges = 0; reconnectAttempts = 0; resumeHandle = null; captionNewTurn = true;
       turnNudgeSent = false; memoryTextBuffer = '';
@@ -4672,6 +4842,10 @@ ${langDirective}
   }
 
   function pushCaption(kind, text) {
+    if (kind !== 'tutor' && farewellStep === 2) {
+      farewellStep = 3;
+      clearTimeout(farewellSilenceTimer);
+    }
     if (cfg.captions !== 'on') return;
     if (isExtractingMemory) return;          // пока идёт сохранение итогов — субтитры не нужны
     text = cleanCaption(text);
@@ -4763,7 +4937,13 @@ ${langDirective}
     if (calls && calls.length > 0) handleToolCalls(calls);
     if (!sc) return;
 
-    if (sc.inputTranscription && sc.inputTranscription.text) pushCaption('user', sc.inputTranscription.text);
+    if (sc.inputTranscription && sc.inputTranscription.text) {
+      if (farewellStep === 2) {
+        farewellStep = 3;
+        clearTimeout(farewellSilenceTimer);
+      }
+      pushCaption('user', sc.inputTranscription.text);
+    }
     if (sc.outputTranscription && sc.outputTranscription.text) pushCaption('tutor', sc.outputTranscription.text);
 
     // Сервер сообщил, что реплика прервана (наша «Я всё сказал» / ✋ / голос в режиме наушников)
@@ -4783,6 +4963,10 @@ ${langDirective}
       for (const part of sc.modelTurn.parts) {
         if (part.inlineData && part.inlineData.mimeType && part.inlineData.mimeType.startsWith('audio/pcm')) {
           if (isExtractingMemory || suppressIncomingAudio) continue;   // во время сохранения звук не нужен и не задерживает завершение
+          if (farewellStep === 2) {
+            farewellStep = 3;
+            clearTimeout(farewellSilenceTimer);
+          }
           clearTimeout(watchdogTimer);
           isWaitingForResponse = false;
           turnNudgeSent = false;
@@ -4894,6 +5078,7 @@ ${langDirective}
     isStopping = true;
     stopLessonTimer();
     clearTimeout(watchdogTimer);
+    clearTimeout(farewellSilenceTimer);
     btnAction.disabled = true;
     btnEndTurn.style.display = 'none';
     if (turnHint) turnHint.style.display = 'none';
@@ -4925,7 +5110,7 @@ ${langDirective}
     } else if (resumeHandle && lessonStarted) {
       armSaveTimeout(30000);   // соединение переподключается; директива уйдёт сразу после setupComplete
     } else {
-      finalizeStop(lessonStarted ? t('finNoConn') : t('finDone'));
+      finalizeStop(lessonStarted ? t('finSaved') : t('finDone'));
     }
   }
 
@@ -4974,6 +5159,7 @@ ${langDirective}
     isFinalizing = true;
     const mySession = sessionId;
     clearTimeout(saveTimeoutId); clearTimeout(connectTimer); clearTimeout(watchdogTimer); clearTimeout(reconnectTimer);
+    clearTimeout(farewellSilenceTimer);
     stopLessonTimer();
     releaseWakeLock();
     btnAction.disabled = true;
@@ -4986,8 +5172,10 @@ ${langDirective}
       const curWords = extractHomeworkPhrases();
       if (!memoryCommitted || curWords.length === 0) {
         addFallbackNote(sec);
+        memoryCommitted = true;
       }
       logLesson(memoryCommitted, sec);
+      if (sec >= 5) finalMessage = t('finSaved');
     }
 
     if (!isExtractingMemory && isAudioStillPlaying()) {
