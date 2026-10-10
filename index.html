@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.48.0</title>
+  <title>AI Language Tutor v3.49.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -725,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.48.0';
+  const APP_VERSION = '3.49.0';
 
     const I18N = {
   "uk": {
@@ -2320,6 +2320,36 @@
     if (writeFailed) toast(t('memWriteFail'), 8000);
     else if (shrunk) toast(t('memShrunk'), 6000);
     try { sessionStorage.removeItem('active_lesson_draft'); } catch (e) {}
+
+    // Фиксируем фразы текущего урока в истории уроков для домашнего задания и карточек
+    try {
+      const oldMem = getLangMem(lang);
+      const oldVoc = (parseMem(oldMem)[SEC_VOC] || []);
+      const newVoc = (parseMem(l)[SEC_VOC] || []);
+      const addedByAI = newVoc.filter(nw => {
+        const clean = nw.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+        return clean && !oldVoc.some(ow => ow.toLowerCase().includes(clean.toLowerCase().split(/\s+[—–\-]\s+/)[0]));
+      });
+
+      let lessonPhrases = [];
+      if (addedByAI.length > 0) {
+        lessonPhrases = [...addedByAI];
+        if (presets && presets.length > 0) {
+          presets.forEach(p => {
+            const f = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
+            if (!lessonPhrases.some(lp => lp.toLowerCase().includes(f))) {
+              lessonPhrases.push(p);
+            }
+          });
+        }
+      } else if (presets && presets.length > 0) {
+        lessonPhrases = [...presets];
+      }
+      if (lessonPhrases.length > 0) {
+        recordLessonPhrases(lang, curMode, lessonPhrases);
+      }
+    } catch (e) { console.warn('Record lesson phrases error', e); }
+
     refreshMemInfo();
     renderVocab();
     renderHomework();
@@ -2806,15 +2836,119 @@
     });
   }
 
-  function extractHomeworkPhrases() {
-    const mem = parseMem(getLangMem(cfg.lang));
+  function getLessonPhrasesHistory(lang = cfg.lang) {
+    const k = 'lesson_phrases_' + lang;
+    return readJSON(k, []);
+  }
+
+  function saveLessonPhrasesHistory(hist, lang = cfg.lang) {
+    const k = 'lesson_phrases_' + lang;
+    store.set(k, JSON.stringify((hist || []).slice(-20)));
+  }
+
+  function recordLessonPhrases(lang, mode, phrases) {
+    if (!phrases || phrases.length === 0) return;
+    const l = lang || cfg.lang;
+    const hist = getLessonPhrasesHistory(l);
+
+    const cleanPhrases = [];
+    const seen = new Set();
+    phrases.forEach(p => {
+      const clean = (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+      if (!clean || /^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(clean)) return;
+      if (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : ')) {
+        const foreign = clean.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
+        if (!seen.has(foreign)) {
+          seen.add(foreign);
+          cleanPhrases.push(clean);
+        }
+      }
+    });
+
+    if (cleanPhrases.length === 0) return;
+
+    hist.push({
+      t: Date.now(),
+      m: mode,
+      phrases: cleanPhrases
+    });
+
+    saveLessonPhrasesHistory(hist, l);
+  }
+
+  function seedLessonPhrasesIfEmpty(lang = cfg.lang) {
+    const hist = getLessonPhrasesHistory(lang);
+    if (hist && hist.length > 0) return;
+
+    const raw = getLangMem(lang);
+    const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
+    let targetMode = (curMode && curMode !== 'standard' && curMode.startsWith('role_')) ? curMode : null;
+    if (!targetMode && raw && /ресторан|restaurant/i.test(raw)) {
+      targetMode = 'role_restaurant';
+    }
+    if (!targetMode) targetMode = curMode || 'role_restaurant';
+
+    const rpProg = getRoleplayProgress(targetMode, lang);
+    const partNum = rpProg ? rpProg.partNumber : 1;
+    const allPresets = getSituationPresetPhrases(targetMode, partNum, lang);
+
+    if (allPresets && allPresets.length > 0) {
+      const mid = Math.ceil(allPresets.length / 2);
+      const lesson1 = allPresets.slice(0, mid);
+      const lesson2 = allPresets.slice(mid);
+      const initialHist = [];
+      if (lesson1.length > 0) {
+        initialHist.push({ t: Date.now() - 86400000, m: targetMode, phrases: lesson1 });
+      }
+      if (lesson2.length > 0) {
+        initialHist.push({ t: Date.now(), m: targetMode, phrases: lesson2 });
+      } else if (lesson1.length > 0) {
+        initialHist.push({ t: Date.now(), m: targetMode, phrases: lesson1 });
+      }
+      saveLessonPhrasesHistory(initialHist, lang);
+    }
+  }
+
+  function extractHomeworkPhrases(lang = cfg.lang) {
+    seedLessonPhrasesIfEmpty(lang);
+    const hist = getLessonPhrasesHistory(lang);
+
+    if (hist && hist.length > 0) {
+      // Берём фразы строго за последние ДВА урока (самый свежий и предпоследний)
+      const lastLesson = hist[hist.length - 1];
+      const prevLesson = hist.length > 1 ? hist[hist.length - 2] : null;
+
+      const result = [];
+      const seen = new Set();
+
+      const addPhrase = p => {
+        const clean = (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+        if (!clean || /^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(clean)) return;
+        const foreign = clean.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
+        if (!seen.has(foreign)) {
+          seen.add(foreign);
+          result.push(clean);
+        }
+      };
+
+      if (lastLesson && Array.isArray(lastLesson.phrases)) {
+        lastLesson.phrases.forEach(addPhrase);
+      }
+      if (prevLesson && Array.isArray(prevLesson.phrases)) {
+        prevLesson.phrases.forEach(addPhrase);
+      }
+
+      if (result.length > 0) return result;
+    }
+
+    const mem = parseMem(getLangMem(lang));
     let words = (mem[SEC_VOC] || []).filter(w => {
       const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
       return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
     });
 
     if (words.length === 0) {
-      const raw = getLangMem(cfg.lang);
+      const raw = getLangMem(lang);
       if (raw) {
         raw.split('\n').forEach(l => {
           const clean = l.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
@@ -2827,7 +2961,7 @@
       }
     }
 
-    return words;
+    return words.slice(-12).reverse();
   }
 
   function ensureVocabPopulatedIfHasHistory() {
@@ -2949,12 +3083,11 @@
     const hwList = $('homeworkList');
     if (!hwList) return;
     const words = extractHomeworkPhrases();
-    const recent = words.slice(-12).reverse();
-    if (recent.length === 0) {
+    if (words.length === 0) {
       hwList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 24px; text-align: center;">' + t('hwEmpty') + '</div>';
       return;
     }
-    hwList.innerHTML = recent.map(w => {
+    hwList.innerHTML = words.map(w => {
       const clean = w.replace(/^[-•*]\s*/, '');
       const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
       const foreign = parts[0] ? parts[0].trim() : clean;
@@ -2975,8 +3108,7 @@
 
   function initFlashcards() {
     const words = extractHomeworkPhrases();
-    const source = words.slice(-12).reverse();
-    flashcardList = source.map(w => {
+    flashcardList = words.map(w => {
       const clean = w.replace(/^[-•*]\s*/, '');
       const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
       const foreign = parts[0] ? parts[0].trim() : clean;
@@ -3550,8 +3682,17 @@ ${startScenario}
      Если это была финальная часть серии: поздравь с успешным завершением всего цикла ситуации!
      Запрещено задавать открытый вопрос «что бы ты хотел выучить» и тут же самому отвечать «отлично»!
    - ЕСЛИ СТАНДАРТНЫЙ УРОК: Кратко согласуй тему и тепло попрощайся: «До встречи на следующем уроке, ${L.farewell}».
-5) ПРОИЗНЕСИ ГОЛОСОМ теплую фразу прощания на изучаемом языке (${langAdverb}) и родном языке («До встречи, ${L.farewell}!») И В ЭТОМ ЖЕ ХОДЕ ОБЯЗАТЕЛЬНО ВЫЗОВИ функцию saveStudentProfile со всеми объединенными данными global_memory и lang_memory! Урок на этом полностью и штатно завершается.
-6) ЕСЛИ УЧЕНИК СКАЗАЛ В ОТВЕТ ПРОЩАЛЬНУЮ РЕПЛИКУ: скажи одно короткое теплое напутствие («À bientôt ! Bonne journée !» или «Хорошего дня!»). Ни в коем случае не начинай прощание или домашку по второму кругу!`;
+5) ШАГ 5 — ПЕРВОЕ ПРОЩАНИЕ (ПАУЗА ДЛЯ ОТВЕТА УЧЕНИКА, НЕ ВЫЗЫВАЙ saveStudentProfile!):
+   Произнеси теплую фразу первого прощания на изучаемом языке (${langAdverb}) и родном языке («До встречи на следующем уроке, ${L.farewell}!»).
+   СРАЗУ ПОСЛЕ ЭТИХ СЛОВ ПОЛНОСТЬЮ ЗАМОЛЧИ И ЖДИ ОТВЕТНОГО ПРОЩАНИЯ УЧЕНИКА!
+   КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО вызывать функцию saveStudentProfile на шаге 5! Обязательно дай ученику сказать ответное прощание.
+6) ШАГ 6 — ОТВЕТНОЕ НАПУТСТВИЕ И ШТАТНОЕ ЗАКРЫТИЕ УРОКА:
+   КОГДА УЧЕНИК ПРОИЗНЕСЁТ В ОТВЕТ СВОЁ ПРОЩАНИЕ («До свидания», «Au revoir», «Спасибо», «Хорошего дня»):
+   произнеси ОДНО короткое теплое пожелание («À bientôt ! Bonne journée !» или «Хорошего дня! До встречи!»)
+   И В ЭТОМ ЖЕ ХОДЕ ВЫЗОВИ функцию saveStudentProfile со всеми объединенными данными global_memory и lang_memory!
+   После этого финального пожелания больше не произноси ни одного слова — урок штатно завершен.
+7) ЕСЛИ УЧЕНИК МОЛЧИТ (прошло несколько секунд тишины после твоего первого прощания):
+   не повторяй прощание по второму кругу, просто скажи короткое напутствие («Хорошего дня! До встречи!») и вызови функцию saveStudentProfile.`;
 
     let settingLanguageDirective = '';
     if (cfg.native === 'ru') {
@@ -3706,8 +3847,8 @@ ${levelBlock}
   /* Все тексты суфлёрских реплик собраны в функции (оформлены как указания суфлёра, чтобы модель не читала их вслух) */
   function timeWarningText() {
     return cfg.native === 'uk'
-      ? '[SIGNAL_LESSON_FINISH] (Тиха вказівка суфлера: не читай цей маркер вголос, одразу говори від себе учневі): Час заняття добігає кінця. Проведи коротку перевірку 3 слів двосторонньою методикою, підведи підсумок, обов\'язково нагадай повторити фрази за кнопкою 📖 зі словником на головному екрані, анонсуй наступний урок та виголоси теплу фразу прощання. Коли учень відповість — тепло попрощайся і виклич функцію saveStudentProfile.'
-      : '[SIGNAL_LESSON_FINISH] (Тихое указание суфлёра: не читай этот маркер вслух, сразу говори от себя ученику): Время занятия подходит к концу. Проведи короткую проверку 3 слов двусторонней методикой, подведи итог, обязательно напомни повторить фразы по кнопке 📖 со словарём на главном экране, анонсируй следующий урок и произнеси тёплую фразу прощания. Когда ученик ответит — тепло попрощайся и вызови функцию saveStudentProfile.';
+      ? '[SIGNAL_LESSON_FINISH] (Тиха вказівка суфлера: не читай цей маркер вголос, одразу говори від себе учневі): Час заняття добігає кінця. Проведи коротку перевірку 3 слів двосторонньою методикою, підведи підсумок, обов\'язково нагадай повторити фрази за кнопкою 📖 зі словником на головному екрані, анонсуй наступний урок та виголоси перше прощання. ЗАМОВКНИ І ДОЧЕКАЙСЯ ПРОЩАННЯ ВІД УЧНЯ! Коли учень відповість — тепло скажи коротке напутнє побажання («Гарного дня! До зустрічі!») і виклич функцію saveStudentProfile.'
+      : '[SIGNAL_LESSON_FINISH] (Тихое указание суфлёра: не читай этот маркер вслух, сразу говори от себя ученику): Время занятия подходит к концу. Проведи короткую проверку 3 слов двусторонней методикой, подведи итог, обязательно напомни повторить фразы по кнопке 📖 со словарём на главном экране, анонсируй следующий урок и произнеси первое прощание. ЗАМОЛЧИ И ДОЖДИСЬ ПРОЩАНИЯ ОТ УЧЕНИКА! Когда ученик ответит — тепло скажи короткое напутственное пожелание («Хорошего дня! До встречи!») и вызови функцию saveStudentProfile.';
   }
 
   function startPromptText() {
@@ -4483,9 +4624,10 @@ ${langDirective}
           if (ok) memoryCommitted = true;
         }
         if (canFinish) {
-          respondToToolCall(call, { status: ok ? 'success' : 'error', note: ok ? undefined : 'lang_memory пуст' });
+          suppressIncomingAudio = true; // Защита: не давать модели начинать лишние реплики после сохранения
+          respondToToolCall(call, { status: ok ? 'success' : 'error', note: ok ? 'Урок завершён. Данные сохранены.' : 'lang_memory пуст' });
           if (!isExtractingMemory) {
-            // Урок органично завершился по сигналу времени — завершаем урок штатно
+            // Урок органично завершился после взаимного прощания — завершаем урок штатно
             stopSession(false);
           }
         } else {
@@ -4499,7 +4641,7 @@ ${langDirective}
         respondToToolCall(call, { status: 'error', note: 'unknown function' });
       }
     });
-    if ((isExtractingMemory || isTimeWarningSent) && memoryCommitted) scheduleFinishAfterSave();
+    if (isExtractingMemory && memoryCommitted) scheduleFinishAfterSave();
   }
 
   function scheduleFinishAfterSave() {
@@ -4810,6 +4952,7 @@ ${langDirective}
       } else if (curMode !== 'standard' && newPhrases.length > 0) {
         note += `\n\n${SEC_VOC}:\n` + newPhrases.join('\n');
       }
+      try { recordLessonPhrases(sessionLang, curMode, presetPhrases); } catch (e) {}
     }
     store.set(memKey(sessionLang), old ? old.trim() + '\n\n' + note : note);
     refreshMemInfo();
