@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.51.0</title>
+  <title>AI Language Tutor v3.50.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -725,7 +725,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.51.0';
+  const APP_VERSION = '3.50.0';
 
     const I18N = {
   "uk": {
@@ -1677,7 +1677,6 @@
 
   const LESSON_MODES = [
     { value: 'standard', labels: { uk: 'Стандартний курс', ru: 'Стандартный курс', en: 'Standard course', fr: 'Cours standard', es: 'Curso estándar' } },
-    { value: 'random', labels: { uk: '🎲 Випадкова тема (ситуація)', ru: '🎲 Случайная тема (ситуация)', en: '🎲 Random topic (situation)', fr: '🎲 Thème aléatoire (situation)', es: '🎲 Tema aleatorio (situación)' } },
     { value: 'small_talk', labels: { uk: 'Вільна розмова (Small Talk)', ru: 'Свободный разговор (Small Talk)', en: 'Free conversation (Small Talk)', fr: 'Conversation libre (Small Talk)', es: 'Conversación libre (Small Talk)' } },
     { value: 'role_restaurant', labels: { uk: 'Ситуація: У ресторані / кафе', ru: 'Ситуация: В ресторане / кафе', en: 'Situation: At restaurant / cafe', fr: 'Situation : Au restaurant / café', es: 'Situación: En el restaurante / cafetería' } },
     { value: 'role_airport', labels: { uk: 'Ситуація: Аеропорт / вокзал', ru: 'Ситуация: Аэропорт / вокзал', en: 'Situation: Airport / train station', fr: 'Situation : Aéroport / gare', es: 'Situación: Aeropuerto / estación de tren' } },
@@ -2441,8 +2440,7 @@
       role_museum: 'https://images.unsplash.com/photo-1565008447742-97f6f38c985c?auto=format&fit=crop&w=1280&q=70',
       role_culture: 'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?auto=format&fit=crop&w=1280&q=70'
     };
-    const activeMode = (isSessionActive && sessionMode) ? sessionMode : cfg.mode;
-    const bgUrl = MODE_BGS[activeMode] || L.bg;
+    const bgUrl = MODE_BGS[cfg.mode] || L.bg;
     const bgCss = bgUrl
       ? `linear-gradient(rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.90)), url('${bgUrl}')`
       : (L.grad || 'linear-gradient(160deg, #0f172a, #1e293b)');
@@ -2595,999 +2593,245 @@
   function getSituationPresetPhrases(mode, partNum, lang) {
     const l = lang || cfg.lang || 'french';
     const presets = {
-      "standard": {
-            "french": [
-                  "C'est un livre très intéressant — Это очень интересная книга (артикль un)",
-                  "J'aime la musique et le cinéma — Я люблю музыку и кино (артикли la / le)",
-                  "Il y a des amis ici — Здесь есть друзья (артикль des)",
-                  "Je parle avec le professeur — Я говорю с преподавателем (мужской род le)",
-                  "Comment dit-on ceci en français ? — Как это сказать по-французски?",
-                  "Pouvez-vous m'expliquer cette règle ? — Можете объяснить мне это правило?",
-                  "C'est une excellente idée — Это отличная идея (женский род une)",
-                  "Je voudrais poser une question — Я хотел бы задать вопрос"
-            ],
-            "english": [
-                  "This is a very interesting book — Это очень интересная книга",
-                  "I like the music and the movie — Я люблю музыку и кино",
-                  "There are some good friends here — Здесь есть хорошие друзья",
-                  "I am speaking with the teacher — Я говорю с преподавателем",
-                  "How do you say this in English? — Как это сказать по-английски?",
-                  "Could you explain this grammar rule? — Можете объяснить мне это правило?",
-                  "That is an excellent idea — Это отличная идея",
-                  "I would like to ask a question — Я хотел бы задать вопрос"
-            ],
-            "spanish": [
-                  "Este es un libro muy interesante — Это очень интересная книга",
-                  "Me gusta la música y el cine — Я люблю музыку и кино",
-                  "Hay unos amigos aquí — Здесь есть друзья",
-                  "Hablo con el profesor — Я говорю с преподавателем",
-                  "¿Cómo se dice esto en español? — Как это сказать по-испански?",
-                  "¿Puede explicarme esta regla? — Можете объяснить мне это правило?",
-                  "Es una excelente idea — Это отличная идея",
-                  "Quisiera hacer una pregunta — Я хотел бы задать вопрос"
-            ]
+      standard: {
+        french: [
+          "C'est un livre très intéressant — Это очень интересная книга (артикль un)",
+          "J'aime la musique et le cinéma — Я люблю музыку и кино (артикли la / le)",
+          "Il y a des amis ici — Здесь есть друзья (артикль des)",
+          "Je parle avec le professeur — Я говорю с преподавателем (мужской род le)",
+          "Comment dit-on ceci en français ? — Как это сказать по-французски?",
+          "Pouvez-vous m'expliquer cette règle ? — Можете объяснить мне это правило?",
+          "C'est une excellente idée — Это отличная идея (женский род une)",
+          "Je voudrais poser une question — Я хотел бы задать вопрос"
+        ],
+        english: [
+          "This is a very interesting book — Это очень интересная книга",
+          "I like the music and the movie — Я люблю музыку и кино",
+          "There are some good friends here — Здесь есть хорошие друзья",
+          "I am speaking with the teacher — Я говорю с преподавателем",
+          "How do you say this in English? — Как это сказать по-английски?",
+          "Could you explain this grammar rule? — Можете объяснить мне это правило?",
+          "That is an excellent idea — Это отличная идея",
+          "I would like to ask a question — Я хотел бы задать вопрос"
+        ],
+        spanish: [
+          "Este es un libro muy interesante — Это очень интересная книга",
+          "Me gusta la música y el cine — Я люблю музыку и кино",
+          "Hay unos amigos aquí — Здесь есть друзья",
+          "Hablo con el profesor — Я говорю с преподавателем",
+          "¿Cómo se dice esto en español? — Как это сказать по-испански?",
+          "¿Puede explicarme esta regla? — Можете объяснить мне это правило?",
+          "Es una excelente idea — Это отличная идея",
+          "Quisiera hacer una pregunta — Я хотел бы задать вопрос"
+        ]
       },
-      "small_talk": {
-            "french": [
-                  "Comment s'est passée votre journée aujourd'hui ? — Как прошёл ваш день сегодня?",
-                  "Il fait vraiment beau aujourd'hui, vous ne trouvez pas ? — Сегодня отличная погода, вам не кажется?",
-                  "Qu'avez-vous prévu pour le week-end prochain ? — Какие планы на следующие выходные?",
-                  "J'aime me promener au parc et lire un bon livre — Я люблю гулять в парке и читать хорошую книгу",
-                  "Avez-vous voyagé récemment dans un endroit sympa ? — Вы путешествовали недавно в приятное место?",
-                  "C'est toujours un plaisir de discuter avec vous — Всегда приятно пообщаться с вами"
-            ],
-            "english": [
-                  "How was your day today? — Как прошёл ваш день сегодня?",
-                  "The weather is lovely today, isn't it? — Прекрасная погода сегодня, не правда ли?",
-                  "What are your plans for the weekend? — Какие планы на выходные?",
-                  "I enjoy walking in the park and reading books — Я люблю гулять в парке и читать книги",
-                  "Have you travelled anywhere nice recently? — Вы путешествовали куда-нибудь в последнее время?",
-                  "It's always wonderful catching up with you — Всегда приятно пообщаться с вами"
-            ],
-            "spanish": [
-                  "¿Cómo ha ido tu día hoy? — Как прошёл твой день сегодня?",
-                  "Hace un tiempo estupendo hoy, ¿verdad? — Сегодня отличная погода, правда?",
-                  "¿Qué planes tienes para el fin de semana? — Какие планы на выходные?",
-                  "Me gusta pasear por el parque y leer un buen libro — Люблю гулять по парку и читать хорошую книгу",
-                  "¿Has viajado a algún lugar bonito últimamente? — Ты путешествовал куда-нибудь в последнее время?",
-                  "Siempre es un placer charlar contigo — Всегда приятно поболтать с тобой"
-            ]
+      role_doctor: {
+        french: [
+          "Je voudrais prendre rendez-vous avec un médecin — Я хотел бы записаться к врачу",
+          "Avez-vous une place libre aujourd'hui? — У вас есть свободное место на сегодня?",
+          "J'ai très mal à la tête et de la fièvre — У меня сильно болит голова и температура",
+          "Où avez-vous mal exactement? — Где именно у вас болит?",
+          "Depuis quand avez-vous ces symptômes? — С какого времени у вас эти симптомы?",
+          "Prenez ce médicament deux fois par jour — Принимайте это лекарство два раза в день",
+          "Voici l'ordonnance pour la pharmacie — Вот рецепт для аптеки",
+          "Est-ce que c'est grave, docteur? — Это серьёзно, доктор?"
+        ],
+        english: [
+          "I would like to make an appointment with a doctor — Я хотел бы записаться к врачу",
+          "Do you have any availability today? — У вас есть свободное время сегодня?",
+          "I have a bad headache and a fever — У меня сильно болит голова и температура",
+          "Where does it hurt exactly? — Где именно болит?",
+          "How long have you had these symptoms? — Как давно у вас эти симптомы?",
+          "Take this medicine twice a day — Принимайте это лекарство дважды в день",
+          "Here is the prescription for the pharmacy — Вот рецепт для аптеки",
+          "Is it serious, doctor? — Это серьёзно, доктор?"
+        ],
+        spanish: [
+          "Quisiera pedir cita con el médico — Я хотел бы записаться к врачу",
+          "¿Tiene hora libre hoy? — У вас есть свободное время сегодня?",
+          "Me duele mucho la cabeza y tengo fiebre — У меня сильно болит голова и температура",
+          "¿Dónde le duele exactamente? — Где именно у вас болит?",
+          "¿Desde cuándo tiene estos síntomas? — С какого времени у вас эти симптомы?",
+          "Tome este medicamento dos veces al día — Принимайте это лекарство два раза в день",
+          "Aquí tiene la receta para la farmacia — Вот рецепт для аптеки",
+          "¿Es grave, doctor? — Это серьёзно, доктор?"
+        ]
       },
-      "interview": {
-            "french": [
-                  "Parlez-moi de votre parcours professionnel — Расскажите о вашем профессиональном опыте",
-                  "Quels sont vos principaux points forts au travail ? — Каковы ваши главные сильные стороны в работе?",
-                  "Comment gérez-vous les situations de stress et les priorités ? — Как вы справляетесь со стрессом и приоритетами?",
-                  "Pourquoi souhaitez-vous rejoindre notre équipe ? — Почему вы хотите присоединиться к нашей команде?",
-                  "J'ai plusieurs années d'expérience en gestion de projet — У меня несколько лет опыта в управлении проектами",
-                  "Quelles sont les prochaines étapes du recrutement ? — Каковы следующие этапы отбора?"
-            ],
-            "english": [
-                  "Tell me about your professional background — Расскажите о вашем профессиональном опыте",
-                  "What are your greatest professional strengths? — Каковы ваши главные сильные стороны в работе?",
-                  "How do you handle high pressure and deadlines? — Как вы справляетесь с высоким давлением и дедлайнами?",
-                  "Why do you want to join our organization? — Почему вы хотите работать в нашей компании?",
-                  "I have several years of experience leading teams — У меня несколько лет опыта руководства командами",
-                  "What are the next steps in the interview process? — Каковы следующие шаги в процессе собеседования?"
-            ],
-            "spanish": [
-                  "Hábleme de su trayectoria profesional — Расскажите о вашем профессиональном опыте",
-                  "¿Cuáles son sus mayores fortalezas laborales? — Каковы ваши главные профессиональные сильные стороны?",
-                  "¿Cómo gestiona el estrés y los plazos de entrega? — Как вы справляетесь со стрессом и сроками сдачи?",
-                  "¿Por qué le gustaría incorporarse a nuestra empresa? — Почему вы хотите присоединиться к нашей компании?",
-                  "Tengo varios años de experiencia en gestión de equipos — У меня несколько лет опыта управления командами",
-                  "¿Cuáles son las siguientes etapas del proceso? — Каковы следующие этапы процесса отбора?"
-            ]
+      role_restaurant_1: {
+        french: [
+          "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
+          "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
+          "Est-ce possible d'avoir une table près de la fenêtre ? — Можно столик у окна?",
+          "Une table en terrasse ou à l'intérieur ? — Столик на террасе или внутри?",
+          "Suivez-moi, s'il vous plaît — Следуйте за мной, пожалуйста",
+          "Je voudrais commander une carafe d'eau — Я хотел бы заказать графин воды"
+        ],
+        english: [
+          "A table for two, please — Столик на двоих, пожалуйста",
+          "We have a reservation under the name Serge — У нас бронь на имя Серж",
+          "Could we have a table by the window? — Можно столик у окна?",
+          "Would you like to sit inside or on the terrace? — Желаете сесть внутри или на террасе?",
+          "Please follow me — Следуйте за мной, пожалуйста",
+          "I would like to order a bottle of water — Я хотел бы заказать бутылку воды"
+        ],
+        spanish: [
+          "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
+          "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
+          "¿Sería posible una mesa junto a la ventana? — Можно столик у окна?",
+          "¿Prefieren dentro o en la terraza? — Предпочитаете внутри или на террасе?",
+          "Síganme, por favor — Следуйте за мной, пожалуйста",
+          "Quisiera pedir una jarra de agua — Я хотел бы заказать графин воды"
+        ]
       },
-      "grammar": {
-            "french": [
-                  "Faites attention à l'accord du participe passé — Обратите внимание на согласование причастия",
-                  "Le subjonctif s'utilise après les verbes de volonté — Сослагательное наклонение используется после глаголов желания",
-                  "N'oubliez pas la négation en deux parties ne... pas — Не забывайте отрицание из двух частей ne... pas",
-                  "Quelle est la différence entre c'est et il est ? — В чём разница между c'est и il est?",
-                  "Le pronom complément se place avant le verbe — Местоимение-дополнение ставится перед глаголом",
-                  "Excellente réponse, la règle est bien comprise ! — Отличный ответ, правило усвоено верно!"
-            ],
-            "english": [
-                  "Pay attention to the difference between past simple and continuous — Обратите внимание на разницу времён",
-                  "Remember the third person singular -s in present simple — Помните об окончании -s в третьем лице",
-                  "We use 'since' for points in time and 'for' for duration — Используем since для момента времени и for для длительности",
-                  "Could you rephrase this using a conditional sentence? — Можете перефразировать это через условное предложение?",
-                  "The modal verb does not take 'to' in the infinitive — Модальный глагол не требует частицы to перед инфинитивом",
-                  "Great job, that grammar structure was perfect! — Отличная работа, грамматическая структура идеальна!"
-            ],
-            "spanish": [
-                  "Presta atención a la diferencia entre ser y estar — Обрати внимание на разницу между ser и estar",
-                  "El subjuntivo expresa deseo, duda o probabilidad — Сослагательное наклонение выражает желание, сомнение или вероятность",
-                  "Recuerda la concordancia de género y número del adjetivo — Помни о согласовании прилагательного в роде и числе",
-                  "¿Cómo se conjuga este verbo en pretérito indefinido? — Как спрягается этот глагол в прошедшем простом времени?",
-                  "Los pronombres de objeto van antes del verbo conjugado — Местоимения дополнения идут перед спрягаемым глаголом",
-                  "¡Excelente, has aplicado la regla a la perfección! — Отлично, ты применил правило идеально!"
-            ]
+      role_restaurant_2: {
+        french: [
+          "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
+          "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
+          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
+          "Qu'est-ce que vous nous recommandez ? — Что вы нам порекомендуете?",
+          "Une bouteille d'eau minérale, s'il vous plaît — Бутылку минеральной воды, пожалуйста",
+          "Quelle cuisson désirez-vous pour la viande ? — Какую прожарку мяса вы желаете?"
+        ],
+        english: [
+          "Could we see the menu, please? — Можно меню, пожалуйста?",
+          "What is the dish of the day? — Какое блюдо дня?",
+          "I will have the grilled salmon, please — Я возьму лосось на гриле",
+          "What do you recommend? — Что вы порекомендуете?",
+          "A bottle of sparkling water, please — Бутылку газированной воды, пожалуйста",
+          "How would you like your steak cooked? — Какую прожарку мяса вы желаете?"
+        ],
+        spanish: [
+          "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
+          "¿Cuál es el plato del día? — Какое блюдо дня?",
+          "Para mí, el salmón a la plancha — Для меня лосось на гриле",
+          "¿Qué nos recomienda? — Что вы нам порекомендуете?",
+          "Una botella de agua mineral, por favor — Бутылку минеральной воды, пожалуйста",
+          "¿Cómo prefiere el punto de la carne? — Какую прожарку мяса вы желаете?"
+        ]
       },
-      "role_restaurant_1": {
-            "french": [
-                  "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
-                  "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
-                  "Est-ce possible d'avoir une table près de la fenêtre ? — Можно столик у окна?",
-                  "Une table en terrasse ou à l'intérieur ? — Столик на террасе или внутри?",
-                  "Suivez-moi, s'il vous plaît — Следуйте за мной, пожалуйста",
-                  "Je voudrais commander une carafe d'eau — Я хотел бы заказать графин воды"
-            ],
-            "english": [
-                  "A table for two, please — Столик на двоих, пожалуйста",
-                  "We have a reservation under the name Serge — У нас бронь на имя Серж",
-                  "Could we have a table by the window? — Можно столик у окна?",
-                  "Would you like to sit inside or on the terrace? — Желаете сесть внутри или на террасе?",
-                  "Please follow me — Следуйте за мной, пожалуйста",
-                  "I would like to order a bottle of water — Я хотел бы заказать бутылку воды"
-            ],
-            "spanish": [
-                  "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
-                  "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
-                  "¿Sería posible una mesa junto a la ventana? — Можно столик у окна?",
-                  "¿Prefieren dentro o en la terraza? — Предпочитаете внутри или на террасе?",
-                  "Síganme, por favor — Следуйте за мной, пожалуйста",
-                  "Quisiera pedir una jarra de agua — Я хотел бы заказать графин воды"
-            ]
+      role_restaurant_3: {
+        french: [
+          "Pourriez-vous nous apporter un peu de pain ? — Не могли бы вы принести нам немного хлеба?",
+          "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
+          "Prendrez-vous un café ou un dessert ? — Возьмёте кофе или десерт?",
+          "L'addition, s'il vous plaît — Счёт, пожалуйста",
+          "Est-ce que le service est compris ? — Обслуживание включено?",
+          "Puis-je payer par carte bancaire ? — Могу я оплатить банковской картой?"
+        ],
+        english: [
+          "Could you bring us some bread, please? — Не могли бы вы принести нам хлеба?",
+          "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
+          "Would you like dessert or coffee? — Желаете десерт или кофе?",
+          "Could we have the bill, please? — Можно счёт, пожалуйста?",
+          "Is the service included? — Обслуживание включено?",
+          "Do you accept credit cards? — Вы принимаете банковские карты?"
+        ],
+        spanish: [
+          "¿Nos podría traer un poco de pan? — Не могли бы вы принести нам немного хлеба?",
+          "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
+          "¿Desean postre o café? — Желаете десерт или кофе?",
+          "La cuenta, por favor — Счёт, пожалуйста",
+          "¿Está incluido el servicio? — Обслуживание включено?",
+          "¿Puedo pagar con tarjeta de crédito? — Могу я оплатить кредитной картой?"
+        ]
       },
-      "role_restaurant_2": {
-            "french": [
-                  "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
-                  "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
-                  "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
-                  "Qu'est-ce que vous nous recommandez ? — Что вы нам порекомендуете?",
-                  "Une bouteille d'eau minérale, s'il vous plaît — Бутылку минеральной воды, пожалуйста",
-                  "Quelle cuisson désirez-vous pour la viande ? — Какую прожарку мяса вы желаете?"
-            ],
-            "english": [
-                  "Could we see the menu, please? — Можно меню, пожалуйста?",
-                  "What is the dish of the day? — Какое блюдо дня?",
-                  "I will have the grilled salmon, please — Я возьму лосось на гриле",
-                  "What do you recommend? — Что вы порекомендуете?",
-                  "A bottle of sparkling water, please — Бутылку газированной воды, пожалуйста",
-                  "How would you like your steak cooked? — Какую прожарку мяса вы желаете?"
-            ],
-            "spanish": [
-                  "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
-                  "¿Cuál es el plato del día? — Какое блюдо дня?",
-                  "Para mí, el salmón a la plancha — Для меня лосось на гриле",
-                  "¿Qué nos recomienda? — Что вы нам порекомендуете?",
-                  "Una botella de agua mineral, por favor — Бутылку минеральной воды, пожалуйста",
-                  "¿Cómo prefiere el punto de la carne? — Какую прожарку мяса вы желаете?"
-            ]
+      role_restaurant: {
+        french: [
+          "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
+          "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
+          "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
+          "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
+          "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
+          "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
+          "L'addition, s'il vous plaît — Счёт, пожалуйста",
+          "Est-ce que le service est compris ? — Обслуживание включено?"
+        ],
+        english: [
+          "A table for two, please — Столик на двоих, пожалуйста",
+          "We have a reservation under the name Serge — У нас бронь на имя Серж",
+          "Could we see the menu, please? — Можно меню, пожалуйста?",
+          "What is the dish of the day? — Какое блюдо дня?",
+          "I will have the grilled salmon, please — Я возьму лосось на гриле",
+          "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
+          "Could we have the bill, please? — Можно счёт, пожалуйста?",
+          "Do you accept credit cards? — Вы принимаете банковские карты?"
+        ],
+        spanish: [
+          "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
+          "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
+          "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
+          "¿Cuál es el plato del día? — Какое блюдо дня?",
+          "Para mí, el salmón a la plancha — Для меня лосось на гриле",
+          "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
+          "La cuenta, por favor — Счёт, пожалуйста",
+          "¿Se puede pagar con tarjeta? — Можно оплатить картой?"
+        ]
       },
-      "role_restaurant_3": {
-            "french": [
-                  "Pourriez-vous nous apporter un peu de pain ? — Не могли бы вы принести нам немного хлеба?",
-                  "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
-                  "Prendrez-vous un café ou un dessert ? — Возьмёте кофе или десерт?",
-                  "L'addition, s'il vous plaît — Счёт, пожалуйста",
-                  "Est-ce que le service est compris ? — Обслуживание включено?",
-                  "Puis-je payer par carte bancaire ? — Могу я оплатить банковской картой?"
-            ],
-            "english": [
-                  "Could you bring us some bread, please? — Не могли бы вы принести нам хлеба?",
-                  "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
-                  "Would you like dessert or coffee? — Желаете десерт или кофе?",
-                  "Could we have the bill, please? — Можно счёт, пожалуйста?",
-                  "Is the service included? — Обслуживание включено?",
-                  "Do you accept credit cards? — Вы принимаете банковские карты?"
-            ],
-            "spanish": [
-                  "¿Nos podría traer un poco de pan? — Не могли бы вы принести нам немного хлеба?",
-                  "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
-                  "¿Desean postre o café? — Желаете десерт или кофе?",
-                  "La cuenta, por favor — Счёт, пожалуйста",
-                  "¿Está incluido el servicio? — Обслуживание включено?",
-                  "¿Puedo pagar con tarjeta de crédito? — Могу я оплатить кредитной картой?"
-            ]
+      role_airport: {
+        french: [
+          "Où se trouve le comptoir d'enregistrement? — Где находится стойка регистрации?",
+          "Voici mon passeport et mon billet — Вот мой паспорт и билет",
+          "Je voudrais une place côté fenêtre — Я хотел бы место у окна",
+          "Combien de bagages en soute avez-vous? — Сколько мест багажа вы сдаете?",
+          "À quelle heure commence l'embarquement? — Во сколько начинается посадка?",
+          "Où se trouve la porte d'embarquement B12? — Где находится выход на посадку B12?",
+          "Mon vol a-t-il du retard? — Мой рейс задерживается?",
+          "Bon vol et bon voyage! — Приятного полёта и счастливого пути!"
+        ],
+        english: [
+          "Where is the check-in desk? — Где находится стойка регистрации?",
+          "Here is my passport and ticket — Вот мой паспорт и билет",
+          "I would prefer a window seat — Я предпочёл бы место у окна",
+          "How many bags are you checking in? — Сколько мест багажа вы сдаете?",
+          "What time does boarding start? — Во сколько начинается посадка?",
+          "Where is gate B12? — Где находится выход на посадку B12?",
+          "Is my flight delayed? — Мой рейс задерживается?",
+          "Have a great flight! — Приятного полёта!"
+        ],
+        spanish: [
+          "¿Dónde está el mostrador de facturación? — Где стойка регистрации?",
+          "Aquí tiene mi pasaporte y billete — Вот мой паспорт и билет",
+          "Prefiero un asiento de ventanilla — Я предпочитаю место у окна",
+          "¿Cuántas maletas va a facturar? — Сколько чемоданов вы сдаете?",
+          "¿A qué hora empieza el embarque? — Во сколько начинается посадка?",
+          "¿Dónde está la puerta de embarque B12? — Где выход на посадку B12?",
+          "¿Mi vuelo tiene retraso? — Мой рейс задерживается?",
+          "¡Buen vuelo y buen viaje! — Приятного полёта и хорошей поездки!"
+        ]
       },
-      "role_restaurant": {
-            "french": [
-                  "Une table pour deux personnes, s'il vous plaît — Столик на двоих, пожалуйста",
-                  "Nous avons une réservation au nom de Serge — У нас бронь на имя Серж",
-                  "La carte et le menu, s'il vous plaît — Меню, пожалуйста",
-                  "Quel est le plat du jour aujourd'hui ? — Какое сегодня блюдо дня?",
-                  "Pour moi, ce sera le saumon grillé — Для меня жареный лосось",
-                  "C'est délicieux, mes compliments au chef ! — Это очень вкусно, мои комплименты шефу!",
-                  "L'addition, s'il vous plaît — Счёт, пожалуйста",
-                  "Est-ce que le service est compris ? — Обслуживание включено?"
-            ],
-            "english": [
-                  "A table for two, please — Столик на двоих, пожалуйста",
-                  "We have a reservation under the name Serge — У нас бронь на имя Серж",
-                  "Could we see the menu, please? — Можно меню, пожалуйста?",
-                  "What is the dish of the day? — Какое блюдо дня?",
-                  "I will have the grilled salmon, please — Я возьму лосось на гриле",
-                  "It's delicious, my compliments to the chef! — Это очень вкусно, мои комплименты шефу!",
-                  "Could we have the bill, please? — Можно счёт, пожалуйста?",
-                  "Do you accept credit cards? — Вы принимаете банковские карты?"
-            ],
-            "spanish": [
-                  "Una mesa para dos, por favor — Столик на двоих, пожалуйста",
-                  "Tenemos una reserva a nombre de Serge — У нас бронь на имя Серж",
-                  "¿Nos trae la carta, por favor? — Принесите нам меню, пожалуйста",
-                  "¿Cuál es el plato del día? — Какое блюдо дня?",
-                  "Para mí, el salmón a la plancha — Для меня лосось на гриле",
-                  "¡Está riquísimo, felicitaciones al chef! — Очень вкусно, мои комплименты шефу!",
-                  "La cuenta, por favor — Счёт, пожалуйста",
-                  "¿Se puede pagar con tarjeta? — Можно оплатить картой?"
-            ]
-      },
-      "role_airport_1": {
-            "french": [
-                  "Où se trouve le comptoir d'enregistrement ? — Где находится стойка регистрации?",
-                  "Voici mon passeport et mon billet — Вот мой паспорт и билет",
-                  "Je voudrais une place côté fenêtre — Я хотел бы место у окна",
-                  "Combien de bagages en soute avez-vous ? — Сколько мест багажа вы сдаете?",
-                  "Posez votre valise sur le tapis, s'il vous plaît — Поставьте чемодан на весы, пожалуйста",
-                  "Voici votre carte d'embarquement — Вот ваш посадочный талон"
-            ],
-            "english": [
-                  "Where is the check-in desk? — Где находится стойка регистрации?",
-                  "Here is my passport and ticket — Вот мой паспорт и билет",
-                  "I would prefer a window seat — Я предпочёл бы место у окна",
-                  "How many bags are you checking in? — Сколько мест багажа вы сдаете?",
-                  "Please place your bag on the scale — Поставьте чемодан на весы, пожалуйста",
-                  "Here is your boarding pass — Вот ваш посадочный талон"
-            ],
-            "spanish": [
-                  "¿Dónde está el mostrador de facturación? — Где стойка регистрации?",
-                  "Aquí tiene mi pasaporte y billete — Вот мой паспорт и билет",
-                  "Prefiero un asiento de ventanilla — Я предпочитаю место у окна",
-                  "¿Cuántas maletas va a facturar? — Сколько чемоданов вы сдаете?",
-                  "Ponga su maleta en la báscula, por favor — Поставьте чемодан на весы, пожалуйста",
-                  "Aquí tiene su tarjeta de embarque — Вот ваш посадочный талон"
-            ]
-      },
-      "role_airport_2": {
-            "french": [
-                  "Où se trouve le contrôle de sécurité ? — Где находится зона досмотра?",
-                  "Enlevez votre ceinture et votre veste — Снимите ремень и куртку",
-                  "Sortez les ordinateurs et les liquides des sacs — Достаньте ноутбуки и жидкости из сумок",
-                  "Où se trouve la porte d'embarquement B12 ? — Где находится выход на посадку B12?",
-                  "À quelle heure commence l'embarquement ? — Во сколько начинается посадка?",
-                  "Mon vol a-t-il du retard ? — Мой рейс задерживается?"
-            ],
-            "english": [
-                  "Where is the security check? — Где находится зона досмотра?",
-                  "Please remove your belt and jacket — Снимите ремень и куртку",
-                  "Take laptops and liquids out of your bags — Достаньте ноутбуки и жидкости из сумок",
-                  "Where is gate B12? — Где находится выход на посадку B12?",
-                  "What time does boarding start? — Во сколько начинается посадка?",
-                  "Is my flight delayed? — Мой рейс задерживается?"
-            ],
-            "spanish": [
-                  "¿Dónde está el control de seguridad? — Где находится зона досмотра?",
-                  "Quítese el cinturón y la chaqueta, por favor — Снимите ремень и куртку",
-                  "Saque los portátiles y líquidos del bolso — Достаньте ноутбуки и жидкости из сумок",
-                  "¿Dónde está la puerta de embarque B12? — Где выход на посадку B12?",
-                  "¿A qué hora empieza el embarque? — Во сколько начинается посадка?",
-                  "¿Mi vuelo tiene retraso? — Мой рейс задерживается?"
-            ]
-      },
-      "role_airport_3": {
-            "french": [
-                  "Où puis-je ranger mon bagage à main ? — Где я могу разместить ручную кладь?",
-                  "Veuillez attacher votre ceinture de sécurité — Пожалуйста, пристегните ремень безопасности",
-                  "Pouvez-vous m'apporter un verre d'eau et une couverture ? — Не могли бы вы принести стакан воды и плед?",
-                  "Poulet ou poisson pour le déjeuner ? — Курица или рыба на обед?",
-                  "Quand allons-nous atterrir ? — Когда мы приземлимся?",
-                  "Bon voyage et bon séjour ! — Приятного путешествия и отличного отдыха!"
-            ],
-            "english": [
-                  "Where can I stow my hand luggage? — Где я могу разместить ручную кладь?",
-                  "Please fasten your seatbelt — Пожалуйста, пристегните ремень безопасности",
-                  "Could you bring me a glass of water and a blanket? — Не могли бы вы принести стакан воды и плед?",
-                  "Chicken or fish for lunch? — Курица или рыба на обед?",
-                  "What time are we landing? — Когда мы приземлимся?",
-                  "Have a safe flight and enjoy your trip! — Приятного путешествия и отличного отдыха!"
-            ],
-            "spanish": [
-                  "¿Dónde puedo colocar el equipaje de mano? — Где я могу разместить ручную кладь?",
-                  "Por favor, abróchense los cinturones de seguridad — Пожалуйста, пристегните ремень безопасности",
-                  "¿Podría traerme un vaso de agua y una manta? — Не могли бы вы принести стакан воды и плед?",
-                  "¿Pollo o pescado para el almuerzo? — Курица или рыба на обед?",
-                  "¿A qué hora aterrizaremos? — Когда мы приземлимся?",
-                  "¡Buen viaje y feliz estancia! — Приятного путешествия и отличного отдыха!"
-            ]
-      },
-      "role_airport": {
-            "french": [
-                  "Où se trouve le comptoir d'enregistrement ? — Где находится стойка регистрации?",
-                  "Voici mon passeport et mon billet — Вот мой паспорт и билет",
-                  "Je voudrais une place côté fenêtre — Я хотел бы место у окна",
-                  "Combien de bagages en soute avez-vous ? — Сколько мест багажа вы сдаете?",
-                  "À quelle heure commence l'embarquement ? — Во сколько начинается посадка?",
-                  "Où se trouve la porte d'embarquement B12 ? — Где находится выход на посадку B12?",
-                  "Mon vol a-t-il du retard ? — Мой рейс задерживается?",
-                  "Bon vol et bon voyage ! — Приятного полёта и счастливого пути!"
-            ],
-            "english": [
-                  "Where is the check-in desk? — Где находится стойка регистрации?",
-                  "Here is my passport and ticket — Вот мой паспорт и билет",
-                  "I would prefer a window seat — Я предпочёл бы место у окна",
-                  "How many bags are you checking in? — Сколько мест багажа вы сдаете?",
-                  "What time does boarding start? — Во сколько начинается посадка?",
-                  "Where is gate B12? — Где находится выход на посадку B12?",
-                  "Is my flight delayed? — Мой рейс задерживается?",
-                  "Have a great flight! — Приятного полёта!"
-            ],
-            "spanish": [
-                  "¿Dónde está el mostrador de facturación? — Где стойка регистрации?",
-                  "Aquí tiene mi pasaporte y billete — Вот мой паспорт и билет",
-                  "Prefiero un asiento de ventanilla — Я предпочитаю место у окна",
-                  "¿Cuántas maletas va a facturar? — Сколько чемоданов вы сдаете?",
-                  "¿A qué hora empieza el embarque? — Во сколько начинается посадка?",
-                  "¿Dónde está la puerta de embarque B12? — Где выход на посадку B12?",
-                  "¿Mi vuelo tiene retraso? — Мой рейс задерживается?",
-                  "¡Buen vuelo y buen viaje! — Приятного полёта и хорошей поездки!"
-            ]
-      },
-      "role_hotel_1": {
-            "french": [
-                  "Bonjour, j'ai une réservation au nom de Serge — Здравствуйте, у меня бронь на имя Серж",
-                  "Voici mon passeport et la confirmation — Вот мой паспорт и подтверждение",
-                  "Voici la clé de votre chambre au troisième étage — Вот ключ от вашего номера на третьем этаже",
-                  "À quelle heure est servi le petit-déjeuner ? — Во сколько подаётся завтрак?",
-                  "Le petit-déjeuner est de sept heures à dix heures — Завтрак с 7 до 10 утра",
-                  "Quel est le mot de passe du Wi-Fi ? — Какой пароль от Wi-Fi?"
-            ],
-            "english": [
-                  "Hello, I have a reservation under the name Serge — Здравствуйте, у меня бронь на имя Серж",
-                  "Here is my passport and confirmation — Вот мой паспорт и подтверждение",
-                  "Here is your room key on the third floor — Вот ключ от вашего номера на третьем этаже",
-                  "What time is breakfast served? — Во сколько подаётся завтрак?",
-                  "Breakfast is served from 7 to 10 am — Завтрак с 7 до 10 утра",
-                  "What is the Wi-Fi password? — Какой пароль от Wi-Fi?"
-            ],
-            "spanish": [
-                  "Hola, tengo una reserva a nombre de Serge — Здравствуйте, у меня бронь на имя Серж",
-                  "Aquí tiene mi pasaporte y la confirmación — Вот мой паспорт и подтверждение",
-                  "Aquí tiene la llave de su habitación en el tercer piso — Вот ключ от вашего номера на третьем этаже",
-                  "¿A qué hora se sirve el desayuno? — Во сколько подаётся завтрак?",
-                  "El desayuno es de 7 a 10 de la mañana — Завтрак с 7 до 10 утра",
-                  "¿Cuál es la contraseña del wifi? — Какой пароль от Wi-Fi?"
-            ]
-      },
-      "role_hotel_2": {
-            "french": [
-                  "La climatisation ne fonctionne pas bien — Кондиционер плохо работает",
-                  "Pourriez-vous m'apporter une serviette propre ? — Не могли бы вы принести чистое полотенце?",
-                  "Le technicien montera dans votre chambre dans dix minutes — Мастер поднимется в номер через 10 минут",
-                  "Pourriez-vous changer les draps, s'il vous plaît ? — Не могли бы вы поменять постельное бельё?",
-                  "Y a-t-il un fer à repasser disponible ? — Есть ли утюг?",
-                  "Toutes nos excuses pour ce désagrément — Приносим извинения за неудобства"
-            ],
-            "english": [
-                  "The air conditioning is not working properly — Кондиционер плохо работает",
-                  "Could you bring an extra clean towel, please? — Не могли бы вы принести чистое полотенце?",
-                  "The technician will come up in ten minutes — Мастер поднимется в номер через 10 минут",
-                  "Could you change the bed sheets, please? — Не могли бы вы поменять постельное бельё?",
-                  "Is there an iron available? — Есть ли утюг?",
-                  "We apologize for the inconvenience — Приносим извинения за неудобства"
-            ],
-            "spanish": [
-                  "El aire acondicionado no funciona bien — Кондиционер плохо работает",
-                  "¿Podría traerme una toalla limpia? — Не могли бы вы принести чистое полотенце?",
-                  "El técnico subirá a la habitación en diez minutos — Мастер поднимется в номер через 10 минут",
-                  "¿Podrían cambiar las sábanas, por favor? — Не могли бы вы поменять постельное бельё?",
-                  "¿Tienen una plancha disponible? — Есть ли утюг?",
-                  "Disculpen las molestias ocasionadas — Приносим извинения за неудобства"
-            ]
-      },
-      "role_hotel_3": {
-            "french": [
-                  "À quelle heure doit-on libérer la chambre ? — Во сколько нужно освободить номер?",
-                  "Je voudrais régler la note et faire le check-out — Я хотел бы оплатить счёт и выехать",
-                  "Avez-vous consommé des boissons du minibar ? — Пользовались ли вы мини-баром?",
-                  "Puis-je laisser mes valises à la bagagerie ? — Могу я оставить багаж в камере хранения?",
-                  "Pouvez-vous me commander un taxi pour l'aéroport ? — Можете вызвать мне такси в аэропорт?",
-                  "Merci pour votre accueil et bon retour ! — Спасибо за приём и счастливой дороги!"
-            ],
-            "english": [
-                  "What time is check-out? — Во сколько выезд из отеля?",
-                  "I would like to settle the bill and check out — Я хотел бы оплатить счёт и выехать",
-                  "Did you have anything from the minibar? — Пользовались ли вы мини-баром?",
-                  "Can I leave my bags in luggage storage? — Могу я оставить багаж в камере хранения?",
-                  "Could you call a taxi to the airport? — Можете вызвать мне такси в аэропорт?",
-                  "Thank you for staying with us, safe travels! — Спасибо за приём и счастливой дороги!"
-            ],
-            "spanish": [
-                  "¿A qué hora es la salida del hotel? — Во сколько выезд?",
-                  "Quisiera pagar la cuenta y hacer el check-out — Я хотел бы оплатить счёт и выехать",
-                  "¿Ha tomado algo del minibar? — Пользовались ли вы мини-баром?",
-                  "¿Puedo dejar el equipaje en consigna? — Могу я оставить багаж в камере хранения?",
-                  "¿Puede pedirme un taxi al aeropuerto? — Можете вызвать мне такси в аэропорт?",
-                  "¡Gracias por su visita y feliz regreso! — Спасибо за приём и счастливой дороги!"
-            ]
-      },
-      "role_hotel": {
-            "french": [
-                  "J'ai une réservation pour trois nuits — У меня бронь на три ночи",
-                  "À quelle heure est servi le petit-déjeuner ? — Во сколько подаётся завтрак?",
-                  "Quel est le mot de passe du Wi-Fi ? — Какой пароль от Wi-Fi?",
-                  "La climatisation ne fonctionne pas bien — Кондиционер плохо работает",
-                  "Pourriez-vous m'apporter une serviette propre ? — Не могли бы вы принести чистое полотенце?",
-                  "À quelle heure doit-on libérer la chambre ? — Во сколько нужно освободить номер?",
-                  "Pouvez-vous me commander un taxi pour la gare ? — Можете вызвать мне такси на вокзал?",
-                  "Merci pour votre accueil chaleureux — Спасибо за теплый приём"
-            ],
-            "english": [
-                  "I have a reservation for three nights — У меня бронь на три ночи",
-                  "What time is breakfast served? — Во сколько подаётся завтрак?",
-                  "What is the Wi-Fi password? — Какой пароль от Wi-Fi?",
-                  "The air conditioning is not working properly — Кондиционер плохо работает",
-                  "Could you bring an extra towel, please? — Принесите дополнительное полотенце, пожалуйста",
-                  "What time is check-out? — Во сколько выезд из отеля?",
-                  "Could you call a taxi for the station? — Можете вызвать такси на вокзал?",
-                  "Thank you for the warm hospitality — Спасибо за гостеприимство"
-            ],
-            "spanish": [
-                  "Tengo una reserva para tres noches — У меня бронь на три ночи",
-                  "¿A qué hora se sirve el desayuno? — Во сколько подаётся завтрак?",
-                  "¿Cuál es la contraseña del wifi? — Какой пароль от Wi-Fi?",
-                  "El aire acondicionado no funciona bien — Кондиционер плохо работает",
-                  "¿Podría traerme una toalla limpia? — Не могли бы вы принести чистое полотенце?",
-                  "¿A qué hora es la salida del hotel? — Во сколько выезд?",
-                  "¿Puede pedirme un taxi para la estación? — Можете вызвать мне такси на вокзал?",
-                  "Muchas gracias por su hospitalidad — Большое спасибо за гостеприимство"
-            ]
-      },
-      "role_doctor_1": {
-            "french": [
-                  "Je voudrais prendre rendez-vous avec un médecin — Я хотел бы записаться к врачу",
-                  "Avez-vous une place libre aujourd'hui ? — У вас есть свободное место на сегодня?",
-                  "C'est pour une consultation générale ou un spécialiste ? — Это к терапевту или специалисту?",
-                  "Préférez-vous le matin ou l'après-midi ? — Вы предпочитаете утро или вторую половину дня?",
-                  "Quel est votre nom de famille et téléphone ? — Ваша фамилия и номер телефона?",
-                  "Rendez-vous confirmé pour demain à dix heures — Приём подтверждён на завтра на 10 часов"
-            ],
-            "english": [
-                  "I would like to make an appointment with a doctor — Я хотел бы записаться к врачу",
-                  "Do you have any availability today? — У вас есть свободное время сегодня?",
-                  "Is it for general medicine or a specialist? — Это к терапевту или специалисту?",
-                  "Do you prefer morning or afternoon? — Вы предпочитаете утро или вторую половину дня?",
-                  "What is your full name and phone number? — Ваша фамилия и номер телефона?",
-                  "Your appointment is confirmed for tomorrow at 10 am — Приём подтверждён на завтра на 10 часов"
-            ],
-            "spanish": [
-                  "Quisiera pedir cita con el médico — Я хотел бы записаться к врачу",
-                  "¿Tiene hora libre hoy? — У вас есть свободное время сегодня?",
-                  "¿Es para medicina general o especialista? — Это к терапевту или специалисту?",
-                  "¿Prefiere por la mañana o por la tarde? — Вы предпочитаете утро или вторую половину дня?",
-                  "¿Cuál es su nombre y teléfono? — Ваша фамилия и номер телефона?",
-                  "Cita confirmada para mañana a las diez — Приём подтверждён на завтра на 10 часов"
-            ]
-      },
-      "role_doctor_2": {
-            "french": [
-                  "Bonjour, j'ai rendez-vous à dix heures avec le docteur — Здравствуйте, у меня приём в 10 часов у доктора",
-                  "Avez-vous votre carte vitale ou une assurance ? — У вас есть страховая карта или страховка?",
-                  "Veuillez remplir ce formulaire médical — Заполните эту медицинскую анкету",
-                  "La salle d'attente est au premier étage — Зал ожидания на первом этаже",
-                  "Le docteur va vous appeler dans un instant — Доктор вызовет вас через минуту",
-                  "Prenez place, s'il vous plaît — Присаживайтесь, пожалуйста"
-            ],
-            "english": [
-                  "Hello, I have an appointment at 10 am with the doctor — Здравствуйте, у меня приём в 10 часов у доктора",
-                  "Do you have your insurance card? — У вас есть страховая карта или страховка?",
-                  "Please fill out this medical form — Заполните эту медицинскую анкету",
-                  "The waiting room is on the first floor — Зал ожидания на первом этаже",
-                  "The doctor will call you in a moment — Доктор вызовет вас через минуту",
-                  "Please take a seat — Присаживайтесь, пожалуйста"
-            ],
-            "spanish": [
-                  "Hola, tengo cita a las diez con el médico — Здравствуйте, у меня приём в 10 часов у доктора",
-                  "¿Tiene tarjeta sanitaria o seguro médico? — У вас есть страховая карта или страховка?",
-                  "Por favor, rellene este formulario médico — Заполните эту медицинскую анкету",
-                  "La sala de espera está en la primera planta — Зал ожидания на первом этаже",
-                  "El doctor le llamará en un momento — Доктор вызовет вас через минуту",
-                  "Tome asiento, por favor — Присаживайтесь, пожалуйста"
-            ]
-      },
-      "role_doctor_3": {
-            "french": [
-                  "Où avez-vous mal exactement ? — Где именно у вас болит?",
-                  "J'ai très mal à la tête et de la fièvre — У меня сильно болит голова и температура",
-                  "Depuis quand avez-vous ces symptômes ? — С какого времени у вас эти симптомы?",
-                  "Respirez profondément et toussez — Дышите глубоко и покашляйте",
-                  "Je vais prendre votre tension artérielle — Я измерю ваше артериальное давление",
-                  "Est-ce que c'est grave, docteur ? — Это серьёзно, доктор?"
-            ],
-            "english": [
-                  "Where does it hurt exactly? — Где именно у вас болит?",
-                  "I have a bad headache and a fever — У меня сильно болит голова и температура",
-                  "How long have you had these symptoms? — С какого времени у вас эти симптомы?",
-                  "Take a deep breath and cough, please — Дышите глубоко и покашляйте",
-                  "I will check your blood pressure — Я измерю ваше артериальное давление",
-                  "Is it serious, doctor? — Это серьёзно, доктор?"
-            ],
-            "spanish": [
-                  "¿Dónde le duele exactamente? — Где именно у вас болит?",
-                  "Me duele mucho la cabeza y tengo fiebre — У меня сильно болит голова и температура",
-                  "¿Desde cuándo tiene estos síntomas? — С какого времени у вас эти симптомы?",
-                  "Respire hondo y tosa, por favor — Дышите глубоко и покашляйте",
-                  "Voy a medirle la tensión arterial — Я измерю ваше артериальное давление",
-                  "¿Es grave, doctor? — Это серьёзно, доктор?"
-            ]
-      },
-      "role_doctor_4": {
-            "french": [
-                  "Voici l'ordonnance de mon médecin — Вот рецепт от моего врача",
-                  "Prenez ce médicament deux fois par jour après les repas — Принимайте это лекарство два раза в день после еды",
-                  "Avez-vous quelque chose contre la toux et le mal de gorge ? — Есть ли у вас что-нибудь от кашля и боли в горле?",
-                  "Y a-t-il des effets secondaires ? — Есть ли побочные эффекты?",
-                  "Combien cela coûte-t-il au total ? — Сколько это стоит в общей сложности?",
-                  "Prenez soin de vous et bon rétablissement ! — Берегите себя и скорейшего выздоровления!"
-            ],
-            "english": [
-                  "Here is the prescription from my doctor — Вот рецепт от моего врача",
-                  "Take this medicine twice a day after meals — Принимайте это лекарство два раза в день после еды",
-                  "Do you have anything for cough and sore throat? — Есть ли у вас что-нибудь от кашля и боли в горле?",
-                  "Are there any side effects? — Есть ли побочные эффекты?",
-                  "How much does that cost in total? — Сколько это стоит в общей сложности?",
-                  "Take care and get well soon! — Берегите себя и скорейшего выздоровления!"
-            ],
-            "spanish": [
-                  "Aquí tiene la receta de mi médico — Вот рецепт от моего врача",
-                  "Tome este medicamento dos veces al día después de las comidas — Принимайте это лекарство два раза в день после еды",
-                  "¿Tiene algo para la tos y el dolor de garganta? — Есть ли у вас что-нибудь от кашля и боли в горле?",
-                  "¿Tiene efectos secundarios? — Есть ли побочные эффекты?",
-                  "¿Cuánto cuesta en total? — Сколько это стоит в общей сложности?",
-                  "¡Cuídese y pronta recuperación! — Берегите себя и скорейшего выздоровления!"
-            ]
-      },
-      "role_doctor": {
-            "french": [
-                  "Je voudrais prendre rendez-vous avec un médecin — Я хотел бы записаться к врачу",
-                  "Avez-vous une place libre aujourd'hui? — У вас есть свободное место на сегодня?",
-                  "J'ai très mal à la tête et de la fièvre — У меня сильно болит голова и температура",
-                  "Où avez-vous mal exactement? — Где именно у вас болит?",
-                  "Depuis quand avez-vous ces symptômes? — С какого времени у вас эти симптомы?",
-                  "Prenez ce médicament deux fois par jour — Принимайте это лекарство два раза в день",
-                  "Voici l'ordonnance pour la pharmacie — Вот рецепт для аптеки",
-                  "Est-ce que c'est grave, docteur? — Это серьёзно, доктор?"
-            ],
-            "english": [
-                  "I would like to make an appointment with a doctor — Я хотел бы записаться к врачу",
-                  "Do you have any availability today? — У вас есть свободное время сегодня?",
-                  "I have a bad headache and a fever — У меня сильно болит голова и температура",
-                  "Where does it hurt exactly? — Где именно болит?",
-                  "How long have you had these symptoms? — Как давно у вас эти симптомы?",
-                  "Take this medicine twice a day — Принимайте это лекарство дважды в день",
-                  "Here is the prescription for the pharmacy — Вот рецепт для аптеки",
-                  "Is it serious, doctor? — Это серьёзно, доктор?"
-            ],
-            "spanish": [
-                  "Quisiera pedir cita con el médico — Я хотел бы записаться к врачу",
-                  "¿Tiene hora libre hoy? — У вас есть свободное время сегодня?",
-                  "Me duele mucho la cabeza y tengo fiebre — У меня сильно болит голова и температура",
-                  "¿Dónde le duele exactamente? — Где именно у вас болит?",
-                  "¿Desde cuándo tiene estos síntomas? — С какого времени у вас эти симптомы?",
-                  "Tome este medicamento dos veces al día — Принимайте это лекарство два раза в день",
-                  "Aquí tiene la receta para la farmacia — Вот рецепт для аптеки",
-                  "¿Es grave, doctor? — Это серьёзно, доктор?"
-            ]
-      },
-      "role_cinema_1": {
-            "french": [
-                  "Deux places pour la séance de vingt heures, s'il vous plaît — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "Le film est en version originale sous-titrée ? — Фильм на языке оригинала с субтитрами?",
-                  "Il reste des places au milieu de la salle ? — Остались места в середине зала?",
-                  "Voici vos billets, c'est la salle numéro quatre — Вот ваши билеты, зал номер четыре",
-                  "Le film commence dans quinze minutes — Фильм начинается через пятнадцать минут",
-                  "Bonne séance à vous ! — Приятного просмотра!"
-            ],
-            "english": [
-                  "Two tickets for the eight pm screening, please — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "Is the movie in the original version with subtitles? — Фильм на языке оригинала с субтитрами?",
-                  "Are there seats available in the middle of the room? — Остались места в середине зала?",
-                  "Here are your tickets, auditorium number four — Вот ваши билеты, зал номер четыре",
-                  "The movie starts in fifteen minutes — Фильм начинается через пятнадцать минут",
-                  "Enjoy the movie! — Приятного просмотра!"
-            ],
-            "spanish": [
-                  "Dos entradas para la sesión de las ocho, por favor — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "¿La película es en versión original con subtítulos? — Фильм на языке оригинала с субтитрами?",
-                  "¿Quedan asientos en el centro de la sala? — Остались места в середине зала?",
-                  "Aquí tienen sus entradas, es la sala cuatro — Вот ваши билеты, зал номер четыре",
-                  "La película empieza en quince minutos — Фильм начинается через пятнадцать минут",
-                  "¡Que disfruten de la función! — Приятного просмотра!"
-            ]
-      },
-      "role_cinema_2": {
-            "french": [
-                  "Un grand popcorn sucré et un soda, s'il vous plaît — Большой сладкий попкорн и газировку, пожалуйста",
-                  "Préférez-vous le popcorn salé ou caramélisé ? — Вы предпочитаете солёный попкорн или карамельный?",
-                  "Avez-vous besoin de lunettes 3D ? — Вам нужны очки 3D?",
-                  "Puis-je avoir une bouteille d'eau sans gaz ? — Можно бутылку воды без газа?",
-                  "C'est payé par carte, merci beaucoup — Оплачено картой, большое спасибо",
-                  "Voici votre commande, attention c'est chaud — Вот ваш заказ, приятного просмотра"
-            ],
-            "english": [
-                  "A large sweet popcorn and a soda, please — Большой сладкий попкорн и газировку, пожалуйста",
-                  "Do you prefer salted or caramel popcorn? — Вы предпочитаете солёный попкорн или карамельный?",
-                  "Do you need 3D glasses? — Вам нужны очки 3D?",
-                  "Can I get a bottle of still water? — Можно бутылку воды без газа?",
-                  "Paid by card, thank you very much — Оплачено картой, большое спасибо",
-                  "Here is your order, enjoy the show — Вот ваш заказ, приятного просмотра"
-            ],
-            "spanish": [
-                  "Unas palomitas dulces grandes y un refresco, por favor — Большой сладкий попкорн и газировку, пожалуйста",
-                  "¿Prefiere palomitas saladas o acarameladas? — Вы предпочитаете солёный попкорн или карамельный?",
-                  "¿Necesitan gafas para 3D? — Вам нужны очки 3D?",
-                  "¿Me da una botella de agua sin gas? — Можно бутылку воды без газа?",
-                  "Pago con tarjeta, muchas gracias — Оплачено картой, большое спасибо",
-                  "Aquí tiene su pedido, que disfruten — Вот ваш заказ, приятного просмотра"
-            ]
-      },
-      "role_cinema_3": {
-            "french": [
-                  "Alors, qu'est-ce que tu as pensé du film ? — Ну, как тебе фильм?",
-                  "J'ai adoré le jeu des acteurs et la musique — Мне очень понравилась игра актёров и музыка",
-                  "La fin était totalement inattendue ! — Концовка была абсолютно неожиданной!",
-                  "Le scénario était un peu trop prévisible — Сценарий был немного предсказуемым",
-                  "Quelle note tu donnerais sur dix ? — Какую оценку из десяти ты бы поставил?",
-                  "Je le recommande vivement à tout le monde — Я очень рекомендую его всем"
-            ],
-            "english": [
-                  "So, what did you think of the movie? — Ну, как тебе фильм?",
-                  "I loved the acting and the soundtrack — Мне очень понравилась игра актёров и музыка",
-                  "The ending was completely unexpected! — Концовка была абсолютно неожиданной!",
-                  "The plot was a bit too predictable — Сценарий был немного предсказуемым",
-                  "What rating would you give it out of ten? — Какую оценку из десяти ты бы поставил?",
-                  "I highly recommend it to everyone — Я очень рекомендую его всем"
-            ],
-            "spanish": [
-                  "¿Qué te ha parecido la película? — Ну, как тебе фильм?",
-                  "Me encantaron los actores y la banda sonora — Мне очень понравилась игра актёров и музыка",
-                  "¡El final fue totalmente inesperado! — Концовка была абсолютно неожиданной!",
-                  "El guión era un poco predecible — Сценарий был немного предсказуемым",
-                  "¿Qué nota le darías sobre diez? — Какую оценку из десяти ты бы поставил?",
-                  "La recomiendo sin duda a todo el mundo — Я очень рекомендую его всем"
-            ]
-      },
-      "role_cinema": {
-            "french": [
-                  "Deux places pour la séance de vingt heures, s'il vous plaît — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "Le film est en version originale sous-titrée ? — Фильм на языке оригинала с субтитрами?",
-                  "Un grand popcorn sucré et un soda, s'il vous plaît — Большой сладкий попкорн и газировку, пожалуйста",
-                  "Avez-vous besoin de lunettes 3D ? — Вам нужны очки 3D?",
-                  "J'ai adoré le jeu des acteurs et la musique — Мне очень понравилась игра актёров и музыка",
-                  "Je le recommande vivement à tout le monde — Я очень рекомендую его всем"
-            ],
-            "english": [
-                  "Two tickets for the eight pm screening, please — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "Is the movie in the original version with subtitles? — Фильм на языке оригинала с субтитрами?",
-                  "A large sweet popcorn and a soda, please — Большой сладкий попкорн и газировку, пожалуйста",
-                  "Do you need 3D glasses? — Вам нужны очки 3D?",
-                  "I loved the acting and the soundtrack — Мне очень понравилась игра актёров и музыка",
-                  "I highly recommend it to everyone — Я очень рекомендую его всем"
-            ],
-            "spanish": [
-                  "Dos entradas para la sesión de las ocho, por favor — Два билета на сеанс в двадцать часов, пожалуйста",
-                  "¿La película es en versión original con subtítulos? — Фильм на языке оригинала с субтитрами?",
-                  "Unas palomitas dulces grandes y un refresco, por favor — Большой сладкий попкорн и газировку, пожалуйста",
-                  "¿Necesitan gafas para 3D? — Вам нужны очки 3D?",
-                  "Me encantaron los actores y la banda sonora — Мне очень понравилась игра актёров и музыка",
-                  "La recomiendo sin duda a todo el mundo — Я очень рекомендую его всем"
-            ]
-      },
-      "role_party_1": {
-            "french": [
-                  "Merci beaucoup pour l'invitation, voici une bouteille pour toi ! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "Entre, fais comme chez toi ! — Проходи, чувствуй себя как дома!",
-                  "Je te présente mon ami Serge — Познакомься, это мой друг Серж",
-                  "Enchanté de faire votre connaissance ! — Очень приятно познакомиться!",
-                  "Tu connais déjà du monde ici ? — Ты уже знаешь кого-нибудь здесь?",
-                  "L'appartement est vraiment magnifique — Квартира действительно великолепная"
-            ],
-            "english": [
-                  "Thanks so much for inviting me, here is a bottle for you! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "Come in, make yourself at home! — Проходи, чувствуй себя как дома!",
-                  "Let me introduce my friend Serge — Познакомься, это мой друг Серж",
-                  "Delighted to meet you! — Очень приятно познакомиться!",
-                  "Do you already know anyone here? — Ты уже знаешь кого-нибудь здесь?",
-                  "The apartment is really wonderful — Квартира действительно великолепная"
-            ],
-            "spanish": [
-                  "¡Muchas gracias por invitarme, traje una botella para ti! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "¡Adelante, siéntete como en tu casa! — Проходи, чувствуй себя как дома!",
-                  "Te presento a mi amigo Serge — Познакомься, это мой друг Серж",
-                  "¡Encantado de conocerte! — Очень приятно познакомиться!",
-                  "¿Conoces a alguien más aquí? — Ты уже знаешь кого-нибудь здесь?",
-                  "El apartamento es verdaderamente precioso — Квартира действительно великолепная"
-            ]
-      },
-      "role_party_2": {
-            "french": [
-                  "Qu'est-ce que tu veux boire ? Il y a du vin et du jus — Что ты хочешь выпить? Есть вино и сок",
-                  "Ce plat est absolument délicieux, qui l'a préparé ? — Это блюдо восхитительно, кто его приготовил?",
-                  "Tu travailles dans quel domaine ? — В какой сфере ты работаешь?",
-                  "Comment as-tu rencontré notre hôte ? — Как ты познакомился с нашим хозяином?",
-                  "J'adore cette chanson, elle met une super ambiance — Обожаю эту песню, отличная атмосфера",
-                  "Santé à tous et bonne soirée ! — Ваше здоровье и хорошего вечера!"
-            ],
-            "english": [
-                  "What would you like to drink? There is wine and juice — Что ты хочешь выпить? Есть вино и сок",
-                  "This dish is absolutely delicious, who made it? — Это блюдо восхитительно, кто его приготовил?",
-                  "What field do you work in? — В какой сфере ты работаешь?",
-                  "How did you meet our host? — Как ты познакомился с нашим хозяином?",
-                  "I love this song, great party vibe — Обожаю эту песню, отличная атмосфера",
-                  "Cheers everyone and have a wonderful evening! — Ваше здоровье и хорошего вечера!"
-            ],
-            "spanish": [
-                  "¿Qué te apetece beber? Hay vino y zumo — Что ты хочешь выпить? Есть вино и сок",
-                  "Este plato está riquísimo, ¿quién lo preparó? — Это блюдо восхитительно, кто его приготовил?",
-                  "¿En qué sector trabajas? — В какой сфере ты работаешь?",
-                  "¿Cómo conociste a nuestro anfitrión? — Как ты познакомился с нашим хозяином?",
-                  "Me fascina esta canción, da un ambiente genial — Обожаю эту песню, отличная атмосфера",
-                  "¡Salud a todos y feliz velada! — Ваше здоровье и хорошего вечера!"
-            ]
-      },
-      "role_party_3": {
-            "french": [
-                  "J'ai passé une excellente soirée avec vous — Я провёл отличный вечер с вами",
-                  "Est-ce qu'on peut s'échanger nos numéros ou Instagram ? — Можно обменяться номерами или Инстаграмом?",
-                  "On devrait se revoir pour prendre un café — Нам стоит увидеться и выпить кофе",
-                  "Merci encore pour cette belle fête ! — Ещё раз спасибо за прекрасный праздник!",
-                  "Rentre bien et fais attention sur la route — Добирайся хорошо и осторожно на дороге",
-                  "À très bientôt, c'était un plaisir ! — До скорой встречи, было очень приятно!"
-            ],
-            "english": [
-                  "I had a fantastic evening with everyone — Я провёл отличный вечер с вами",
-                  "Could we swap phone numbers or Instagram? — Можно обменяться номерами или Инстаграмом?",
-                  "We should get together for coffee sometime — Нам стоит увидеться и выпить кофе",
-                  "Thanks again for such a great party! — Ещё раз спасибо за прекрасный праздник!",
-                  "Have a safe trip home! — Добирайся хорошо и осторожно на дороге",
-                  "See you soon, it was a real pleasure! — До скорой встречи, было очень приятно!"
-            ],
-            "spanish": [
-                  "He pasado una noche estupenda con todos — Я провёл отличный вечер с вами",
-                  "¿Podemos intercambiar teléfonos o Instagram? — Можно обменяться номерами или Инстаграмом?",
-                  "Deberíamos vernos pronto para tomar un café — Нам стоит увидеться и выпить кофе",
-                  "¡Gracias otra vez por esta fiesta maravillosa! — Ещё раз спасибо за прекрасный праздник!",
-                  "¡Buen regreso a casa y cuidado en el camino! — Добирайся хорошо и осторожно на дороге",
-                  "¡Hasta muy pronto, ha sido un placer! — До скорой встречи, было очень приятно!"
-            ]
-      },
-      "role_party": {
-            "french": [
-                  "Merci beaucoup pour l'invitation, voici une bouteille pour toi ! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "Entre, fais comme chez toi ! — Проходи, чувствуй себя как дома!",
-                  "Enchanté de faire votre connaissance ! — Очень приятно познакомиться!",
-                  "Ce plat est absolument délicieux, qui l'a préparé ? — Это блюдо восхитительно, кто его приготовил?",
-                  "On devrait se revoir pour prendre un café — Нам стоит увидеться и выпить кофе",
-                  "À très bientôt, c'était un plaisir ! — До скорой встречи, было очень приятно!"
-            ],
-            "english": [
-                  "Thanks so much for inviting me, here is a bottle for you! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "Come in, make yourself at home! — Проходи, чувствуй себя как дома!",
-                  "Delighted to meet you! — Очень приятно познакомиться!",
-                  "This dish is absolutely delicious, who made it? — Это блюдо восхитительно, кто его приготовил?",
-                  "We should get together for coffee sometime — Нам стоит увидеться и выпить кофе",
-                  "See you soon, it was a real pleasure! — До скорой встречи, было очень приятно!"
-            ],
-            "spanish": [
-                  "¡Muchas gracias por invitarme, traje una botella para ti! — Большое спасибо за приглашение, вот бутылка для тебя!",
-                  "¡Adelante, siéntete como en tu casa! — Проходи, чувствуй себя как дома!",
-                  "¡Encantado de conocerte! — Очень приятно познакомиться!",
-                  "Este plato está riquísimo, ¿quién lo preparó? — Это блюдо восхитительно, кто его приготовил?",
-                  "Deberíamos vernos pronto para tomar un café — Нам стоит увидеться и выпить кофе",
-                  "¡Hasta muy pronto, ha sido un placer! — До скорой встречи, было очень приятно!"
-            ]
-      },
-      "role_museum_1": {
-            "french": [
-                  "Un billet plein tarif et un tarif réduit, s'il vous plaît — Один полный билет и один льготный, пожалуйста",
-                  "L'accès à l'exposition temporaire est-il inclus ? — Включён ли вход на временную выставку?",
-                  "Je voudrais louer un audioguide en anglais — Я хотел бы взять аудиогид на английском",
-                  "Où se trouve le vestiaire pour déposer les sacs ? — Где находится гардероб, чтобы оставить сумки?",
-                  "À quelle heure ferme le musée aujourd'hui ? — Во сколько сегодня закрывается музей?",
-                  "Voici le plan des salles, bonne visite ! — Вот план залов, приятной экскурсии!"
-            ],
-            "english": [
-                  "One full fare ticket and one discount ticket, please — Один полный билет и один льготный, пожалуйста",
-                  "Is admission to the temporary exhibition included? — Включён ли вход на временную выставку?",
-                  "I would like to rent an audio guide in English — Я хотел бы взять аудиогид на английском",
-                  "Where is the cloakroom to leave our bags? — Где находится гардероб, чтобы оставить сумки?",
-                  "What time does the museum close today? — Во сколько сегодня закрывается музей?",
-                  "Here is the map of the galleries, enjoy your visit! — Вот план залов, приятной экскурсии!"
-            ],
-            "spanish": [
-                  "Una entrada general y una reducida, por favor — Один полный билет и один льготный, пожалуйста",
-                  "¿Está incluida la entrada a la exposición temporal? — Включён ли вход на временную выставку?",
-                  "Quisiera alquilar una audioguía en español — Я хотел бы взять аудиогид на английском",
-                  "¿Dónde está el guardarropa para dejar las bolsas? — Где находится гардероб, чтобы оставить сумки?",
-                  "¿A qué hora cierra el museo hoy? — Во сколько сегодня закрывается музей?",
-                  "Aquí tiene el plano de las salas, ¡buena visita! — Вот план залов, приятной экскурсии!"
-            ]
-      },
-      "role_museum_2": {
-            "french": [
-                  "Pouvez-vous m'indiquer la salle des impressionnistes ? — Не могли бы вы подсказать зал импрессионистов?",
-                  "De quel siècle date cette sculpture ? — К какому веку относится эта скульптура?",
-                  "Peut-on prendre des photos sans flash ? — Можно ли фотографировать без вспышки?",
-                  "Cette peinture a été réalisée par Monet en 1872 — Эта картина была написана Моне в 1872 году",
-                  "Cette œuvre symbolise la liberté et la lumière — Это произведение символизирует свободу и свет",
-                  "La visite guidée commence dans cinq minutes — Экскурсия с гидом начинается через пять минут"
-            ],
-            "english": [
-                  "Could you point me to the Impressionist gallery? — Не могли бы вы подсказать зал импрессионистов?",
-                  "Which century does this sculpture belong to? — К какому веку относится эта скульптура?",
-                  "May we take photos without flash? — Можно ли фотографировать без вспышки?",
-                  "This painting was created by Monet in 1872 — Эта картина была написана Моне в 1872 году",
-                  "This artwork symbolizes freedom and light — Это произведение символизирует свободу и свет",
-                  "The guided tour begins in five minutes — Экскурсия с гидом начинается через пять минут"
-            ],
-            "spanish": [
-                  "¿Podría indicarme la sala de los impresionistas? — Не могли бы вы подсказать зал импрессионистов?",
-                  "¿De qué siglo es esta escultura? — К какому веку относится эта скульптура?",
-                  "¿Se pueden tomar fotos sin flash? — Можно ли фотографировать без вспышки?",
-                  "Este cuadro fue pintado por Monet en 1872 — Эта картина была написана Моне в 1872 году",
-                  "Esta obra simboliza la libertad y la luz — Это произведение символизирует свободу и свет",
-                  "La visita guiada empieza en cinco minutos — Экскурсия с гидом начинается через пять минут"
-            ]
-      },
-      "role_museum_3": {
-            "french": [
-                  "Je cherche des cartes postales et un livre sur cette exposition — Я ищу открытки и книгу об этой выставке",
-                  "Avez-vous ce catalogue en français ? — Есть ли у вас этот каталог на французском?",
-                  "Pouvez-vous emballer ceci comme un cadeau ? — Можете завернуть это как подарок?",
-                  "Combien coûte cette reproduction encadrée ? — Сколько стоит эта репродукция в рамке?",
-                  "Je vais prendre ce carnet et ces marque-pages — Я возьму этот блокнот и закладки",
-                  "Merci pour votre accueil et votre aide ! — Спасибо за тёплый приём и помощь!"
-            ],
-            "english": [
-                  "I am looking for postcards and a book about this exhibition — Я ищу открытки и книгу об этой выставке",
-                  "Do you have this catalogue in English? — Есть ли у вас этот каталог на французском?",
-                  "Could you gift-wrap this, please? — Можете завернуть это как подарок?",
-                  "How much is this framed reproduction? — Сколько стоит эта репродукция в рамке?",
-                  "I will take this notebook and these bookmarks — Я возьму этот блокнот и закладки",
-                  "Thank you for your assistance and warm welcome! — Спасибо за тёплый приём и помощь!"
-            ],
-            "spanish": [
-                  "Busco postales y un libro sobre esta exposición — Я ищу открытки и книгу об этой выставке",
-                  "¿Tienen este catálogo en español? — Есть ли у вас этот каталог на французском?",
-                  "¿Podría envolver esto para regalo? — Можете завернуть это как подарок?",
-                  "¿Cuánto cuesta esta reproducción con marco? — Сколько стоит эта репродукция в рамке?",
-                  "Me llevaré este cuaderno y estos marcapáginas — Я возьму этот блокнот и закладки",
-                  "¡Muchas gracias por su atención y ayuda! — Спасибо за тёплый приём и помощь!"
-            ]
-      },
-      "role_museum": {
-            "french": [
-                  "Un billet plein tarif et un tarif réduit, s'il vous plaît — Один полный билет и один льготный, пожалуйста",
-                  "L'accès à l'exposition temporaire est-il inclus ? — Включён ли вход на временную выставку?",
-                  "Pouvez-vous m'indiquer la salle des impressionnistes ? — Не могли бы вы подсказать зал импрессионистов?",
-                  "Peut-on prendre des photos sans flash ? — Можно ли фотографировать без вспышки?",
-                  "Combien coûte cette reproduction encadrée ? — Сколько стоит эта репродукция в рамке?",
-                  "Merci pour votre accueil et votre aide ! — Спасибо за тёплый приём и помощь!"
-            ],
-            "english": [
-                  "One full fare ticket and one discount ticket, please — Один полный билет и один льготный, пожалуйста",
-                  "Is admission to the temporary exhibition included? — Включён ли вход на временную выставку?",
-                  "Could you point me to the Impressionist gallery? — Не могли бы вы подсказать зал импрессионистов?",
-                  "May we take photos without flash? — Можно ли фотографировать без вспышки?",
-                  "How much is this framed reproduction? — Сколько стоит эта репродукция в рамке?",
-                  "Thank you for your assistance and warm welcome! — Спасибо за тёплый приём и помощь!"
-            ],
-            "spanish": [
-                  "Una entrada general y una reducida, por favor — Один полный билет и один льготный, пожалуйста",
-                  "¿Está incluida la entrada a la exposición temporal? — Включён ли вход на временную выставку?",
-                  "¿Podría indicarme la sala de los impresionistas? — Не могли бы вы подсказать зал импрессионистов?",
-                  "¿Se pueden tomar fotos sin flash? — Можно ли фотографировать без вспышки?",
-                  "¿Cuánto cuesta esta reproducción con marco? — Сколько стоит эта репродукция в рамке?",
-                  "¡Muchas gracias por su atención y ayuda! — Спасибо за тёплый приём и помощь!"
-            ]
-      },
-      "role_culture_1": {
-            "french": [
-                  "Quel est le livre ou film dont tu veux parler ? — О какой книге или фильме ты хочешь поговорить?",
-                  "C'est un roman d'aventure qui se passe au dix-neuvième siècle — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "Qui est l'auteur ou le réalisateur de cette œuvre ? — Кто автор или режиссёр этого произведения?",
-                  "L'histoire commence par une mystérieuse disparition — История начинается с таинственного исчезновения",
-                  "Le personnage principal décide de changer de vie — Главный герой решает изменить свою жизнь",
-                  "Le rythme est captivant dès le premier chapitre — Ритм захватывает с первой же главы"
-            ],
-            "english": [
-                  "Which book or movie would you like to talk about? — О какой книге или фильме ты хочешь поговорить?",
-                  "It is an adventure novel set in the nineteenth century — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "Who is the author or director of this piece? — Кто автор или режиссёр этого произведения?",
-                  "The plot opens with a mysterious disappearance — История начинается с таинственного исчезновения",
-                  "The main character decides to change his life — Главный герой решает изменить свою жизнь",
-                  "The pacing is gripping right from chapter one — Ритм захватывает с первой же главы"
-            ],
-            "spanish": [
-                  "¿De qué libro o película te gustaría hablar? — О какой книге или фильме ты хочешь поговорить?",
-                  "Es una novela de aventuras ambientada en el siglo diecinueve — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "¿Quién es el autor o director de esta obra? — Кто автор или режиссёр этого произведения?",
-                  "La trama comienza con una misteriosa desaparición — История начинается с таинственного исчезновения",
-                  "El protagonista decide cambiar por completo de vida — Главный герой решает изменить свою жизнь",
-                  "El ritmo te atrapa desde el primer capítulo — Ритм захватывает с первой же главы"
-            ]
-      },
-      "role_culture_2": {
-            "french": [
-                  "Quel est ton personnage préféré et pourquoi ? — Кто твой любимый персонаж и почему?",
-                  "Il fait preuve de beaucoup de courage et d'humour — Он проявляет много смелости и юмора",
-                  "Le protagoniste se trouve face à un dilemme moral — Главный герой оказывается перед моральной дилеммой",
-                  "Les dialogues sont profonds et très émouvants — Диалоги глубокие и очень трогательные",
-                  "Je ne m'attendais pas à cette décision de sa part — Я не ожидал от него такого решения",
-                  "La relation entre les deux héros est fascinante — Отношения между двумя героями захватывающие"
-            ],
-            "english": [
-                  "Who is your favorite character and why? — Кто твой любимый персонаж и почему?",
-                  "He demonstrates great courage and wonderful humor — Он проявляет много смелости и юмора",
-                  "The protagonist faces a tough moral dilemma — Главный герой оказывается перед моральной дилеммой",
-                  "The dialogue is deep and deeply moving — Диалоги глубокие и очень трогательные",
-                  "I really did not expect that decision from him — Я не ожидал от него такого решения",
-                  "The relationship between the two leads is fascinating — Отношения между двумя героями захватывающие"
-            ],
-            "spanish": [
-                  "¿Cuál es tu personaje favorito y por qué motivo? — Кто твой любимый персонаж и почему?",
-                  "Muestra una gran valentía y un fino sentido del humor — Он проявляет много смелости и юмора",
-                  "El protagonista se enfrenta a un dilema moral — Главный герой оказывается перед моральной дилеммой",
-                  "Los diálogos son profundos y muy conmovedores — Диалоги глубокие и очень трогательные",
-                  "Para nada me esperaba esa decisión por su parte — Я не ожидал от него такого решения",
-                  "La relación entre ambos protagonistas es fascinante — Отношения между двумя героями захватывающие"
-            ]
-      },
-      "role_culture_3": {
-            "french": [
-                  "Quelle est l'idée principale que tu retiens ? — Какова главная мысль, которую ты вынес?",
-                  "Cette œuvre nous fait réfléchir sur le sens de la vie — Это произведение заставляет задуматься о смысле жизни",
-                  "Est-ce que tu recommanderais ce livre à un ami ? — Порекомендовал бы ты эту книгу другу?",
-                  "Je lui donne une note de neuf sur dix sans hésiter — Я ставлю оценку девять из десяти без колебаний",
-                  "C'est un véritable chef-d'œuvre de son genre — Это настоящий шедевр в своём жанре",
-                  "As-tu d'autres recommandations similaires ? — Есть ли у тебя другие похожие рекомендации?"
-            ],
-            "english": [
-                  "What is the main takeaway for you? — Какова главная мысль, которую ты вынес?",
-                  "This work makes us reflect on the meaning of life — Это произведение заставляет задуматься о смысле жизни",
-                  "Would you recommend this book to a friend? — Порекомендовал бы ты эту книгу другу?",
-                  "I would give it a solid nine out of ten — Я ставлю оценку девять из десяти без колебаний",
-                  "It is a true masterpiece of its genre — Это настоящий шедевр в своём жанре",
-                  "Do you have any other similar recommendations? — Есть ли у тебя другие похожие рекомендации?"
-            ],
-            "spanish": [
-                  "¿Cuál es la idea principal que te llevas? — Какова главная мысль, которую ты вынес?",
-                  "Esta obra nos invita a reflexionar sobre el sentido de la vida — Это произведение заставляет задуматься о смысле жизни",
-                  "¿Recomendarías este libro a un buen amigo? — Порекомендовал бы ты эту книгу другу?",
-                  "Le doy un nueve sobre diez sin dudarlo — Я ставлю оценку девять из десяти без колебаний",
-                  "Es una auténtica obra maestra de su género — Это настоящий шедевр в своём жанре",
-                  "¿Tienes otras recomendaciones parecidas? — Есть ли у тебя другие похожие рекомендации?"
-            ]
-      },
-      "role_culture": {
-            "french": [
-                  "Quel est le livre ou film dont tu veux parler ? — О какой книге или фильме ты хочешь поговорить?",
-                  "C'est un roman d'aventure qui se passe au dix-neuvième siècle — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "Quel est ton personnage préféré et pourquoi ? — Кто твой любимый персонаж и почему?",
-                  "Les dialogues sont profonds et très émouvants — Диалоги глубокие и очень трогательные",
-                  "Cette œuvre nous fait réfléchir sur le sens de la vie — Это произведение заставляет задуматься о смысле жизни",
-                  "C'est un véritable chef-d'œuvre de son genre — Это настоящий шедевр в своём жанре"
-            ],
-            "english": [
-                  "Which book or movie would you like to talk about? — О какой книге или фильме ты хочешь поговорить?",
-                  "It is an adventure novel set in the nineteenth century — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "Who is your favorite character and why? — Кто твой любимый персонаж и почему?",
-                  "The dialogue is deep and deeply moving — Диалоги глубокие и очень трогательные",
-                  "This work makes us reflect on the meaning of life — Это произведение заставляет задуматься о смысле жизни",
-                  "It is a true masterpiece of its genre — Это настоящий шедевр в своём жанре"
-            ],
-            "spanish": [
-                  "¿De qué libro o película te gustaría hablar? — О какой книге или фильме ты хочешь поговорить?",
-                  "Es una novela de aventuras ambientada en el siglo diecinueve — Это приключенческий роман, действие которого происходит в XIX веке",
-                  "¿Cuál es tu personaje favorito y por qué motivo? — Кто твой любимый персонаж и почему?",
-                  "Los diálogos son profundos y muy conmovedores — Диалоги глубокие и очень трогательные",
-                  "Esta obra nos invita a reflexionar sobre el sentido de la vida — Это произведение заставляет задуматься о смысле жизни",
-                  "Es una auténtica obra maestra de su género — Это настоящий шедевр в своём жанре"
-            ]
+      role_hotel: {
+        french: [
+          "J'ai une réservation pour trois nuits — У меня бронь на три ночи",
+          "À quelle heure est servi le petit-déjeuner? — Во сколько подаётся завтрак?",
+          "Quel est le mot de passe du Wi-Fi? — Какой пароль от Wi-Fi?",
+          "La climatisation ne fonctionne pas bien — Кондиционер плохо работает",
+          "Pourriez-vous m'apporter une serviette propre? — Не могли бы вы принести чистое полотенце?",
+          "À quelle heure doit-on libérer la chambre? — Во сколько нужно освободить номер?",
+          "Pouvez-vous me commander un taxi pour la gare? — Можете вызвать мне такси на вокзал?",
+          "Merci pour votre accueil chaleureux — Спасибо за теплый приём"
+        ],
+        english: [
+          "I have a reservation for three nights — У меня бронь на три ночи",
+          "What time is breakfast served? — Во сколько подаётся завтрак?",
+          "What is the Wi-Fi password? — Какой пароль от Wi-Fi?",
+          "The air conditioning is not working properly — Кондиционер плохо работает",
+          "Could you bring an extra towel, please? — Принесите дополнительное полотенце, пожалуйста",
+          "What time is check-out? — Во сколько выезд из отеля?",
+          "Could you call a taxi for the station? — Можете вызвать такси на вокзал?",
+          "Thank you for the warm hospitality — Спасибо за гостеприимство"
+        ],
+        spanish: [
+          "Tengo una reserva para tres noches — У меня бронь на три ночи",
+          "¿A qué hora se sirve el desayuno? — Во сколько подаётся завтрак?",
+          "¿Cuál es la contraseña del wifi? — Какой пароль от Wi-Fi?",
+          "El aire acondicionado no funciona bien — Кондиционер плохо работает",
+          "¿Podría traerme una toalla limpia? — Не могли бы вы принести чистое полотенце?",
+          "¿A qué hora es la salida del hotel? — Во сколько выезд?",
+          "¿Puede pedirme un taxi para la estación? — Можете вызвать мне такси на вокзал?",
+          "Muchas gracias por su hospitalidad — Большое спасибо за гостеприимство"
+        ]
       }
-};
+    };
     const ukMap = {
       "Это очень интересная книга (артикль un)": "Це дуже цікава книга (артикль un)",
       "Я люблю музыку и кино (артикли la / le)": "Я люблю музику та кіно (артиклі la / le)",
@@ -3690,174 +2934,16 @@
       "Можете вызвать такси на вокзал?": "Можете викликати таксі на вокзал?",
       "Спасибо за теплый приём": "Дякую за теплий прийом",
       "Спасибо за гостеприимство": "Дякую за гостинність",
-      "Большое спасибо за гостеприимство": "Дуже дякую за гостинність",
-      "Берегите себя и скорейшего выздоровления!": "Бережіть себе та якнайшвидшого одужання!",
-      "Большое спасибо за приглашение, вот бутылка для тебя!": "Дуже дякую за запрошення, ось пляшка для тебе!",
-      "Большой сладкий попкорн и газировку, пожалуйста": "Великий солодкий попкорн та газовану воду, будь ласка",
-      "В какой сфере ты работаешь?": "У якій сфері ти працюєш?",
-      "В чём разница между c'est и il est?": "У чому різниця між c'est та il est?",
-      "Вам нужны очки 3D?": "Вам потрібні окуляри 3D?",
-      "Ваша фамилия и номер телефона?": "Ваше прізвище та номер телефону?",
-      "Ваше здоровье и хорошего вечера!": "Ваше здоров'я та гарного вечора!",
-      "Включён ли вход на временную выставку?": "Чи включено вхід на тимчасову виставку?",
-      "Во сколько сегодня закрывается музей?": "О котрій годині сьогодні зачиняється музей?",
-      "Вот ваш заказ, приятного просмотра": "Ось ваше замовлення, приємного перегляду",
-      "Вот ваш посадочный талон": "Ось ваш посадковий талон",
-      "Вот ваши билеты, зал номер четыре": "Ось ваші квитки, зал номер чотири",
-      "Вот ключ от вашего номера на третьем этаже": "Ось ключ від вашого номера на третьому поверсі",
-      "Вот мой паспорт и подтверждение": "Ось мій паспорт та підтвердження",
-      "Вот план залов, приятной экскурсии!": "Ось план залів, приємної екскурсії!",
-      "Вот рецепт от моего врача": "Ось рецепт від мого лікаря",
-      "Всегда приятно поболтать с тобой": "Завжди приємно поговорити з тобою",
-      "Всегда приятно пообщаться с вами": "Завжди приємно поспілкуватися з вами",
-      "Вы предпочитаете солёный попкорн или карамельный?": "Ви віддаєте перевагу солоному попкорну чи карамельному?",
-      "Вы предпочитаете утро или вторую половину дня?": "Ви віддаєте перевагу ранку чи другій половині дня?",
-      "Вы путешествовали куда-нибудь в последнее время?": "Ви подорожували кудись останнім часом?",
-      "Вы путешествовали недавно в приятное место?": "Ви подорожували нещодавно у приємне місце?",
-      "Где находится гардероб, чтобы оставить сумки?": "Де гардероб, щоб залишити сумки?",
-      "Где находится зона досмотра?": "Де знаходиться зона огляду?",
-      "Где я могу разместить ручную кладь?": "Де я можу розмістити ручну поклажу?",
-      "Главный герой оказывается перед моральной дилеммой": "Головний герой постає перед моральною дилемою",
-      "Главный герой решает изменить свою жизнь": "Головний герой вирішує змінити своє життя",
-      "Два билета на сеанс в двадцать часов, пожалуйста": "Два квитки на сеанс о двадцятій годині, будь ласка",
-      "Диалоги глубокие и очень трогательные": "Діалоги глибокі та дуже зворушливі",
-      "До скорой встречи, было очень приятно!": "До швидкої зустрічі, було дуже приємно!",
-      "Добирайся хорошо и осторожно на дороге": "Добирайся добре та обережно на дорозі",
-      "Доктор вызовет вас через минуту": "Лікар викличе вас за хвилину",
-      "Достаньте ноутбуки и жидкости из сумок": "Дістаньте ноутбуки та рідини з сумок",
-      "Дышите глубоко и покашляйте": "Дихайте глибоко та покашляйте",
-      "Есть ли побочные эффекты?": "Чи є побічні ефекти?",
-      "Есть ли у вас что-нибудь от кашля и боли в горле?": "Чи є у вас щось від кашлю та болю в горлі?",
-      "Есть ли у вас этот каталог на французском?": "Чи є у вас цей каталог французькою?",
-      "Есть ли у тебя другие похожие рекомендации?": "Чи є у тебе інші схожі рекомендації?",
-      "Есть ли утюг?": "Чи є праска?",
-      "Ещё раз спасибо за прекрасный праздник!": "Ще раз дякую за чудове свято!",
-      "Завтрак с 7 до 10 утра": "Сніданок з 7 до 10 ранку",
-      "Зал ожидания на первом этаже": "Зал очікування на першому поверсі",
-      "Заполните эту медицинскую анкету": "Заповніть цю медичну анкету",
-      "Здесь есть друзья": "Тут є друзі",
-      "Здравствуйте, у меня бронь на имя Серж": "Доброго дня, у мене бронь на ім'я Серж",
-      "Здравствуйте, у меня приём в 10 часов у доктора": "Доброго дня, у мене прийом о 10 годині у лікаря",
-      "Используем since для момента времени и for для длительности": "Використовуємо since для моменту часу і for для тривалості",
-      "История начинается с таинственного исчезновения": "Історія починається з таємничого зникнення",
-      "К какому веку относится эта скульптура?": "До якого століття належить ця скульптура?",
-      "Как вы справляетесь с высоким давлением и дедлайнами?": "Як ви справляєтеся з високим навантаженням і дедлайнами?",
-      "Как вы справляетесь со стрессом и приоритетами?": "Як ви справляєтеся зі стресом і пріоритетами?",
-      "Как вы справляетесь со стрессом и сроками сдачи?": "Як ви справляєтеся зі стресом і термінами виконання?",
-      "Как прошёл ваш день сегодня?": "Як минув ваш день сьогодні?",
-      "Как прошёл твой день сегодня?": "Як минув твій день сьогодні?",
-      "Как спрягается этот глагол в прошедшем простом времени?": "Як відмінюється це дієслово в простому минулому часі?",
-      "Как ты познакомился с нашим хозяином?": "Як ти познайомився з нашим господарем?",
-      "Какие планы на выходные?": "Які плани на вихідні?",
-      "Какие планы на следующие выходные?": "Які плани на наступні вихідні?",
-      "Какова главная мысль, которую ты вынес?": "Яка головна думка, яку ти виніс?",
-      "Каковы ваши главные профессиональные сильные стороны?": "Які ваші головні професійні сильні сторони?",
-      "Каковы ваши главные сильные стороны в работе?": "Які ваші головні сильні сторони в роботі?",
-      "Каковы следующие шаги в процессе собеседования?": "Які наступні кроки в процесі співбесіди?",
-      "Каковы следующие этапы отбора?": "Які наступні етапи відбору?",
-      "Каковы следующие этапы процесса отбора?": "Які наступні етапи процесу відбору?",
-      "Какую оценку из десяти ты бы поставил?": "Яку оцінку з десяти ти поставив би?",
-      "Квартира действительно великолепная": "Квартира дійсно чудова",
-      "Когда мы приземлимся?": "Коли ми приземлимося?",
-      "Концовка была абсолютно неожиданной!": "Кінцівка була абсолютно несподіваною!",
-      "Кто автор или режиссёр этого произведения?": "Хто автор або режисер цього твору?",
-      "Кто твой любимый персонаж и почему?": "Хто твій улюблений персонаж і чому?",
-      "Курица или рыба на обед?": "Курка чи риба на обід?",
-      "Люблю гулять по парку и читать хорошую книгу": "Люблю гуляти парком і читати гарну книгу",
-      "Мастер поднимется в номер через 10 минут": "Майстер підніметься в номер за 10 хвилин",
-      "Местоимение-дополнение ставится перед глаголом": "Займенник-додаток ставиться перед дієсловом",
-      "Местоимения дополнения идут перед спрягаемым глаголом": "Займенники додатка йдуть перед дієсловом, що відмінюється",
-      "Мне очень понравилась игра актёров и музыка": "Мені дуже сподобалася гра акторів та музика",
-      "Могу я оставить багаж в камере хранения?": "Чи можу я залишити багаж у камері схову?",
-      "Модальный глагол не требует частицы to перед инфинитивом": "Модальне дієслово не потребує частки to перед інфінітивом",
-      "Можете вызвать мне такси в аэропорт?": "Можете викликати мені таксі в аеропорт?",
-      "Можете завернуть это как подарок?": "Можете загорнути це як подарунок?",
-      "Можете перефразировать это через условное предложение?": "Можете перефразувати це через умовне речення?",
-      "Можно бутылку воды без газа?": "Можна пляшку води без газу?",
-      "Можно ли фотографировать без вспышки?": "Чи можна фотографувати без спалаху?",
-      "Можно обменяться номерами или Инстаграмом?": "Чи можна обмінятися номерами або Інстаграмом?",
-      "Нам стоит увидеться и выпить кофе": "Нам варто побачитися та випити кави",
-      "Не забывайте отрицание из двух частей ne... pas": "Не забувайте заперечення з двох частин ne... pas",
-      "Не могли бы вы подсказать зал импрессионистов?": "Чи не могли б ви підказати зал імпресіоністів?",
-      "Не могли бы вы поменять постельное бельё?": "Чи не могли б ви поміняти постільну білизну?",
-      "Не могли бы вы принести стакан воды и плед?": "Чи не могли б ви принести склянку води та плед?",
-      "Ну, как тебе фильм?": "Ну, як тобі фільм?",
-      "О какой книге или фильме ты хочешь поговорить?": "Про яку книгу чи фільм ти хочеш поговорити?",
-      "Обожаю эту песню, отличная атмосфера": "Обожнюю цю пісню, чудова атмосфера",
-      "Обрати внимание на разницу между ser и estar": "Зверни увагу на різницю між ser та estar",
-      "Обратите внимание на разницу времён": "Зверніть увагу на різницю часів",
-      "Обратите внимание на согласование причастия": "Зверніть увагу на узгодження дієприкметника",
-      "Один полный билет и один льготный, пожалуйста": "Один повний квиток та один пільговий, будь ласка",
-      "Он проявляет много смелости и юмора": "Він проявляє багато сміливості та гумору",
-      "Оплачено картой, большое спасибо": "Оплачено карткою, дуже дякую",
-      "Остались места в середине зала?": "Чи залишилися місця посередині залу?",
-      "Отличная работа, грамматическая структура идеальна!": "Чудова робота, граматична структура ідеальна!",
-      "Отлично, ты применил правило идеально!": "Чудово, ти застосував правило ідеально!",
-      "Отличный ответ, правило усвоено верно!": "Чудова відповідь, правило засвоєно правильно!",
-      "Отношения между двумя героями захватывающие": "Стосунки між двома героями захопливі",
-      "Очень приятно познакомиться!": "Дуже приємно познайомитися!",
-      "Пожалуйста, пристегните ремень безопасности": "Будь ласка, пристебніть ремінь безпеки",
-      "Познакомься, это мой друг Серж": "Познайомся, це мій друг Серж",
-      "Пользовались ли вы мини-баром?": "Чи користувалися ви міні-баром?",
-      "Помни о согласовании прилагательного в роде и числе": "Пам'ятай про узгодження прикметника в роді та числі",
-      "Помните об окончании -s в третьем лице": "Пам'ятайте про закінчення -s у третій особі",
-      "Порекомендовал бы ты эту книгу другу?": "Чи порекомендував би ти цю книгу другові?",
-      "Поставьте чемодан на весы, пожалуйста": "Поставте валізу на ваги, будь ласка",
-      "Почему вы хотите присоединиться к нашей команде?": "Чому ви хочете приєднатися до нашої команди?",
-      "Почему вы хотите присоединиться к нашей компании?": "Чому ви хочете приєднатися до нашої компанії?",
-      "Почему вы хотите работать в нашей компании?": "Чому ви хочете працювати в нашій компанії?",
-      "Прекрасная погода сегодня, не правда ли?": "Чудова погода сьогодні, чи не так?",
-      "Принимайте это лекарство два раза в день после еды": "Приймайте ці ліки двічі на день після їди",
-      "Приносим извинения за неудобства": "Перепрошуємо за незручності",
-      "Присаживайтесь, пожалуйста": "Сідайте, будь ласка",
-      "Приятного просмотра!": "Приємного перегляду!",
-      "Приятного путешествия и отличного отдыха!": "Приємної подорожі та чудового відпочинку!",
-      "Приём подтверждён на завтра на 10 часов": "Прийом підтверджено на завтра на 10 годину",
-      "Проходи, чувствуй себя как дома!": "Проходь, почувайся як удома!",
-      "Расскажите о вашем профессиональном опыте": "Розкажіть про ваш професійний досвід",
-      "Ритм захватывает с первой же главы": "Ритм захоплює з першого ж розділу",
-      "Сегодня отличная погода, вам не кажется?": "Сьогодні чудова погода, вам не здається?",
-      "Сегодня отличная погода, правда?": "Сьогодні чудова погода, правда?",
-      "Сколько стоит эта репродукция в рамке?": "Скільки коштує ця репродукція в рамці?",
-      "Сколько это стоит в общей сложности?": "Скільки це коштує загалом?",
-      "Снимите ремень и куртку": "Зніміть ремінь і куртку",
-      "Сослагательное наклонение выражает желание, сомнение или вероятность": "Умовний спосіб виражає бажання, сумнів або ймовірність",
-      "Сослагательное наклонение используется после глаголов желания": "Умовний спосіб використовується після дієслів бажання",
-      "Спасибо за приём и счастливой дороги!": "Дякуємо за прийом і щасливої дороги!",
-      "Спасибо за тёплый приём и помощь!": "Дякуємо за теплий прийом і допомогу!",
-      "Сценарий был немного предсказуемым": "Сценарій був трохи передбачуваним",
-      "Ты путешествовал куда-нибудь в последнее время?": "Ти подорожував кудись останнім часом?",
-      "Ты уже знаешь кого-нибудь здесь?": "Ти вже знаєш когось тут?",
-      "У вас есть страховая карта или страховка?": "У вас є страхова карта чи страховка?",
-      "У меня несколько лет опыта в управлении проектами": "У мене кілька років досвіду в управлінні проєктами",
-      "У меня несколько лет опыта руководства командами": "У мене кілька років досвіду керівництва командами",
-      "У меня несколько лет опыта управления командами": "У мене кілька років досвіду управління командами",
-      "Фильм на языке оригинала с субтитрами?": "Фільм мовою оригіналу з субтитрами?",
-      "Фильм начинается через пятнадцать минут": "Фільм починається через п'ятнадцять хвилин",
-      "Что ты хочешь выпить? Есть вино и сок": "Що ти хочеш випити? Є вино та сік",
-      "Экскурсия с гидом начинается через пять минут": "Екскурсія з гідом починається через п'ять хвилин",
-      "Эта картина была написана Моне в 1872 году": "Ця картина була написана Моне у 1872 році",
-      "Это блюдо восхитительно, кто его приготовил?": "Ця страва чудова, хто її приготував?",
-      "Это к терапевту или специалисту?": "Це до терапевта чи фахівця?",
-      "Это настоящий шедевр в своём жанре": "Це справжній шедевр у своєму жанрі",
-      "Это приключенческий роман, действие которого происходит в XIX веке": "Це пригодницький роман, дія якого відбувається в XIX столітті",
-      "Это произведение заставляет задуматься о смысле жизни": "Цей твір змушує замислитися про сенс життя",
-      "Это произведение символизирует свободу и свет": "Цей твір символізує свободу і світло",
-      "Я возьму этот блокнот и закладки": "Я візьму цей блокнот та закладки",
-      "Я измерю ваше артериальное давление": "Я виміряю ваш артеріальний тиск",
-      "Я ищу открытки и книгу об этой выставке": "Я шукаю листівки та книгу про цю виставку",
-      "Я люблю гулять в парке и читать книги": "Я люблю гуляти в парку та читати книги",
-      "Я люблю гулять в парке и читать хорошую книгу": "Я люблю гуляти в парку та читати гарну книгу",
-      "Я не ожидал от него такого решения": "Я не очікував від нього такого рішення",
-      "Я очень рекомендую его всем": "Я дуже рекомендую це всім",
-      "Я провёл отличный вечер с вами": "Я провів чудовий вечір з вами",
-      "Я ставлю оценку девять из десяти без колебаний": "Я ставлю оцінку дев'ять з десяти без вагань",
-      "Я хотел бы взять аудиогид на английском": "Я хотів би взяти аудіогід англійською",
-      "Я хотел бы оплатить счёт и выехать": "Я хотів би сплатити рахунок і виїхати"
-};
+      "Большое спасибо за гостеприимство": "Дуже дякую за гостинність"
+    };
 
-    const partKey = partNum ? `${mode}_${partNum}` : mode;
-    const s = presets[partKey] || presets[mode] || presets.standard;
+    let key = mode;
+    if (mode === 'role_restaurant') {
+      const p = partNum || 1;
+      key = `role_restaurant_${p}`;
+      if (!presets[key]) key = 'role_restaurant';
+    }
+    const s = presets[key] || presets[mode];
     const rawList = (s && s[l]) ? s[l] : ((presets.standard && presets.standard[l]) || presets.role_doctor.french);
     const isUk = (cfg.native === 'uk' || cfg.uiLang === 'uk');
     if (!isUk) return rawList;
@@ -3935,28 +3021,11 @@
     if (hist && hist.length > 0) return;
 
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    let targetMode = (curMode && curMode !== 'standard' && curMode !== 'random') ? curMode : null;
-    if (!targetMode) {
-      const logs = readJSON('lesson_log', []);
-      const langLogs = logs.filter(x => x.l === lang && x.m && x.m !== 'standard' && x.m !== 'random');
-      if (langLogs.length > 0) {
-        targetMode = langLogs[langLogs.length - 1].m;
-      }
+    let targetMode = (curMode && curMode !== 'standard' && curMode.startsWith('role_')) ? curMode : null;
+    if (!targetMode && memStr && /ресторан|restaurant/i.test(memStr)) {
+      targetMode = 'role_restaurant';
     }
-    if (!targetMode && memStr) {
-      if (/аэропорт|airport|полет|рейс/i.test(memStr)) targetMode = 'role_airport';
-      else if (/отел|готел|hotel/i.test(memStr)) targetMode = 'role_hotel';
-      else if (/врач|лікар|doctor|аптек/i.test(memStr)) targetMode = 'role_doctor';
-      else if (/кино|кіно|cinema|фильм/i.test(memStr)) targetMode = 'role_cinema';
-      else if (/вечеринк|вечірк|party|гост/i.test(memStr)) targetMode = 'role_party';
-      else if (/музей|museum|выставк|виставк/i.test(memStr)) targetMode = 'role_museum';
-      else if (/книг|book|culture|культур/i.test(memStr)) targetMode = 'role_culture';
-      else if (/ресторан|restaurant|кафе/i.test(memStr)) targetMode = 'role_restaurant';
-    }
-    if (!targetMode) {
-      const keys = Object.keys(ROLEPLAY_SERIES);
-      targetMode = keys[0] || 'role_restaurant';
-    }
+    if (!targetMode) targetMode = 'role_restaurant';
 
     const p1 = getSituationPresetPhrases(targetMode, 1, lang);
     const p2 = getSituationPresetPhrases(targetMode, 2, lang);
@@ -4036,21 +3105,10 @@
     });
 
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    let targetMode = (curMode && curMode !== 'standard' && curMode !== 'random') ? curMode : null;
-    if (!targetMode) {
-      const logs = readJSON('lesson_log', []);
-      const langLogs = logs.filter(x => x.l === cfg.lang && x.m && x.m !== 'standard' && x.m !== 'random');
-      if (langLogs.length > 0) targetMode = langLogs[langLogs.length - 1].m;
-    }
-    if (!targetMode && raw) {
-      if (/аэропорт|airport|полет|рейс/i.test(raw)) targetMode = 'role_airport';
-      else if (/отел|готел|hotel/i.test(raw)) targetMode = 'role_hotel';
-      else if (/врач|лікар|doctor|аптек/i.test(raw)) targetMode = 'role_doctor';
-      else if (/кино|кіно|cinema|фильм/i.test(raw)) targetMode = 'role_cinema';
-      else if (/вечеринк|вечірк|party|гост/i.test(raw)) targetMode = 'role_party';
-      else if (/музей|museum|выставк|виставк/i.test(raw)) targetMode = 'role_museum';
-      else if (/книг|book|culture|культур/i.test(raw)) targetMode = 'role_culture';
-      else if (/ресторан|restaurant|кафе/i.test(raw)) targetMode = 'role_restaurant';
+    // Если в настройках или в журнале указана ситуация (например, ресторан), и в словаре ещё нет её фраз:
+    let targetMode = (curMode && curMode !== 'standard' && curMode.startsWith('role_')) ? curMode : null;
+    if (!targetMode && /ресторан|restaurant/i.test(raw)) {
+      targetMode = 'role_restaurant';
     }
 
     if (targetMode) {
@@ -4626,8 +3684,7 @@
    2) САМ(А) произнеси эталон ${langAdverb} ДВАЖДЫ медленно с паузой 2–3 сек между ними (... ...).
    3) Команда «Повтори» и замолчи!
    СТРОЖАЙШИЙ ЗАПРЕТ: КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО спрашивать ученика «как перевести», «как ты скажешь», «how do you say» на новую фразу! Ученик ЕЩЁ НЕ ЗНАЕТ фраз этого языка — ты ${OB} дать эталон ${SAM}(А)!`;
-    const effMode = (typeof sessionMode !== 'undefined' && sessionMode && sessionMode !== 'random') ? sessionMode : cfg.mode;
-    const rp = getRoleplayProgress(effMode, lang);
+    const rp = getRoleplayProgress(cfg.mode, lang);
     const u = cfg.uiLang === 'uk' ? 'uk' : 'ru';
     let rpModeTitle = '', rpPartTitle = '', rpPartNum = 1, rpTotal = 3, rpRole = '';
     if (rp) {
@@ -5590,18 +4647,7 @@ ${langDirective}
       sessionId++;
       // Снимок настроек и памяти на момент старта: смена языка/настроек не может «перепутать» запись памяти
       sessionLang = cfg.lang;
-      if (cfg.mode === 'random') {
-        const situationKeys = Object.keys(ROLEPLAY_SERIES);
-        const logs = readJSON('lesson_log', []);
-        const lastLog = logs.filter(x => x.l === sessionLang && x.m && x.m.startsWith('role_')).pop();
-        let pool = situationKeys;
-        if (lastLog && situationKeys.length > 1) {
-          pool = situationKeys.filter(k => k !== lastLog.m);
-        }
-        sessionMode = pool[Math.floor(Math.random() * pool.length)] || situationKeys[0];
-      } else {
-        sessionMode = cfg.mode || 'standard';
-      }
+      sessionMode = cfg.mode || 'standard';
       sessionGlobalMem = getGlobalMem();
       sessionLangMem = getLangMem(sessionLang);
       sessionSystemText = getSystemInstruction(sessionLang, sessionGlobalMem, sessionLangMem);
