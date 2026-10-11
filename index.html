@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.52.0</title>
+  <title>AI Language Tutor v3.52.1</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -784,7 +784,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.52.0';
+  const APP_VERSION = '3.52.1';
 
     const I18N = {
   "uk": {
@@ -909,6 +909,7 @@
     "cardTapFlip": "Натисніть на картку для перевірки еталону ➔",
     "cardReference": "✅ Еталон вимови:",
     "cardListenAgain": "🔊 Послухати ще раз",
+    "cardListenShort": "Послухати",
     "vocErrEmpty": "Помилок поки не зафіксовано. Чудова робота!",
     "vocLogEmpty": "Журнал уроків порожній. Почніть перший урок!",
     "vocProfEmpty": "Репетитор поки не знає фактів про вашу біографію. Вони з'являться під час бесід.",
@@ -1056,6 +1057,7 @@
     "cardTapFlip": "Нажмите на карточку для проверки эталона ➔",
     "cardReference": "✅ Эталон произношения:",
     "cardListenAgain": "🔊 Послушать ещё раз",
+    "cardListenShort": "Послушать",
     "vocErrEmpty": "Ошибок пока не зафиксировано. Отличная работа!",
     "vocLogEmpty": "Журнал уроков пуст. Начните первый урок!",
     "vocProfEmpty": "Репетитор пока не знает фактов о вашей биографии. Они появятся по ходу бесед.",
@@ -1203,6 +1205,7 @@
     "cardTapFlip": "Tap the card to check the reference ➔",
     "cardReference": "✅ Pronunciation reference:",
     "cardListenAgain": "🔊 Listen again",
+    "cardListenShort": "Listen",
     "vocErrEmpty": "No mistakes recorded yet. Great job!",
     "vocLogEmpty": "Lesson log is empty. Start your first lesson!",
     "vocProfEmpty": "The tutor does not know profile facts yet. They will appear as you converse.",
@@ -1349,6 +1352,7 @@
     "cardTapFlip": "Appuyez sur la carte pour vérifier la référence ➔",
     "cardReference": "✅ Référence de prononciation :",
     "cardListenAgain": "🔊 Réécouter",
+    "cardListenShort": "Écouter",
     "vocErrEmpty": "Aucune erreur enregistrée pour le moment. Excellent travail !",
     "vocLogEmpty": "Le journal des leçons est vide. Démarrez votre première leçon !",
     "vocProfEmpty": "Le tuteur ne connaît pas encore de détails sur vous. Ils apparaîtront au fil des leçons.",
@@ -1495,6 +1499,7 @@
     "cardTapFlip": "Toque la tarjeta para comprobar la referencia ➔",
     "cardReference": "✅ Referencia de pronunciación:",
     "cardListenAgain": "🔊 Escuchar otra vez",
+    "cardListenShort": "Escuchar",
     "vocErrEmpty": "No hay errores registrados todavía. ¡Buen trabajo!",
     "vocLogEmpty": "El registro de lecciones está vacío. ¡Empiece su primera lección!",
     "vocProfEmpty": "El tutor aún no conoce datos sobre usted. Aparecerán durante las conversaciones.",
@@ -2707,13 +2712,15 @@
   /* ==========================================================================
      Озвучка речи (Web Speech API / speechSynthesis)
      ========================================================================== */
+  let activeUtterance = null;
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.onvoiceschanged = () => { try { window.speechSynthesis.getVoices(); } catch (e) {} };
+      window.speechSynthesis.getVoices();
     } catch (e) {}
   }
 
-  window.speakPhrase = function(text, lang) {
+  window.speakPhrase = function(text, lang, btnEl) {
     if (!text) return;
     if (!('speechSynthesis' in window)) {
       toast('Озвучка речи не поддерживается в этом браузере', 3000);
@@ -2721,26 +2728,51 @@
     }
     try {
       const clean = text.replace(/[\(\)\[\]«»"']/g, '').trim();
+      if (!clean) return;
+
+      // Визуальный отклик нажатой кнопки (акцент / масштабирование)
+      if (btnEl && btnEl.style) {
+        const origTransform = btnEl.style.transform;
+        const origOpacity = btnEl.style.opacity;
+        btnEl.style.transform = 'scale(1.18)';
+        btnEl.style.opacity = '0.7';
+        btnEl.style.transition = 'transform 0.15s ease, opacity 0.15s ease';
+        const resetBtn = () => {
+          btnEl.style.transform = origTransform || '';
+          btnEl.style.opacity = origOpacity || '';
+        };
+        setTimeout(resetBtn, 600);
+      }
+
       const u = new SpeechSynthesisUtterance(clean);
       const l = lang || cfg.lang;
       const langMap = { french: 'fr-FR', english: 'en-US', spanish: 'es-ES' };
       const targetLang = langMap[l] || 'fr-FR';
+      const targetPrefix = targetLang.slice(0, 2).toLowerCase();
       u.lang = targetLang;
       u.rate = 0.9;
 
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
-        const matched = voices.find(v => v.lang === targetLang) ||
-                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetLang.slice(0, 2).toLowerCase()));
+        // Приоритет локальным голосам (localService) устройства для мгновенной озвучки без блокировок сети и CSP
+        const matched = voices.find(v => v.lang === targetLang && v.localService) ||
+                        voices.find(v => v.lang === targetLang) ||
+                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix) && v.localService) ||
+                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix));
         if (matched) u.voice = matched;
       }
 
-      if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-        window.speechSynthesis.cancel();
-        setTimeout(() => { try { window.speechSynthesis.speak(u); } catch (err) {} }, 40);
-      } else {
-        window.speechSynthesis.speak(u);
+      // Сохраняем ссылку в активной переменной от сбора мусора V8
+      activeUtterance = u;
+      u.onend = () => { if (activeUtterance === u) activeUtterance = null; };
+      u.onerror = () => { if (activeUtterance === u) activeUtterance = null; };
+
+      // Синхронный запуск строго внутри пользовательского жеста (без отложенного setTimeout, который сбрасывает user gesture в iOS/Android)
+      window.speechSynthesis.cancel();
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
       }
+      window.speechSynthesis.speak(u);
     } catch (e) {
       console.warn('SpeechSynthesis error:', e);
     }
@@ -4312,6 +4344,12 @@
     }
     const m = $('modalVocab');
     if (!m) return;
+    if ('speechSynthesis' in window) {
+      try {
+        if (window.speechSynthesis.paused) window.speechSynthesis.resume();
+        window.speechSynthesis.getVoices();
+      } catch (e) {}
+    }
     ensureVocabPopulatedIfHasHistory();
     $('vocabLangBadge').textContent = (LANGS[cfg.lang] && LANGS[cfg.lang].label) || cfg.lang;
     switchVocabTab('homework');
@@ -4398,7 +4436,7 @@
             <div style="font-weight: 600; color: #38bdf8; font-size: 0.98rem; line-height: 1.35; margin-bottom: 2px;">${foreign}</div>
             ${trans ? `<div style="color: #94a3b8; font-size: 0.85rem; line-height: 1.3;">${trans}</div>` : ''}
           </div>
-          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}')" title="Прослушать произношение" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this)" title="Прослушать произношение" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
             🔈
           </button>
         </div>`;
@@ -4444,9 +4482,14 @@
         <div style="font-size: 1.25rem; font-weight: 600; color: #f8fafc; line-height: 1.4; padding: 4px 10px;">${cur.trans}</div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 6px;">${t('cardTapFlip')}</div>
         <div style="margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
-          <button type="button" onclick="checkFlashcardVoice()" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
-            🎤 ${t('cardVoiceBtn')}
-          </button>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this)" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              🔈 ${t('cardListenShort')}
+            </button>
+            <button type="button" onclick="checkFlashcardVoice()" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              🎤 ${t('cardVoiceBtn')}
+            </button>
+          </div>
           <div id="flashcardVoiceStatus" style="display: none; font-size: 0.78rem; font-weight: 500; max-width: 90%; line-height: 1.3;"></div>
         </div>`;
     } else {
@@ -4454,7 +4497,7 @@
         <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #34d399; font-weight: 700;">${t('cardReference')}</div>
         <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; line-height: 1.4; padding: 4px 10px;">${cur.foreign}</div>
         <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 6px;">${cur.trans}</div>
-        <button type="button" onclick="event.stopPropagation(); repeatCurrentFlashcard();" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;">
+        <button type="button" onclick="event.stopPropagation(); repeatCurrentFlashcard(this);" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;">
           ${t('cardListenAgain')}
         </button>
         <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 6px;" onclick="event.stopPropagation();">
@@ -4714,7 +4757,7 @@
                 <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem;">${f}</div>
                 ${tr ? `<div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">${tr}</div>` : ''}
               </div>
-              <button type="button" onclick="speakPhrase('${f.replace(/'/g, "\\'")}', '${sessionLang || cfg.lang}')" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
+              <button type="button" onclick="speakPhrase('${f.replace(/'/g, "\\'")}', '${sessionLang || cfg.lang}', this)" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
             </div>
           `;
         }).join('');
@@ -4762,10 +4805,10 @@
     }
   };
 
-  window.repeatCurrentFlashcard = function() {
+  window.repeatCurrentFlashcard = function(btnEl) {
     if (flashcardList.length === 0) return;
     const cur = flashcardList[flashcardIndex];
-    if (cur) speakPhrase(cur.foreign, cfg.lang);
+    if (cur) speakPhrase(cur.foreign, cfg.lang, btnEl);
   };
 
   window.flipFlashcard = function() {
@@ -4864,7 +4907,7 @@
             <span style="font-weight: 600; color: #38bdf8; font-size: 0.92rem; display: block; margin-bottom: 2px;">${foreign}</span>
             ${trans ? `<span style="color: #94a3b8; font-size: 0.82rem; display: block;">${trans}</span>` : ''}
           </div>
-          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}')" title="Прослушать" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this)" title="Прослушать" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
             🔈
           </button>
         </div>`;
