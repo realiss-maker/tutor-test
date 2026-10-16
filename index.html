@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.54.0</title>
+  <title>LinguaViva v3.55.0 — AI Language Tutor</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -360,7 +360,7 @@
   <div class="app-container">
     <header>
       <div class="header-left">
-        <div class="header-title" id="headerTitle">AI Tutor</div>
+        <div class="header-title" id="headerTitle">LinguaViva</div>
         <div class="profile-badge" id="profileBadge">Загрузка...</div>
       </div>
 
@@ -395,6 +395,7 @@
       <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал ➔</button>
       <div class="turn-hint" id="turnHint" style="display: none; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 4px; margin-bottom: 6px;">Репетитор ответит сам после паузы, или нажмите кнопку</div>
       <button class="btn-main btn-start" id="btnAction">Начать урок</button>
+      <div style="font-size: 0.68rem; color: rgba(255,255,255,0.42); text-align: center; margin-top: 6px; letter-spacing: 0.02em;">LinguaViva <span class="js-version"></span> • Автор и разработчик: Петрик Сергей</div>
     </footer>
   </div>
 
@@ -590,7 +591,7 @@
 
       <button class="btn-save" id="btnSaveKey" style="margin-top: 8px;">Сохранить настройки</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
-      <div style="font-size: 0.75rem; color: #64748b; text-align: center; margin-top: 4px;"><span class="js-version"></span> • Natural Turn Taking &amp; Cumulative Spaced Repetition</div>
+      <div style="font-size: 0.74rem; color: #64748b; text-align: center; margin-top: 4px;"><b>LinguaViva</b> <span class="js-version"></span> • Автор и разработчик: Петрик Сергей</div>
     </div>
   </div>
 
@@ -619,9 +620,9 @@
       <div id="vtab-homework" style="display: flex; flex-direction: column; flex: 1; overflow: hidden; gap: 10px;">
         <div style="background: linear-gradient(135deg, rgba(37,99,235,0.22), rgba(14,165,233,0.15)); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
           <div id="lblHwBanner" style="font-size: 0.82rem; color: #cbd5e1; line-height: 1.35;">
-            🎯 <b>Фразы последних уроков</b> для заучивания вслух
+            🎯 <b>Фразы 2 последних уроков</b> для активного повторения вслух
           </div>
-          <button type="button" id="btnGoTrainer" onclick="switchVocabTab('trainer')" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
+          <button type="button" id="btnGoTrainer" onclick="startTrainerFromSource('homework')" style="background: #2563eb; color: #fff; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap; flex-shrink: 0; box-shadow: 0 4px 12px rgba(37,99,235,0.35);">
             ▶ Тренажёр
           </button>
         </div>
@@ -639,7 +640,7 @@
           <span id="lblTrainerMethod" style="font-size: 0.75rem; color: #94a3b8; display: none;">Методика самосверки и эталона</span>
         </div>
 
-        <div class="flashcard-box" id="flashcardElement" onclick="flipFlashcard()">
+        <div class="flashcard-box" id="flashcardElement" onclick="onFlashcardBoxClick(event)">
           <!-- динамически рендерится карточка или конструктор -->
         </div>
 
@@ -656,9 +657,29 @@
         </div>
       </div>
 
-      <!-- Вкладка 3: Весь словарь -->
+      <!-- Вкладка 3: Весь накопительный словарь за весь курс -->
       <div id="vtab-words" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 8px;">
-        <input type="text" id="vocabSearch" placeholder="🔍 Поиск по словам или переводу..." oninput="filterVocabWords()" style="height: 40px; font-size: 0.9rem;">
+        <div style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 10px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 180px;">
+            <div style="font-size: 0.8rem; font-weight: 700; color: #e2e8f0;">📚 Полный накопительный архив за весь курс</div>
+            <div id="vocabStatsLine" style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px;">Все слова прошлых уроков остаются здесь навсегда после ухода из Домашки</div>
+          </div>
+          <button type="button" onclick="startTrainerFromSource('vocab')" style="background: rgba(56, 189, 248, 0.18); border: 1px solid rgba(56, 189, 248, 0.4); color: #38bdf8; border-radius: 8px; padding: 6px 10px; font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap;">
+            ▶ Тренировать словарь
+          </button>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+          <input type="text" id="vocabSearch" placeholder="🔍 Поиск по всем урокам..." oninput="filterVocabWords()" style="flex: 1; min-width: 140px; height: 36px; font-size: 0.84rem; margin: 0;">
+          <div style="display: inline-flex; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 2px; gap: 2px;">
+            <button type="button" id="vfilter-all" onclick="setVocabFilter('all')" style="background: rgba(56,189,248,0.22); color: #38bdf8; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer;">Все</button>
+            <button type="button" id="vfilter-learn" onclick="setVocabFilter('learn')" style="background: transparent; color: #94a3b8; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer;">🟡 Учу</button>
+            <button type="button" id="vfilter-easy" onclick="setVocabFilter('easy')" style="background: transparent; color: #94a3b8; border: none; border-radius: 6px; padding: 4px 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer;">🟢 Знаю</button>
+          </div>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <input type="text" id="vocabCustomAdd" placeholder="➕ Своя фраза: Bonjour — Привет" onkeydown="if(event.key==='Enter') addCustomVocabPhrase()" style="flex: 1; height: 34px; font-size: 0.8rem; margin: 0;">
+          <button type="button" onclick="addCustomVocabPhrase()" style="background: #0284c7; color: #fff; border: none; border-radius: 8px; padding: 0 12px; height: 34px; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap;">Добавить</button>
+        </div>
         <div id="vocabWordsList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;"></div>
       </div>
 
@@ -788,7 +809,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.54.0';
+  const APP_VERSION = '3.55.0';
 
     const I18N = {
   "uk": {
@@ -2435,10 +2456,20 @@
   const EMPTY_MEM = ['Чистый лист.', 'Чистий аркуш.', 'Чистый лист (урок 1).'];
   const isEmptyMem = s => !s || s.trim() === '' || EMPTY_MEM.includes(s.trim());
   const memKey = l => `memory_${l}`;
+  const phrasesHistoryKey = (l = cfg.lang) => `lesson_phrases_${l}`;
   const getGlobalMem = () => store.get('global_memory', '');
   const getLangMem = (l = cfg.lang) => store.get(memKey(l), '');
   // локальная дата (toISOString давал UTC — вечером в Европе это «вчера»)
   const todayStr = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
   // Определение целевого языка объяснений (полностью изолировано от языка интерфейса uiLang)
   function getEffectiveNativeLang() {
@@ -2501,6 +2532,7 @@
 
     let rawG = args.global_memory ?? args.globalMemory ?? args.global ?? args['База жизни'] ?? '';
     let rawL = args.lang_memory ?? args.langMemory ?? args.language_memory ?? args.memory ?? args['Архив языка'] ?? '';
+    let rawLessonPhrases = args.lesson_phrases ?? args.lessonPhrases ?? args.today_phrases ?? [];
 
     let g = extractString(rawG).trim();
     let l = extractString(rawL).trim();
@@ -2510,23 +2542,35 @@
       g = '';
     }
 
-    // Гарантия словаря: если модель вернула архив языка без [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], подставляем начальные фразы
+    const normForeignKey = s => (s || '').replace(/^[#*\s_\-•\d.]+\s*/, '').split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
+
+    let explicitPhrases = [];
+    if (Array.isArray(rawLessonPhrases)) {
+      explicitPhrases = rawLessonPhrases.map(x => String(x || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim()).filter(Boolean);
+    } else if (typeof rawLessonPhrases === 'string' && rawLessonPhrases.trim()) {
+      explicitPhrases = rawLessonPhrases.split('\n').map(x => x.replace(/^[#*\s_\-•\d.]+\s*/, '').trim()).filter(Boolean);
+    }
+    explicitPhrases = explicitPhrases.filter(p => p.includes(' — ') || p.includes(' – ') || p.includes(' - ') || p.includes(' : '));
+
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    const rpProg = getRoleplayProgress(curMode, lang);
-    const partNum = rpProg ? rpProg.partNumber : 1;
-    const presets = getSituationPresetPhrases(curMode, partNum, lang);
-    if (presets && presets.length > 0) {
+    const prevLangMem = getLangMem(lang);
+    const oldVoc = (parseMem(prevLangMem)[SEC_VOC] || []).filter(w => {
+      const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+      return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
+    });
+
+    // Если ИИ передал фразы сегодняшнего урока в lesson_phrases, обязательно дописываем новые из них в [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ]
+    if (explicitPhrases.length > 0) {
+      const curVocInL = l ? (parseMem(l)[SEC_VOC] || []) : [];
+      const combinedExisting = [...oldVoc, ...curVocInL];
+      const missingInL = explicitPhrases.filter(ep => {
+        const fk = normForeignKey(ep);
+        return fk && !combinedExisting.some(ex => normForeignKey(ex) === fk);
+      });
       if (!l) {
-        l = `${SEC_LOG} (${todayStr()}): проведён урок.\n\n${SEC_VOC}:\n` + presets.join('\n');
-      } else {
-        const parsed = parseMem(l);
-        const voc = (parsed[SEC_VOC] || []).filter(w => {
-          const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-          return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
-        });
-        if (voc.length === 0) {
-          l = l.trim() + `\n\n${SEC_VOC}:\n` + presets.join('\n');
-        }
+        l = `${SEC_LOG} (${todayStr()}): проведён урок.\n\n${SEC_VOC}:\n` + explicitPhrases.join('\n');
+      } else if (missingInL.length > 0) {
+        l = appendPhrasesToVocab(l, missingInL);
       }
     }
 
@@ -2537,39 +2581,47 @@
       const r = guardShrink(old, g); shrunk = shrunk || r.shrunk;
       if (!putWithRetry('global_memory', r.text)) writeFailed = true;
     }
-    const prevLangMem = getLangMem(lang);
     if (l) {
       store.set(memKey(lang) + '__prev', prevLangMem);
       const r = guardShrink(prevLangMem, l); shrunk = shrunk || r.shrunk;
       if (!putWithRetry(memKey(lang), r.text)) writeFailed = true;
+      l = r.text;
     }
     if (writeFailed) toast(t('memWriteFail'), 8000);
     else if (shrunk) toast(t('memShrunk'), 6000);
     try { sessionStorage.removeItem('active_lesson_draft'); } catch (e) {}
 
-    // Фиксируем фразы текущего урока в истории уроков для домашнего задания и карточек
+    // Фиксируем фразы ТОЛЬКО текущего урока в истории уроков (для Домашки из 2 последних уроков)
     try {
-      const oldVoc = (parseMem(prevLangMem)[SEC_VOC] || []);
-      const newVoc = (parseMem(l)[SEC_VOC] || []);
+      const newVoc = (parseMem(l)[SEC_VOC] || []).filter(w => {
+        const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+        return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
+      });
+      const oldForeignSet = new Set(oldVoc.map(normForeignKey).filter(Boolean));
       const addedByAI = newVoc.filter(nw => {
-        const clean = nw.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-        return clean && !oldVoc.some(ow => ow.toLowerCase().includes(clean.toLowerCase().split(/\s+[—–\-]\s+/)[0]));
+        const fk = normForeignKey(nw);
+        return fk && !oldForeignSet.has(fk);
       });
 
-      let lessonPhrases = [];
-      if (addedByAI.length > 0) {
-        lessonPhrases = [...addedByAI];
-        if (presets && presets.length > 0) {
-          presets.forEach(p => {
-            const f = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
-            if (!lessonPhrases.some(lp => lp.toLowerCase().includes(f))) {
-              lessonPhrases.push(p);
-            }
-          });
+      const lessonPhrases = [];
+      const seenLessonKeys = new Set();
+      const pushUnique = p => {
+        const clean = (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+        const fk = normForeignKey(clean);
+        if (fk && !seenLessonKeys.has(fk) && (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : '))) {
+          seenLessonKeys.add(fk);
+          lessonPhrases.push(clean);
         }
-      } else if (presets && presets.length > 0) {
-        lessonPhrases = [...presets];
+      };
+
+      explicitPhrases.forEach(pushUnique);
+      addedByAI.forEach(pushUnique);
+
+      // Если ИИ повторил уже знакомые фразы в конце словаря и не выделил новые отдельно — берём последние 6–8 фраз из конца словаря
+      if (lessonPhrases.length === 0 && newVoc.length > 0) {
+        newVoc.slice(-8).forEach(pushUnique);
       }
+
       if (lessonPhrases.length > 0) {
         recordLessonPhrases(lang, curMode, lessonPhrases);
       }
@@ -2666,7 +2718,7 @@
     const L = LANGS[cfg.lang];
     const hasProgress = !isEmptyMem(getLangMem());
     profileBadge.textContent = (hasProgress ? t('profAct') : t('profNew')) + ' • ' + updateAudioChip();
-    headerTitle.textContent = `${L.teachers[cfg.teacher].short} • ${L.label}`;
+    headerTitle.textContent = `LinguaViva • ${L.teachers[cfg.teacher].short} (${L.label})`;
 
     avatarEmoji.textContent = L.emoji;
     if (L.photo) {
@@ -2769,6 +2821,8 @@
      Озвучка речи (Web Speech API / speechSynthesis)
      ========================================================================== */
   let activeUtterance = null;
+  let slowSpeechTimer = null;
+  let slowSpeechSession = 0;
   let lastSpokenKey = '';
   let lastSpokenAt = 0;
   let lastSpokenSlow = false;
@@ -2779,6 +2833,31 @@
     } catch (e) {}
   }
 
+  // Разбиение фразы на неделимые акустические связки (предлог/артикль/местоимение + слово) для режима 🐢 0.6x
+  function splitIntoAcousticBundles(text) {
+    const rawWords = (text || '').trim().split(/\s+/).filter(Boolean);
+    if (rawWords.length <= 1) return rawWords;
+    const cliticRe = /^(je|tu|il|elle|on|nous|vous|ils|elles|le|la|les|un|une|des|du|de|au|aux|ce|cet|cette|ces|mon|ma|mes|ton|ta|tes|son|sa|ses|notre|nos|votre|vos|leur|leurs|pour|dans|sur|sous|avec|sans|chez|en|y|ne|pas|plus|se|me|te|lui|qui|que|quoi|où|très|trop|bien|bon|petit|grand|a|an|the|to|in|on|at|of|for|with|from|by|my|your|his|her|our|their|is|am|are|was|were|do|does|did|can|will|would|could|should|not|el|la|los|las|un|una|unos|unas|al|del|con|sin|por|para|mi|mis|tu|tus|su|sus|yo|tú|él|ella|nos|les|lo|le|no|muy|más|qué|cómo|dónde)$/i;
+    const bundles = [];
+    let buf = [];
+    for (let i = 0; i < rawWords.length; i++) {
+      const w = rawWords[i];
+      const stripped = w.replace(/[.,!?;:]/g, '');
+      buf.push(w);
+      const hasPunctEnd = /[.,!?;:]$/.test(w);
+      const isClitic = (stripped.length <= 3 || cliticRe.test(stripped) || /['’]/.test(w)) && !hasPunctEnd;
+      if (!isClitic || buf.length >= 3 || i === rawWords.length - 1) {
+        bundles.push(buf.join(' '));
+        buf = [];
+      }
+    }
+    if (buf.length > 0) {
+      if (bundles.length > 0) bundles[bundles.length - 1] += ' ' + buf.join(' ');
+      else bundles.push(buf.join(' '));
+    }
+    return bundles;
+  }
+
   window.speakPhrase = function(text, lang, btnEl, customRate) {
     if (!text) return;
     if (!('speechSynthesis' in window)) {
@@ -2786,22 +2865,26 @@
       return;
     }
     try {
-      const clean = text.replace(/[\(\)\[\]«»"']/g, '').trim();
+      const clean = text.replace(/[\(\)\[\]«»"]/g, '').trim();
       if (!clean) return;
 
       const now = Date.now();
-      let rate = 0.9;
+      let isSlow = false;
+      let rate = 1.0;
       if (typeof customRate === 'number') {
-        rate = customRate;
-        lastSpokenSlow = rate < 0.75;
+        isSlow = customRate <= 0.75;
+        rate = isSlow ? 0.48 : 1.0;
+        lastSpokenSlow = isSlow;
       } else {
-        // Повторное нажатие на ту же фразу в течение 4 секунд включает медленный режим «По слогам» (0.6x)
+        // Повторное нажатие на ту же кнопку озвучки в течение 4 секунд включает медленный режим 🐢 (0.6x)
         if (lastSpokenKey === clean && (now - lastSpokenAt) < 4000 && !lastSpokenSlow) {
-          rate = 0.6;
+          isSlow = true;
+          rate = 0.48;
           lastSpokenSlow = true;
-          toast('🐢 Медленно (0.6x) — по слогам', 1600);
+          toast('🐢 Медленно по связкам (0.6x)', 1800);
         } else {
-          rate = 0.9;
+          isSlow = false;
+          rate = 1.0;
           lastSpokenSlow = false;
         }
       }
@@ -2822,36 +2905,52 @@
         setTimeout(resetBtn, 600);
       }
 
-      const u = new SpeechSynthesisUtterance(clean);
       const l = lang || cfg.lang;
       const langObj = LANGS[l];
       const langMap = { french: 'fr-FR', english: 'en-US', spanish: 'es-ES' };
       const targetLang = (langObj && langObj.bcp47) || langMap[l] || 'fr-FR';
       const targetPrefix = targetLang.slice(0, 2).toLowerCase();
-      u.lang = targetLang;
-      u.rate = rate;
 
       const voices = window.speechSynthesis.getVoices();
+      let matchedVoice = null;
       if (voices && voices.length > 0) {
-        // Приоритет локальным голосам (localService) устройства для мгновенной озвучки без блокировок сети и CSP
-        const matched = voices.find(v => v.lang === targetLang && v.localService) ||
-                        voices.find(v => v.lang === targetLang) ||
-                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix) && v.localService) ||
-                        voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix));
-        if (matched) u.voice = matched;
+        matchedVoice = voices.find(v => v.lang === targetLang && v.localService) ||
+                       voices.find(v => v.lang === targetLang) ||
+                       voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix) && v.localService) ||
+                       voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetPrefix));
       }
 
-      // Сохраняем ссылку в активной переменной от сбора мусора V8
-      activeUtterance = u;
-      u.onend = () => { if (activeUtterance === u) activeUtterance = null; };
-      u.onerror = () => { if (activeUtterance === u) activeUtterance = null; };
-
-      // Синхронный запуск строго внутри пользовательского жеста (без отложенного setTimeout, который сбрасывает user gesture в iOS/Android)
+      slowSpeechSession++;
+      const mySlowSession = slowSpeechSession;
+      if (slowSpeechTimer) { clearTimeout(slowSpeechTimer); slowSpeechTimer = null; }
       window.speechSynthesis.cancel();
       if (window.speechSynthesis.paused) {
         window.speechSynthesis.resume();
       }
-      window.speechSynthesis.speak(u);
+
+      // В медленном режиме (🐢 0.6x) произносим фразу со скоростью 0.48 И по смысловым связкам с паузой 360 мс
+      // (чтобы даже на тех движках Android/Windows, где браузер игнорирует u.rate на длинных фразах, темп был отчётливо медленным)
+      const chunks = isSlow ? splitIntoAcousticBundles(clean) : [clean];
+
+      const speakChunkAt = idx => {
+        if (mySlowSession !== slowSpeechSession || idx >= chunks.length) return;
+        const u = new SpeechSynthesisUtterance(chunks[idx]);
+        u.lang = targetLang;
+        u.rate = rate;
+        u.pitch = isSlow ? 0.96 : 1.0;
+        if (matchedVoice) u.voice = matchedVoice;
+        activeUtterance = u;
+        u.onend = () => {
+          if (activeUtterance === u) activeUtterance = null;
+          if (isSlow && idx + 1 < chunks.length && mySlowSession === slowSpeechSession) {
+            slowSpeechTimer = setTimeout(() => speakChunkAt(idx + 1), 360);
+          }
+        };
+        u.onerror = () => { if (activeUtterance === u) activeUtterance = null; };
+        window.speechSynthesis.speak(u);
+      };
+
+      speakChunkAt(0);
     } catch (e) {
       console.warn('SpeechSynthesis error:', e);
     }
@@ -4208,12 +4307,18 @@
 
   function saveLessonPhrasesHistory(hist, lang = cfg.lang) {
     const k = 'lesson_phrases_' + lang;
-    store.set(k, JSON.stringify((hist || []).slice(-20)));
+    // В Домашке хранятся строго 2 последних урока (последний и предпоследний); более старые автоматически уходят только в общий Словарь
+    store.set(k, JSON.stringify((hist || []).slice(-2)));
+  }
+
+  function normPhraseForeignKey(p) {
+    return (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
   }
 
   function recordLessonPhrases(lang, mode, phrases) {
     if (!phrases || phrases.length === 0) return;
     const l = lang || cfg.lang;
+    cleanupStalePresetHistory(l);
     const hist = getLessonPhrasesHistory(l);
 
     const cleanPhrases = [];
@@ -4222,8 +4327,8 @@
       const clean = (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
       if (!clean || /^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(clean)) return;
       if (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : ')) {
-        const foreign = clean.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
-        if (!seen.has(foreign)) {
+        const foreign = normPhraseForeignKey(clean);
+        if (foreign && !seen.has(foreign)) {
           seen.add(foreign);
           cleanPhrases.push(clean);
         }
@@ -4232,13 +4337,40 @@
 
     if (cleanPhrases.length === 0) return;
 
+    // Синхронизируем фразы урока в полный накопительный словарь [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ],
+    // чтобы при вытеснении старых уроков из Домашки они навсегда оставались во вкладке «Словарь»
+    try {
+      const rawMem = getLangMem(l);
+      const existingVoc = (parseMem(rawMem)[SEC_VOC] || []);
+      const existingKeys = new Set(existingVoc.map(normPhraseForeignKey).filter(Boolean));
+      const missingForVocab = cleanPhrases.filter(cp => !existingKeys.has(normPhraseForeignKey(cp)));
+      if (missingForVocab.length > 0) {
+        const updatedMem = appendPhrasesToVocab(rawMem, missingForVocab);
+        store.set(memKey(l), updatedMem);
+      }
+    } catch (e) {}
+
+    // Защита от дублирования одного и того же урока при повторном вызове сохранения
+    if (hist.length > 0) {
+      const last = hist[hist.length - 1];
+      const lastKeys = (last.phrases || []).map(normPhraseForeignKey).join('|');
+      const newKeys = cleanPhrases.map(normPhraseForeignKey).join('|');
+      if (lastKeys === newKeys) {
+        last.t = Date.now();
+        last.m = mode;
+        last.phrases = cleanPhrases;
+        saveLessonPhrasesHistory(hist, l);
+        return;
+      }
+    }
+
     hist.push({
       t: Date.now(),
       m: mode,
       phrases: cleanPhrases
     });
 
-    saveLessonPhrasesHistory(hist, l);
+    saveLessonPhrasesHistory(hist.slice(-2), l);
   }
 
   function isStaleShopList(list) {
@@ -4246,190 +4378,202 @@
     return list.some(p => typeof p === 'string' && /pain et du fromage|magasin|магазин|хлеб и сыр|acheter ceci|купить это|combien.*coûte|сколько.*стоит/i.test(p));
   }
 
+  // Проверка, является ли запись в истории жёстко зашитым шаблонным пресетом из старых версий
+  function isHardcodedPresetEntry(list, lang) {
+    if (!Array.isArray(list) || list.length === 0) return false;
+    if (isStaleShopList(list)) return true;
+    const modesToCheck = ['standard', 'role_restaurant', 'role_airport', 'role_hotel', 'role_doctor', 'role_cinema', 'role_party', 'role_museum', 'role_culture'];
+    const entryKeys = list.map(normPhraseForeignKey).filter(Boolean);
+    if (entryKeys.length === 0) return false;
+    for (const m of modesToCheck) {
+      for (let part = 1; part <= 4; part++) {
+        const pList = getSituationPresetPhrases(m, part, lang) || [];
+        const pKeys = new Set(pList.map(normPhraseForeignKey).filter(Boolean));
+        if (pKeys.size > 0) {
+          const matchCount = entryKeys.filter(k => pKeys.has(k)).length;
+          if (matchCount >= Math.max(3, Math.ceil(entryKeys.length * 0.75))) return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function cleanupStalePresetHistory(lang = cfg.lang) {
+    const migKey = 'hw_v355_clean_' + lang;
+    if (store.get(migKey, '') === '1') return;
+    store.set(migKey, '1');
+
+    // 1. Удаляем застрявшие шаблонные списки из истории уроков Домашки
+    let hist = getLessonPhrasesHistory(lang);
+    if (Array.isArray(hist) && hist.length > 0) {
+      const filtered = hist.filter(item => item && Array.isArray(item.phrases) && !isHardcodedPresetEntry(item.phrases, lang));
+      saveLessonPhrasesHistory(filtered.slice(-2), lang);
+    }
+
+    // 2. Удаляем шаблонные пресетные блоки из конца [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], если они были автоматически дописаны старым кодом
+    const memStr = getLangMem(lang);
+    if (memStr && memStr.trim()) {
+      const allPresetForeign = new Set();
+      const modesToCheck = ['standard', 'role_restaurant', 'role_airport', 'role_hotel', 'role_doctor', 'role_cinema', 'role_party', 'role_museum', 'role_culture'];
+      modesToCheck.forEach(m => {
+        for (let part = 1; part <= 4; part++) {
+          (getSituationPresetPhrases(m, part, lang) || []).forEach(p => {
+            const fk = normPhraseForeignKey(p);
+            if (fk) allPresetForeign.add(fk);
+          });
+        }
+      });
+      const lines = memStr.split('\n');
+      const nonPresetVocCount = lines.filter(line => {
+        const clean = line.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+        if (!clean || !(clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - '))) return false;
+        const fk = normPhraseForeignKey(clean);
+        return fk && !allPresetForeign.has(fk) && !isStaleShopList([clean]);
+      }).length;
+
+      // Если у ученика уже есть собственные фразы из реальных уроков, убираем примешанные шаблонные пресеты
+      if (nonPresetVocCount >= 3) {
+        const cleanedLines = lines.filter(line => {
+          if (isStaleShopList([line])) return false;
+          const clean = line.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+          if (clean && (clean.includes(' — ') || clean.includes(' – '))) {
+            const fk = normPhraseForeignKey(clean);
+            if (fk && allPresetForeign.has(fk)) return false;
+          }
+          return true;
+        });
+        store.set(memKey(lang), cleanedLines.join('\n'));
+      }
+    }
+  }
+
   function seedLessonPhrasesIfEmpty(lang = cfg.lang) {
+    cleanupStalePresetHistory(lang);
     let hist = getLessonPhrasesHistory(lang);
     if (hist && hist.length > 0) {
-      const cleanHist = hist.filter(item => !isStaleShopList(item.phrases));
-      if (cleanHist.length !== hist.length) {
-        hist = cleanHist;
+      const cleanHist = hist.filter(item => item && Array.isArray(item.phrases) && item.phrases.length > 0 && !isStaleShopList(item.phrases));
+      if (cleanHist.length !== hist.length || cleanHist.length > 2) {
+        hist = cleanHist.slice(-2);
         saveLessonPhrasesHistory(hist, lang);
       }
+      if (hist.length > 0) return;
     }
 
-    // Очищаем старые фразы магазина из памяти [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], если они там застряли от старого шаблона:
+    // Если история уроков пуста, но в памяти языка [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ] есть реальные фразы с прошлых уроков —
+    // формируем стартовую Домашку из последних изученных фраз (без подстановки чужих шаблонов!)
     const memStr = getLangMem(lang);
-    if (memStr && /magasin|магазин|pain et du fromage|хлеб и сыр|acheter ceci|купить это/i.test(memStr)) {
-      const cleanedMem = memStr.split('\n').filter(line => !/magasin|магазин|pain et du fromage|хлеб и сыр|acheter ceci|купить это/i.test(line)).join('\n');
-      store.set(memKey(lang), cleanedMem);
-    }
-
-    if (hist && hist.length > 0) return;
-
-    const allLogs = readJSON('lesson_log', []);
-    const hasLangLessons = allLogs.some(x => x && x.l === lang);
-    if (!hasLangLessons && isEmptyMem(memStr)) return;
-
-    const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    let targetMode = (curMode && curMode !== 'standard' && curMode !== 'random') ? curMode : null;
-    if (!targetMode) {
-      const logs = readJSON('lesson_log', []);
-      const langLogs = logs.filter(x => x.l === lang && x.m && x.m !== 'standard' && x.m !== 'random');
-      if (langLogs.length > 0) {
-        targetMode = langLogs[langLogs.length - 1].m;
-      }
-    }
-    if (!targetMode && memStr) {
-      if (/аэропорт|airport|полет|рейс/i.test(memStr)) targetMode = 'role_airport';
-      else if (/отел|готел|hotel/i.test(memStr)) targetMode = 'role_hotel';
-      else if (/врач|лікар|doctor|аптек/i.test(memStr)) targetMode = 'role_doctor';
-      else if (/кино|кіно|cinema|фильм/i.test(memStr)) targetMode = 'role_cinema';
-      else if (/вечеринк|вечірк|party|гост/i.test(memStr)) targetMode = 'role_party';
-      else if (/музей|museum|выставк|виставк/i.test(memStr)) targetMode = 'role_museum';
-      else if (/книг|book|culture|культур/i.test(memStr)) targetMode = 'role_culture';
-      else if (/ресторан|restaurant|кафе/i.test(memStr)) targetMode = 'role_restaurant';
-    }
-    if (!targetMode) {
-      const keys = Object.keys(ROLEPLAY_SERIES);
-      targetMode = keys[0] || 'role_restaurant';
-    }
-
-    const p1 = getSituationPresetPhrases(targetMode, 1, lang);
-    const p2 = getSituationPresetPhrases(targetMode, 2, lang);
+    if (!memStr || isEmptyMem(memStr)) return;
+    const parsed = parseMem(memStr);
+    const voc = (parsed[SEC_VOC] || []).map(w => w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim()).filter(c => {
+      return c && (c.includes(' — ') || c.includes(' – ') || c.includes(' - ') || c.includes(' : ')) && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
+    });
+    if (voc.length === 0) return;
 
     const initialHist = [];
-    if (p1 && p1.length > 0) {
-      initialHist.push({ t: Date.now() - 86400000, m: targetMode, phrases: p1 });
-    }
-    if (p2 && p2.length > 0) {
-      initialHist.push({ t: Date.now(), m: targetMode, phrases: p2 });
+    if (voc.length > 8) {
+      initialHist.push({ t: Date.now() - 86400000, m: 'standard', phrases: voc.slice(-16, -8) });
+      initialHist.push({ t: Date.now(), m: 'standard', phrases: voc.slice(-8) });
+    } else {
+      initialHist.push({ t: Date.now(), m: 'standard', phrases: voc.slice(-8) });
     }
     saveLessonPhrasesHistory(initialHist, lang);
   }
 
-  function extractHomeworkPhrases(lang = cfg.lang) {
+  function formatPhraseForDisplay(rawPhrase, effNat) {
+    let clean = (rawPhrase || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+    if (!clean || /^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(clean)) return '';
+    const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
+    if (parts.length >= 2) {
+      const foreign = parts[0].trim();
+      let trans = parts.slice(1).join(' — ').trim();
+      if (effNat === 'ru') {
+        if (typeof ruMap !== 'undefined' && ruMap[trans]) trans = ruMap[trans];
+      } else if (effNat === 'uk') {
+        if (typeof ukMap !== 'undefined' && ukMap[trans]) trans = ukMap[trans];
+      }
+      clean = `${foreign} — ${trans}`;
+    }
+    return clean;
+  }
+
+  // Возвращает структурированные группы фраз для Домашки: строго Последний урок и Предпоследний урок
+  function getHomeworkLessonGroups(lang = cfg.lang) {
     seedLessonPhrasesIfEmpty(lang);
     const hist = getLessonPhrasesHistory(lang);
+    const effNat = getEffectiveNativeLang();
+    const seen = new Set();
+    const normalizeList = arr => {
+      const out = [];
+      (arr || []).forEach(p => {
+        const formatted = formatPhraseForDisplay(p, effNat);
+        if (!formatted) return;
+        const fk = normPhraseForeignKey(formatted);
+        if (fk && !seen.has(fk)) {
+          seen.add(fk);
+          out.push(formatted);
+        }
+      });
+      return out;
+    };
 
     if (hist && hist.length > 0) {
-      // Берём фразы строго за последние ДВА урока (самый свежий и предпоследний)
-      const lastLesson = hist[hist.length - 1];
-      const prevLesson = hist.length > 1 ? hist[hist.length - 2] : null;
-
-      const result = [];
-      const seen = new Set();
-
-      const effNat = getEffectiveNativeLang();
-      const addPhrase = p => {
-        let clean = (p || '').replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-        if (!clean || /^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(clean)) return;
-        const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
-        if (parts.length >= 2) {
-          const foreign = parts[0].trim();
-          let trans = parts.slice(1).join(' — ').trim();
-          if (effNat === 'ru') {
-            if (typeof ruMap !== 'undefined' && ruMap[trans]) trans = ruMap[trans];
-          } else if (effNat === 'uk') {
-            if (typeof ukMap !== 'undefined' && ukMap[trans]) trans = ukMap[trans];
-          }
-          clean = `${foreign} — ${trans}`;
-        }
-        const foreignKey = clean.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim().toLowerCase();
-        if (!seen.has(foreignKey)) {
-          seen.add(foreignKey);
-          result.push(clean);
-        }
-      };
-
-      if (lastLesson && Array.isArray(lastLesson.phrases)) {
-        lastLesson.phrases.forEach(addPhrase);
+      const lastEntry = hist[hist.length - 1];
+      const prevEntry = hist.length > 1 ? hist[hist.length - 2] : null;
+      const lastPhrases = normalizeList(lastEntry ? lastEntry.phrases : []);
+      const prevPhrases = normalizeList(prevEntry ? prevEntry.phrases : []);
+      if (lastPhrases.length > 0 || prevPhrases.length > 0) {
+        return {
+          last: { phrases: lastPhrases, t: lastEntry ? lastEntry.t : 0, m: lastEntry ? lastEntry.m : '' },
+          prev: prevPhrases.length > 0 ? { phrases: prevPhrases, t: prevEntry ? prevEntry.t : 0, m: prevEntry ? prevEntry.m : '' } : null
+        };
       }
-      if (prevLesson && Array.isArray(prevLesson.phrases)) {
-        prevLesson.phrases.forEach(addPhrase);
-      }
-
-      if (result.length > 0) return result;
     }
 
     const mem = parseMem(getLangMem(lang));
-    let words = (mem[SEC_VOC] || []).filter(w => {
-      const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-      return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
-    });
+    const words = normalizeList((mem[SEC_VOC] || []).slice(-10).reverse());
+    return {
+      last: { phrases: words, t: 0, m: '' },
+      prev: null
+    };
+  }
 
-    if (words.length === 0) {
-      const raw = getLangMem(lang);
-      if (raw) {
-        raw.split('\n').forEach(l => {
-          const clean = l.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-          if (clean && (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : '))) {
-            if (!/ЖУРНАЛ|ОШИБОК|ПОМИЛОК|СЛЕДУЮЩ|НАСТУПН|202\d-\d\d-\d\d/i.test(clean)) {
-              words.push(clean);
-            }
-          }
-        });
-      }
+  function extractHomeworkPhrases(lang = cfg.lang) {
+    const groups = getHomeworkLessonGroups(lang);
+    const combined = [...(groups.last ? groups.last.phrases : [])];
+    if (groups.prev && Array.isArray(groups.prev.phrases)) {
+      combined.push(...groups.prev.phrases);
     }
-
-    return words.slice(-12).reverse();
+    return combined;
   }
 
   function ensureVocabPopulatedIfHasHistory() {
+    cleanupStalePresetHistory(cfg.lang);
+    const hist = getLessonPhrasesHistory(cfg.lang);
+    if (!hist || hist.length === 0) return;
     const raw = getLangMem(cfg.lang);
-    if (!raw || !raw.trim()) return;
     const parsed = parseMem(raw);
-    const existing = (parsed[SEC_VOC] || []).filter(w => {
-      const c = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-      return c && !/^(ЖУРНАЛ|СЛОВАР|СЛОВНИК|ОШИБ|LOG|VOCAB)/i.test(c);
-    });
-
-    const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    let targetMode = (curMode && curMode !== 'standard' && curMode !== 'random') ? curMode : null;
-    if (!targetMode) {
-      const logs = readJSON('lesson_log', []);
-      const langLogs = logs.filter(x => x.l === cfg.lang && x.m && x.m !== 'standard' && x.m !== 'random');
-      if (langLogs.length > 0) targetMode = langLogs[langLogs.length - 1].m;
-    }
-    if (!targetMode && raw) {
-      if (/аэропорт|airport|полет|рейс/i.test(raw)) targetMode = 'role_airport';
-      else if (/отел|готел|hotel/i.test(raw)) targetMode = 'role_hotel';
-      else if (/врач|лікар|doctor|аптек/i.test(raw)) targetMode = 'role_doctor';
-      else if (/кино|кіно|cinema|фильм/i.test(raw)) targetMode = 'role_cinema';
-      else if (/вечеринк|вечірк|party|гост/i.test(raw)) targetMode = 'role_party';
-      else if (/музей|museum|выставк|виставк/i.test(raw)) targetMode = 'role_museum';
-      else if (/книг|book|culture|культур/i.test(raw)) targetMode = 'role_culture';
-      else if (/ресторан|restaurant|кафе/i.test(raw)) targetMode = 'role_restaurant';
-    }
-
-    if (targetMode) {
-      const rpProg = getRoleplayProgress(targetMode, cfg.lang);
-      const partNum = rpProg ? rpProg.partNumber : 1;
-      const presets = getSituationPresetPhrases(targetMode, partNum, cfg.lang);
-      if (presets && presets.length > 0) {
-        const hasTargetPhrases = presets.some(p => {
-          const f = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
-          return existing.some(e => e.toLowerCase().includes(f));
-        });
-        if (!hasTargetPhrases) {
-          const updated = appendPhrasesToVocab(raw, presets);
-          store.set(memKey(cfg.lang), updated);
-          refreshMemInfo();
-          return;
+    const existing = (parsed[SEC_VOC] || []);
+    const existingKeys = new Set(existing.map(normPhraseForeignKey).filter(Boolean));
+    const toAdd = [];
+    hist.forEach(item => {
+      (item.phrases || []).forEach(p => {
+        const fk = normPhraseForeignKey(p);
+        if (fk && !existingKeys.has(fk)) {
+          existingKeys.add(fk);
+          toAdd.push(p);
         }
-      }
-    }
-
-    // Если словарь уже содержит фразы — никогда не дописываем пресеты других режимов
-    if (existing.length > 0) return;
-
-    const presets = getSituationPresetPhrases(curMode, 1, cfg.lang);
-    if (presets && presets.length > 0) {
-      const updated = appendPhrasesToVocab(raw, presets);
+      });
+    });
+    if (toAdd.length > 0) {
+      const updated = appendPhrasesToVocab(raw, toAdd);
       store.set(memKey(cfg.lang), updated);
       refreshMemInfo();
     }
   }
 
   let cachedVocabWords = [];
+  let vocabFilterMode = 'all'; // 'all' | 'learn' | 'easy'
+  let trainerSource = 'homework'; // 'homework' | 'vocab'
   let flashcardList = [];
   let flashcardIndex = 0;
   let flashcardFlipped = false;
@@ -4449,6 +4593,7 @@
     }
     ensureVocabPopulatedIfHasHistory();
     $('vocabLangBadge').textContent = (LANGS[cfg.lang] && LANGS[cfg.lang].label) || cfg.lang;
+    trainerSource = 'homework';
     switchVocabTab('homework');
     renderVocab();
     renderHomework();
@@ -4458,6 +4603,8 @@
   window.closeVocabModal = () => {
     const m = $('modalVocab');
     if (m) m.style.display = 'none';
+    slowSpeechSession++;
+    if (slowSpeechTimer) { clearTimeout(slowSpeechTimer); slowSpeechTimer = null; }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   };
 
@@ -4471,6 +4618,11 @@
     mRecap.addEventListener('click', e => { if (e.target === mRecap) closeRecapModal(); });
   }
 
+  window.startTrainerFromSource = function(src) {
+    trainerSource = (src === 'vocab') ? 'vocab' : 'homework';
+    switchVocabTab('trainer');
+  };
+
   window.switchVocabTab = tab => {
     ['homework', 'trainer', 'words', 'memory', 'passport'].forEach(t => {
       const btn = $('vtab-btn-' + t);
@@ -4479,7 +4631,10 @@
       if (pane) pane.style.display = t === tab ? 'flex' : 'none';
     });
     if (tab === 'trainer') {
-      initFlashcards();
+      initFlashcards(trainerSource);
+    }
+    if (tab === 'words') {
+      renderVocab();
     }
     if (tab === 'memory') {
       switchMemorySubTab('err');
@@ -4513,31 +4668,54 @@
     toast('Память языка успешно сохранена!', 4000);
   };
 
+  function renderHomeworkCardHtml(w) {
+    const clean = w.replace(/^[-•*]\s*/, '');
+    const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
+    const foreign = parts[0] ? parts[0].trim() : clean;
+    const trans = parts.slice(1).join(' — ').trim();
+    const enc = encodeURIComponent(foreign);
+    return `
+      <div style="background: rgba(30, 41, 59, 0.72); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 12px; padding: 11px 13px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 600; color: #38bdf8; font-size: 0.96rem; line-height: 1.35; margin-bottom: 2px;">${escapeHtml(foreign)}</div>
+          ${trans ? `<div style="color: #94a3b8; font-size: 0.84rem; line-height: 1.3;">${escapeHtml(trans)}</div>` : ''}
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this, 1.0)" title="Обычный темп" style="background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.32); color: #38bdf8; border-radius: 50%; width: 36px; height: 36px; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            🔈
+          </button>
+          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this, 0.6)" title="Медленно по связкам (0.6x)" style="background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.35); color: #fbbf24; border-radius: 50%; width: 36px; height: 36px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+            🐢
+          </button>
+        </div>
+      </div>`;
+  }
+
   function renderHomework() {
     const hwList = $('homeworkList');
     if (!hwList) return;
-    const words = extractHomeworkPhrases();
-    if (words.length === 0) {
+    const groups = getHomeworkLessonGroups(cfg.lang);
+    const lastPhrases = (groups.last && groups.last.phrases) || [];
+    const prevPhrases = (groups.prev && groups.prev.phrases) || [];
+
+    if (lastPhrases.length === 0 && prevPhrases.length === 0) {
       hwList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 24px; text-align: center;">' + t('hwEmpty') + '</div>';
       return;
     }
-    hwList.innerHTML = words.map(w => {
-      const clean = w.replace(/^[-•*]\s*/, '');
-      const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
-      const foreign = parts[0] ? parts[0].trim() : clean;
-      const trans = parts.slice(1).join(' — ').trim();
-      const enc = encodeURIComponent(foreign);
-      return `
-        <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.22); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-          <div style="flex: 1; min-width: 0;">
-            <div style="font-weight: 600; color: #38bdf8; font-size: 0.98rem; line-height: 1.35; margin-bottom: 2px;">${foreign}</div>
-            ${trans ? `<div style="color: #94a3b8; font-size: 0.85rem; line-height: 1.3;">${trans}</div>` : ''}
-          </div>
-          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this)" title="Прослушать произношение" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 38px; height: 38px; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
-            🔈
-          </button>
-        </div>`;
-    }).join('');
+
+    const isUk = cfg.uiLang === 'uk';
+    let html = '';
+    if (lastPhrases.length > 0) {
+      const titleLast = isUk ? '🔥 Останній урок (свіжі фрази)' : '🔥 Последний урок (свежие фразы)';
+      html += `<div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #38bdf8; padding: 4px 4px 2px 4px; display: flex; justify-content: space-between;"><span>${titleLast}</span><span>${lastPhrases.length}</span></div>`;
+      html += lastPhrases.map(renderHomeworkCardHtml).join('');
+    }
+    if (prevPhrases.length > 0) {
+      const titlePrev = isUk ? '⏮ Передостанній урок (на закріплення)' : '⏮ Предпоследний урок (на закрепление)';
+      html += `<div style="font-size: 0.76rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #94a3b8; padding: 10px 4px 2px 4px; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 4px; display: flex; justify-content: space-between;"><span>${titlePrev}</span><span>${prevPhrases.length}</span></div>`;
+      html += prevPhrases.map(renderHomeworkCardHtml).join('');
+    }
+    hwList.innerHTML = html;
   }
 
   let trainerMode = 'cards'; // 'cards' | 'builder'
@@ -4545,10 +4723,10 @@
   let builderPicked = [];
   let builderSolved = false;
 
-  window.setTrainerMode = function(mode) {
-    trainerMode = (mode === 'builder') ? 'builder' : 'cards';
+  function updateTrainerButtonsUI() {
     const bCards = $('btnTrainerModeCards');
     const bBuilder = $('btnTrainerModeBuilder');
+    const bFlip = $('btnCardFlip');
     if (bCards) {
       bCards.style.background = trainerMode === 'cards' ? 'rgba(56, 189, 248, 0.22)' : 'transparent';
       bCards.style.color = trainerMode === 'cards' ? '#38bdf8' : '#94a3b8';
@@ -4557,9 +4735,30 @@
       bBuilder.style.background = trainerMode === 'builder' ? 'rgba(56, 189, 248, 0.22)' : 'transparent';
       bBuilder.style.color = trainerMode === 'builder' ? '#38bdf8' : '#94a3b8';
     }
+    if (bFlip) {
+      if (trainerMode === 'builder') {
+        bFlip.textContent = builderSolved ? '🔄 Заново' : '💡 Показать ответ';
+      } else {
+        bFlip.textContent = t('btnCardFlip') || '🔄 Проверить';
+      }
+    }
+  }
+
+  window.setTrainerMode = function(mode) {
+    trainerMode = (mode === 'builder') ? 'builder' : 'cards';
     flashcardFlipped = false;
+    if (flashcardList.length === 0) {
+      initFlashcards(trainerSource);
+      return;
+    }
     initBuilderForCurrentCard();
+    updateTrainerButtonsUI();
     renderFlashcard();
+  };
+
+  window.onFlashcardBoxClick = function(ev) {
+    if (trainerMode === 'builder') return;
+    flipFlashcard();
   };
 
   function initBuilderForCurrentCard() {
@@ -4600,9 +4799,10 @@
       if (ok) {
         builderSolved = true;
         try { if (navigator.vibrate) navigator.vibrate(45); } catch (e) {}
-        if (cur) speakPhrase(cur.foreign, cfg.lang, null, 0.9);
+        if (cur) speakPhrase(cur.foreign, cfg.lang, null, 1.0);
       }
     }
+    updateTrainerButtonsUI();
     renderFlashcard();
   };
 
@@ -4612,11 +4812,18 @@
     if (!item) return;
     item.used = false;
     builderPicked.splice(pickedIdx, 1);
+    updateTrainerButtonsUI();
     renderFlashcard();
   };
 
-  function initFlashcards() {
-    const words = extractHomeworkPhrases();
+  function initFlashcards(source = trainerSource) {
+    let words = [];
+    if (source === 'vocab' && cachedVocabWords.length > 0) {
+      words = getFilteredVocabList();
+      if (words.length === 0) words = [...cachedVocabWords];
+    } else {
+      words = extractHomeworkPhrases();
+    }
     flashcardList = words.map(w => {
       const clean = w.replace(/^[-•*]\s*/, '');
       const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
@@ -4627,6 +4834,7 @@
     flashcardIndex = 0;
     flashcardFlipped = false;
     initBuilderForCurrentCard();
+    updateTrainerButtonsUI();
     renderFlashcard();
   }
 
@@ -4636,6 +4844,7 @@
     const cardEl = $('flashcardElement');
     const counterEl = $('flashcardCounter');
     if (!cardEl) return;
+    updateTrainerButtonsUI();
     if (flashcardList.length === 0) {
       if (counterEl) counterEl.textContent = '0 / 0';
       cardEl.innerHTML = `
@@ -4644,8 +4853,11 @@
         <div style="font-size: 0.82rem; color: #94a3b8;">${t('trEmptySub')}</div>`;
       return;
     }
+    if (flashcardIndex >= flashcardList.length) flashcardIndex = 0;
+    if (flashcardIndex < 0) flashcardIndex = flashcardList.length - 1;
     const cur = flashcardList[flashcardIndex];
-    if (counterEl) counterEl.textContent = `${flashcardIndex + 1} / ${flashcardList.length}`;
+    const srcLabel = trainerSource === 'vocab' ? '📚 ' : '';
+    if (counterEl) counterEl.textContent = `${srcLabel}${flashcardIndex + 1} / ${flashcardList.length}`;
     const L = LANGS[cfg.lang] || LANGS.french;
     const adv = L.adv || (cfg.uiLang === 'uk' ? 'іноземною' : 'на иностранном');
 
@@ -4678,13 +4890,13 @@
           ${poolHtml}
         </div>
         <div onclick="event.stopPropagation();" style="display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 2px;">
-          <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.9)" style="background: rgba(56,189,248,0.16); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
-            🔈 Подсказка
+          <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 1.0)" style="background: rgba(56,189,248,0.16); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+            🔈 Прослушать
           </button>
           <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.6)" style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
             🐢 0.6x
           </button>
-          ${builderSolved ? `<span style="color: #34d399; font-size: 0.84rem; font-weight: 700;">✅ Верно!</span>` : (isCompleteAttempt ? `<span style="color: #f87171; font-size: 0.8rem; font-weight: 600;">❌ Проверьте порядок слов (нажмите на слово, чтобы убрать)</span>` : '')}
+          ${builderSolved ? `<span style="color: #34d399; font-size: 0.84rem; font-weight: 700;">✅ Верно!</span>` : (isCompleteAttempt ? `<span style="color: #f87171; font-size: 0.8rem; font-weight: 600;">❌ Проверьте порядок слов (нажмите на слово вверху, чтобы убрать)</span>` : '')}
         </div>`;
       return;
     }
@@ -4692,14 +4904,14 @@
     if (!flashcardFlipped) {
       cardEl.innerHTML = `
         <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">${t('cardPrompt', { adv })}</div>
-        <div style="font-size: 1.25rem; font-weight: 600; color: #f8fafc; line-height: 1.4; padding: 4px 10px;">${cur.trans}</div>
+        <div style="font-size: 1.25rem; font-weight: 600; color: #f8fafc; line-height: 1.4; padding: 4px 10px;">${escapeHtml(cur.trans)}</div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 6px;">${t('cardTapFlip')}</div>
         <div style="margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%;" onclick="event.stopPropagation();">
           <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
-            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.9)" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 1.0)" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
               🔈 ${t('cardListenShort')}
             </button>
-            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.6)" title="Медленно по слогам (0.6x)" style="background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 999px; padding: 6px 11px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.6)" title="Медленно по связкам (0.6x)" style="background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 999px; padding: 6px 11px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
               🐢 0.6x
             </button>
             <button type="button" onclick="checkFlashcardVoice()" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
@@ -4711,14 +4923,14 @@
     } else {
       cardEl.innerHTML = `
         <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #34d399; font-weight: 700;">${t('cardReference')}</div>
-        <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; line-height: 1.4; padding: 4px 10px;">${cur.foreign}</div>
-        <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 6px;">${cur.trans}</div>
+        <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; line-height: 1.4; padding: 4px 10px;">${escapeHtml(cur.foreign)}</div>
+        <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 6px;">${escapeHtml(cur.trans)}</div>
         <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;" onclick="event.stopPropagation();">
-          <button type="button" onclick="repeatCurrentFlashcard(this, 0.9);" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+          <button type="button" onclick="repeatCurrentFlashcard(this, 1.0);" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
             ${t('cardListenAgain')}
           </button>
           <button type="button" onclick="repeatCurrentFlashcard(this, 0.6);" style="background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.38); color: #fbbf24; border-radius: 999px; padding: 6px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
-            🐢 По слогам (0.6x)
+            🐢 Медленно (0.6x)
           </button>
         </div>
         <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 6px;" onclick="event.stopPropagation();">
@@ -4809,7 +5021,7 @@
       const col = hit ? '#34d399' : '#fbbf24';
       const bg = hit ? 'rgba(16,185,129,0.16)' : 'rgba(245,158,11,0.16)';
       const brd = hit ? 'rgba(52,211,153,0.4)' : 'rgba(245,158,11,0.45)';
-      return `<span data-word="${encTok}" onclick="event.stopPropagation(); speakPhrase(decodeURIComponent(this.dataset.word), cfg.lang, this, 0.75)" title="Нажмите, чтобы прослушать слово" style="display:inline-block; margin: 2px; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; color: ${col}; background: ${bg}; border: 1px solid ${brd};">${escapeHtml(tok)}</span>`;
+      return `<span data-word="${encTok}" onclick="event.stopPropagation(); speakPhrase(decodeURIComponent(this.dataset.word), cfg.lang, this, 0.6)" title="Нажмите, чтобы прослушать слово медленно" style="display:inline-block; margin: 2px; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; color: ${col}; background: ${bg}; border: 1px solid ${brd};">${escapeHtml(tok)}</span>`;
     }).join('');
 
     const heardLine = `<div style="font-size: 0.74rem; color: #cbd5e1; margin-top: 3px;">${t('recPartial')} «<b>${escapeHtml(spoken)}</b>»</div>`;
@@ -4962,7 +5174,8 @@
     const seconds = durSec % 60;
     const durStr = mins > 0 ? `${mins}м ${seconds}с` : `${seconds}с`;
 
-    const phrases = extractHomeworkPhrases(sessionLang || cfg.lang).slice(0, 5);
+    const groups = getHomeworkLessonGroups(sessionLang || cfg.lang);
+    const phrases = ((groups.last && groups.last.phrases) || []).slice(0, 6);
     const mem = parseMem(getLangMem(sessionLang || cfg.lang));
     const recentErrors = (mem[SEC_ERR] || []).filter(e => {
       const c = e.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
@@ -4994,7 +5207,7 @@
                 <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem;">${escapeHtml(f)}</div>
                 ${tr ? `<div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">${escapeHtml(tr)}</div>` : ''}
               </div>
-              <button type="button" data-word="${encF}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${sessionLang || cfg.lang}', this)" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
+              <button type="button" data-word="${encF}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${sessionLang || cfg.lang}', this, 1.0)" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
             </div>
           `;
         }).join('');
@@ -5008,7 +5221,7 @@
         errBox.style.display = 'block';
         errList.innerHTML = recentErrors.map(e => `
           <div style="background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 6px 10px; font-size: 0.78rem; color: #fca5a5; text-align: left;">
-            ${e}
+            ${escapeHtml(e)}
           </div>
         `).join('');
       } else {
@@ -5051,57 +5264,149 @@
   window.flipFlashcard = function() {
     if (flashcardList.length === 0) return;
     if (trainerMode === 'builder') {
-      initBuilderForCurrentCard();
+      if (!builderSolved) {
+        const cur = flashcardList[flashcardIndex];
+        const tokens = (cur ? cur.foreign : '').trim().split(/\s+/).filter(Boolean);
+        builderPool = tokens.map((w, idx) => ({ id: idx, word: w, used: true }));
+        builderPicked = [...builderPool];
+        builderSolved = true;
+        if (cur) speakPhrase(cur.foreign, cfg.lang, null, 1.0);
+      } else {
+        initBuilderForCurrentCard();
+      }
+      updateTrainerButtonsUI();
       renderFlashcard();
       return;
     }
     flashcardFlipped = !flashcardFlipped;
     renderFlashcard();
     if (flashcardFlipped) {
-      repeatCurrentFlashcard(null, 0.9);
+      repeatCurrentFlashcard(null, 1.0);
     }
   };
 
   window.nextFlashcard = function() {
+    if (flashcardList.length === 0) initFlashcards(trainerSource);
     if (flashcardList.length === 0) return;
+    if (cardRecInstance) { try { cardRecInstance.abort(); } catch (e) {} cardRecInstance = null; }
     flashcardIndex = (flashcardIndex + 1) % flashcardList.length;
     flashcardFlipped = false;
     initBuilderForCurrentCard();
+    updateTrainerButtonsUI();
     renderFlashcard();
   };
 
   window.prevFlashcard = function() {
+    if (flashcardList.length === 0) initFlashcards(trainerSource);
     if (flashcardList.length === 0) return;
+    if (cardRecInstance) { try { cardRecInstance.abort(); } catch (e) {} cardRecInstance = null; }
     flashcardIndex = (flashcardIndex - 1 + flashcardList.length) % flashcardList.length;
     flashcardFlipped = false;
     initBuilderForCurrentCard();
+    updateTrainerButtonsUI();
     renderFlashcard();
   };
 
+  window.setVocabFilter = function(mode) {
+    vocabFilterMode = (mode === 'learn' || mode === 'easy') ? mode : 'all';
+    ['all', 'learn', 'easy'].forEach(k => {
+      const btn = $('vfilter-' + k);
+      if (btn) {
+        btn.style.background = (vocabFilterMode === k) ? 'rgba(56,189,248,0.22)' : 'transparent';
+        btn.style.color = (vocabFilterMode === k) ? '#38bdf8' : '#94a3b8';
+      }
+    });
+    filterVocabWords();
+  };
+
+  window.toggleWordSrsStatus = function(foreignWord) {
+    if (!foreignWord) return;
+    const srsKey = 'card_srs_' + cfg.lang;
+    const srsData = readJSON(srsKey, {});
+    const cur = srsData[foreignWord] && srsData[foreignWord].r;
+    const nextRating = (cur === 'easy') ? 'hard' : 'easy';
+    srsData[foreignWord] = {
+      r: nextRating,
+      t: Date.now(),
+      n: ((srsData[foreignWord] && srsData[foreignWord].n) || 0) + 1
+    };
+    store.set(srsKey, JSON.stringify(srsData));
+    renderVocab();
+  };
+
+  window.addCustomVocabPhrase = function() {
+    const inp = $('vocabCustomAdd');
+    if (!inp) return;
+    const val = (inp.value || '').trim();
+    if (!val) return;
+    let entry = val;
+    if (!(entry.includes(' — ') || entry.includes(' – ') || entry.includes(' - ') || entry.includes(' : '))) {
+      toast('Укажите фразу через тире: Фраза — Перевод', 3500);
+      return;
+    }
+    const parts = entry.split(/\s+[—–\-]\s+|\s*:\s*/);
+    const normalized = `${parts[0].trim()} — ${parts.slice(1).join(' — ').trim()}`;
+    const raw = getLangMem(cfg.lang);
+    const updated = appendPhrasesToVocab(raw, [normalized]);
+    store.set(memKey(cfg.lang), updated);
+    inp.value = '';
+    refreshMemInfo();
+    renderVocab();
+    toast('Фраза добавлена в накопительный словарь!', 2500);
+  };
+
+  window.deleteVocabPhrase = function(foreignWord) {
+    if (!foreignWord) return;
+    const fkTarget = normPhraseForeignKey(foreignWord);
+    const raw = getLangMem(cfg.lang);
+    if (!raw) return;
+    const lines = raw.split('\n').filter(line => {
+      const clean = line.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
+      if (clean && (clean.includes(' — ') || clean.includes(' – ') || clean.includes(' - ') || clean.includes(' : '))) {
+        if (normPhraseForeignKey(clean) === fkTarget) return false;
+      }
+      return true;
+    });
+    store.set(memKey(cfg.lang), lines.join('\n'));
+    refreshMemInfo();
+    renderVocab();
+  };
+
   function renderVocab() {
+    ensureVocabPopulatedIfHasHistory();
     const mem = parseMem(getLangMem(cfg.lang));
     const errorsList = $('vocabErrorsList');
     const lessonsList = $('vocabLessonsList');
     const profileList = $('vocabProfileList');
 
-    // 1. Словарь
+    // 1. Накопительный словарь за весь курс (с дедупликацией по иностранному ключу)
     const effNat = getEffectiveNativeLang();
     const words = mem[SEC_VOC] || [];
-    cachedVocabWords = words.map(w => {
-      let clean = w.replace(/^[#*\s_\-•\d.]+\s*/, '').trim();
-      const parts = clean.split(/\s+[—–\-]\s+|\s*:\s*/);
-      if (parts.length >= 2) {
-        const foreign = parts[0].trim();
-        let trans = parts.slice(1).join(' — ').trim();
-        if (effNat === 'ru') {
-          if (typeof ruMap !== 'undefined' && ruMap[trans]) trans = ruMap[trans];
-        } else if (effNat === 'uk') {
-          if (typeof ukMap !== 'undefined' && ukMap[trans]) trans = ukMap[trans];
-        }
-        clean = `${foreign} — ${trans}`;
+    const seenKeys = new Set();
+    const dedupWords = [];
+    words.forEach(w => {
+      const formatted = formatPhraseForDisplay(w, effNat);
+      if (!formatted) return;
+      const fk = normPhraseForeignKey(formatted);
+      if (fk && !seenKeys.has(fk)) {
+        seenKeys.add(fk);
+        dedupWords.push(formatted);
       }
-      return clean;
     });
+    cachedVocabWords = dedupWords;
+
+    const srsData = readJSON('card_srs_' + cfg.lang, {});
+    let easyCount = 0;
+    cachedVocabWords.forEach(w => {
+      const foreign = w.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim();
+      if (srsData[foreign] && srsData[foreign].r === 'easy') easyCount++;
+    });
+    const learnCount = Math.max(0, cachedVocabWords.length - easyCount);
+    const statsLine = $('vocabStatsLine');
+    if (statsLine) {
+      statsLine.textContent = `Всего за курс: ${cachedVocabWords.length} • 🟢 Выучено: ${easyCount} • 🟡 На изучении: ${learnCount}`;
+    }
+
     filterVocabWords();
 
     // 2. Домашка
@@ -5114,7 +5419,7 @@
         ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">' + t('vocErrEmpty') + '</div>'
         : errs.map(e => `
           <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #fca5a5;">
-            ⚠️ ${e.replace(/^[-•*]\s*/, '')}
+            ⚠️ ${escapeHtml(e.replace(/^[-•*]\s*/, ''))}
           </div>`).join('');
     }
 
@@ -5125,7 +5430,7 @@
         ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">' + t('vocLogEmpty') + '</div>'
         : lessons.map(l => `
           <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #cbd5e1;">
-            📅 ${l.replace(/^[-•*]\s*/, '')}
+            📅 ${escapeHtml(l.replace(/^[-•*]\s*/, ''))}
           </div>`).join('');
     }
 
@@ -5136,9 +5441,25 @@
         ? '<div style="color: #64748b; font-size: 0.85rem; padding: 12px; text-align: center;">' + t('vocProfEmpty') + '</div>'
         : glob.map(f => `
           <div style="background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; color: #bae6fd;">
-            👤 ${f.replace(/^[-•*]\s*/, '')}
+            👤 ${escapeHtml(f.replace(/^[-•*]\s*/, ''))}
           </div>`).join('');
     }
+  }
+
+  function getFilteredVocabList() {
+    const input = $('vocabSearch');
+    const query = input ? input.value.toLowerCase().trim() : '';
+    const srsData = readJSON('card_srs_' + cfg.lang, {});
+    return cachedVocabWords.filter(w => {
+      if (query && !w.toLowerCase().includes(query)) return false;
+      if (vocabFilterMode !== 'all') {
+        const foreign = w.split(/\s+[—–\-]\s+|\s*:\s*/)[0].trim();
+        const r = srsData[foreign] && srsData[foreign].r;
+        if (vocabFilterMode === 'easy' && r !== 'easy') return false;
+        if (vocabFilterMode === 'learn' && r === 'easy') return false;
+      }
+      return true;
+    });
   }
 
   window.filterVocabWords = () => {
@@ -5147,7 +5468,7 @@
     const wordsList = $('vocabWordsList');
     if (!wordsList) return;
 
-    const filtered = cachedVocabWords.filter(w => !query || w.toLowerCase().includes(query));
+    const filtered = getFilteredVocabList();
     if (filtered.length === 0) {
       wordsList.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 16px; text-align: center;">' +
         (query ? t('vocSearchNone', { q: query }) : t('vocWordsEmpty')) +
@@ -5155,20 +5476,46 @@
       return;
     }
 
+    const srsData = readJSON('card_srs_' + cfg.lang, {});
+    const hwSet = new Set(extractHomeworkPhrases(cfg.lang).map(normPhraseForeignKey));
+
     wordsList.innerHTML = filtered.map(w => {
       const parts = w.split(/\s+[—–\-]\s+|\s*:\s*/);
       const foreign = parts[0] ? parts[0].trim() : w;
       const trans = parts.slice(1).join(' — ').trim();
       const enc = encodeURIComponent(foreign);
+      const srs = srsData[foreign] && srsData[foreign].r;
+      const inHw = hwSet.has(normPhraseForeignKey(foreign));
+
+      const statusBadge = srs === 'easy'
+        ? `<button type="button" data-word="${enc}" onclick="toggleWordSrsStatus(decodeURIComponent(this.dataset.word))" title="Нажмите, чтобы изменить статус" style="background: rgba(16,185,129,0.16); border: 1px solid rgba(52,211,153,0.4); color: #6ee7b7; border-radius: 999px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; cursor: pointer;">🟢 Знаю</button>`
+        : `<button type="button" data-word="${enc}" onclick="toggleWordSrsStatus(decodeURIComponent(this.dataset.word))" title="Нажмите, чтобы отметить как выученное" style="background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.35); color: #fcd34d; border-radius: 999px; padding: 2px 7px; font-size: 0.68rem; font-weight: 700; cursor: pointer;">🟡 Учу</button>`;
+
+      const originBadge = inHw
+        ? `<span style="font-size: 0.65rem; color: #38bdf8; background: rgba(56,189,248,0.12); border-radius: 4px; padding: 1px 5px;">🔥 Текущая домашка</span>`
+        : `<span style="font-size: 0.65rem; color: #94a3b8; background: rgba(255,255,255,0.06); border-radius: 4px; padding: 1px 5px;">📦 Архив прошлых уроков</span>`;
+
       return `
-        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div style="background: rgba(15, 23, 42, 0.72); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
           <div style="flex: 1; min-width: 0;">
-            <span style="font-weight: 600; color: #38bdf8; font-size: 0.92rem; display: block; margin-bottom: 2px;">${foreign}</span>
-            ${trans ? `<span style="color: #94a3b8; font-size: 0.82rem; display: block;">${trans}</span>` : ''}
+            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px;">
+              <span style="font-weight: 600; color: #38bdf8; font-size: 0.92rem;">${escapeHtml(foreign)}</span>
+              ${statusBadge}
+              ${originBadge}
+            </div>
+            ${trans ? `<span style="color: #94a3b8; font-size: 0.81rem; display: block;">${escapeHtml(trans)}</span>` : ''}
           </div>
-          <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this)" title="Прослушать" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0;">
-            🔈
-          </button>
+          <div style="display: flex; gap: 5px; align-items: center; flex-shrink: 0;">
+            <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this, 1.0)" title="Прослушать" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; border-radius: 50%; width: 32px; height: 32px; font-size: 0.92rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              🔈
+            </button>
+            <button type="button" data-word="${enc}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${cfg.lang}', this, 0.6)" title="Медленно (0.6x)" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; border-radius: 50%; width: 32px; height: 32px; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              🐢
+            </button>
+            <button type="button" data-word="${enc}" onclick="deleteVocabPhrase(decodeURIComponent(this.dataset.word))" title="Удалить из словаря" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #fca5a5; border-radius: 50%; width: 28px; height: 28px; font-size: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+              ✕
+            </button>
+          </div>
         </div>`;
     }).join('');
   };
@@ -5821,8 +6168,8 @@ ${levelBlock}
     const effNat = getEffectiveNativeLang();
     const langDirective = (cfg.native === 'ru' || (cfg.native === 'auto' && effNat === 'ru')) ? 'Записи сделай на РУССКОМ языке.' : 'Записи зроби УКРАЇНСЬКОЮ мовою.';
     return `(Скрытая команда: не отвечай звуком, только вызови функцию saveStudentProfile): Урок завершен. Немедленно вызови функцию saveStudentProfile.
-ВНИМАНИЕ: Твоя память — это ДВА НАКОПИТЕЛЬНЫХ АРХИВА (CUMULATIVE). КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО СТИРАТЬ или сокращать ранее сохраненные данные!
-ОБЯЗАТЕЛЬНО ОБЪЕДИНИ старые данные с новыми:
+ВНИМАНИЕ: Твоя память — это ДВА НАКОПИТЕЛЬНЫХ АРХИВА (CUMULATIVE) плюс список фраз сегодняшнего урока (lesson_phrases). КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО СТИРАТЬ или сокращать ранее сохраненные данные!
+ОБЯЗАТЕЛЬНО передай три поля:
 
 1. global_memory (БАЗА ЖИЗНИ И ПРОФИЛЬ):
 - Имя и установленный Пол ученика (грамматический род: мужской или женский).
@@ -5835,10 +6182,13 @@ ${levelBlock}
 - ${SEC_ERR}: слова/фразы/звуки, в которых ученик ошибся + неисправленные старые ошибки.
 - ${SEC_NEXT}: тема, которую договорились разобрать в следующий раз.
 
+3. lesson_phrases (МАССИВ ФРАЗ ТОЛЬКО СЕГОДНЯШНЕГО УРОКА ДЛЯ ДОМАШКИ):
+- Передай массив из 6–10 строк в формате "Иностранная фраза — Перевод на родной язык", которые вы реально разбирали, переводили или тренировали ИМЕННО НА ЭТОМ УРОКЕ.
+
 ${langDirective}
 СТАРАЯ БАЗА О ЖИЗНИ: ${sessionGlobalMem || 'пусто'}
 СТАРАЯ НАКОПИТЕЛЬНАЯ ПАМЯТЬ ЯЗЫКА: ${sessionLangMem || 'пусто'}
-Используй ТОЧНЫЕ заголовки разделов в квадратных скобках (БЕЗ знаков Markdown # и *): [ЖУРНАЛ УРОКОВ], [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], [БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ], [СОГЛАСОВАННАЯ ТЕМА СЛЕДУЮЩЕГО УРОКА]. ОБЯЗАТЕЛЬНО включи в [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ] не менее 8-12 ключевых фраз сегодняшнего занятия (в самом конце списка) в формате: Иностранная фраза — Перевод на родной язык. Вызови saveStudentProfile с полными объединенными данными. Голосом ничего не говори!)`;
+Используй ТОЧНЫЕ заголовки разделов в квадратных скобках (БЕЗ знаков Markdown # и *): [ЖУРНАЛ УРОКОВ], [НАКОПИТЕЛЬНЫЙ СЛОВАРЬ], [БАНК ОШИБОК И ЗАКРЕПЛЕНИЯ], [СОГЛАСОВАННАЯ ТЕМА СЛЕДУЮЩЕГО УРОКА]. Вызови saveStudentProfile с полными данными (global_memory, lang_memory, lesson_phrases). Голосом ничего не говори!)`;
   }
 
   /* ==========================================================================
@@ -5954,9 +6304,9 @@ ${langDirective}
     micLevel = event.data.rms;
     if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
 
-    // 1. Акустический буфер (cool-off) после речи репетитора: 250 мс тишины,
-    // чтобы эхо из динамика смартфона или первый вдох не сработали как начало ответа ученика
-    if (Date.now() - lastBotSpeechEndedAt < 250) return;
+    // 1. Короткий акустический буфер (80 мс) после окончания речи репетитора:
+    // защищает от остаточного щелчка динамика, но не «проглатывает» начало фразы, когда ученик сразу повторяет за репетитором
+    if (Date.now() - lastBotSpeechEndedAt < 80) return;
 
     let allowTransmission = true;
     if (currentAudioMode() === 'half') {
@@ -6237,7 +6587,7 @@ ${langDirective}
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 200 мс
+      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 100 мс для быстрого открытия микрофона при повторении фраз
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
@@ -6276,7 +6626,7 @@ ${langDirective}
           }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
-      }, 200);
+      }, 100);
     }
   }
 
@@ -6416,8 +6766,10 @@ ${langDirective}
   };
 
   /* ==========================================================================
-     Ручное завершение хода ученика: VAD Silence Flush (вместо конфликтного clientContent)
+     Ручное завершение хода ученика: порционный VAD Silence Flush + страховочный Nudge
      ========================================================================== */
+  let manualTurnFallbackTimer = null;
+
   timerBadge.onclick = () => {
     if (isSessionActive && !isStopping && !isFinalizing) {
       extendLesson(15);
@@ -6426,13 +6778,15 @@ ${langDirective}
 
   function sendVadSilenceFlush() {
     if (!socket || socket.readyState !== WebSocket.OPEN) return;
-    const vadMs = cfg.vad === 'very' ? 3600 : (cfg.vad === 'patient' ? 2600 : 1800);
-    // 16000 Гц, 16 бит моно = 32 байта на мс. В Base64 каждые 3 нулевых байта кодируются как 'AAAA'
-    const numZeros = Math.ceil(vadMs * 32 / 3) * 3;
+    // Отправляем тишину порциями по 320 мс (12 чанков = 3840 мс), чтобы потоковый VAD сервера гарантированно зафиксировал конец речи
+    const chunkMs = 320;
+    const numZeros = Math.ceil(chunkMs * 32 / 3) * 3;
     const silenceBase64 = 'A'.repeat(numZeros * 4 / 3);
-    socket.send(JSON.stringify({
-      realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: silenceBase64 }] }
-    }));
+    for (let i = 0; i < 12; i++) {
+      socket.send(JSON.stringify({
+        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: silenceBase64 }] }
+      }));
+    }
   }
 
   btnEndTurn.onclick = () => {
@@ -6455,6 +6809,21 @@ ${langDirective}
 
     sendVadSilenceFlush();
 
+    // Страховка: если ученик произнёс короткую фразу сразу после репетитора, и серверный VAD не заметил старт речи,
+    // то через 2.2 с тишины принудительно передаём ход модели текстовым триггером, чтобы не зависать в молчании
+    clearTimeout(manualTurnFallbackTimer);
+    manualTurnFallbackTimer = setTimeout(() => {
+      if (isWaitingForResponse && !receivedAudioThisTurn && !isBotSpeaking && isSessionActive && !isExtractingMemory) {
+        turnNudgeSent = true;
+        const effNatWait = getEffectiveNativeLang();
+        const userCapText = capUser && capUser.textContent ? capUser.textContent.replace(/^[^:]+:\s*/, '').trim() : '';
+        const contextHint = userCapText ? ` (Ученик только что произнёс: "${userCapText}")` : '';
+        sendText((cfg.native === 'uk' || (cfg.native === 'auto' && effNatWait === 'uk'))
+          ? `(Вказівка суфлера: не читай це вголос): Учень натиснув кнопку «Я все сказав» і чекає на твою реакцію${contextHint}. Якщо ти почув його спробу — оціни й продовж урок, а якщо звук перервався — м'яко попроси повторити фразу ще раз!`
+          : `(Указание суфлёра: не читай это вслух): Ученик нажал кнопку «Я всё сказал» и ждёт твою реакцию${contextHint}. Если ты услышал его попытку — оцени и продолжи урок, а если звук прервался — мягко попроси повторить фразу ещё раз!`, true);
+      }
+    }, 2200);
+
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
       if (isWaitingForResponse && !isBotSpeaking && isSessionActive) {
@@ -6470,6 +6839,7 @@ ${langDirective}
     if (!isBotSpeaking && !isServerTurnActive) return;
     stopBotSpeech();
     isWaitingForResponse = false;
+    clearTimeout(manualTurnFallbackTimer);
     suppressAudioFor(1200);
     sendText('[СИСТЕМНО: Реплика была прервана учеником. Не комментируй это вслух: просто выслушай ученика и отреагируй на его слова.]', false);
     btnEndTurn.style.display = 'block';
@@ -6536,7 +6906,7 @@ ${langDirective}
       isSessionActive = true; isSetupComplete = false; isExtractingMemory = false; isWaitingForResponse = false;
       isStopping = false; isFinalizing = false; lessonStarted = false; memoryCommitted = false; lessonLogged = false; finishScheduled = false;
       isTimeWarningSent = false; isTimeWarningPending = false;
-      farewellStep = 0; clearTimeout(farewellSilenceTimer);
+      farewellStep = 0; clearTimeout(farewellSilenceTimer); clearTimeout(manualTurnFallbackTimer);
       suppressIncomingAudio = false; interruptedPending = false; receivedAudioThisTurn = false;
       saveNudges = 0; reconnectAttempts = 0; resumeHandle = null; captionNewTurn = true;
       turnNudgeSent = false; memoryTextBuffer = '';
@@ -6572,14 +6942,19 @@ ${langDirective}
       tools: [{
         functionDeclarations: [{
           name: 'saveStudentProfile',
-          description: 'Сохранить накопительный профиль ученика в постоянную память при завершении урока или взаимном прощании в конце диалога (содержит global_memory и lang_memory).',
+          description: 'Сохранить накопительный профиль ученика в постоянную память при завершении урока или взаимном прощании в конце диалога (содержит global_memory, lang_memory и lesson_phrases).',
           parameters: {
             type: 'OBJECT',
             properties: {
               global_memory: { type: 'STRING', description: 'Накопительный профиль: Имя, Пол (грамматический род), профессия, семья, питомец, город, хобби, привычки.' },
-              lang_memory: { type: 'STRING', description: `Накопительный архив языка: ${SEC_LOG}, ${SEC_VOC}, ${SEC_ERR}, ${SEC_NEXT}.` }
+              lang_memory: { type: 'STRING', description: `Накопительный архив языка: ${SEC_LOG}, ${SEC_VOC}, ${SEC_ERR}, ${SEC_NEXT}.` },
+              lesson_phrases: {
+                type: 'ARRAY',
+                items: { type: 'STRING' },
+                description: 'Список из 6–10 ключевых фраз ТОЛЬКО СЕГОДНЯШНЕГО урока в формате "Иностранная фраза — Перевод на родной язык" для домашнего задания.'
+              }
             },
-            required: ['global_memory', 'lang_memory']
+            required: ['global_memory', 'lang_memory', 'lesson_phrases']
           }
         }]
       }],
@@ -6637,6 +7012,7 @@ ${langDirective}
       if (ws !== socket || mySession !== sessionId) return;
       console.warn('WebSocket close:', e.code, e.reason);
       clearTimeout(connectTimer);
+      clearTimeout(manualTurnFallbackTimer);
       isSetupComplete = false;
       if (!isSessionActive || isFinalizing) return;
       isWaitingForResponse = false; isServerTurnActive = false;
@@ -6851,6 +7227,7 @@ ${langDirective}
             clearTimeout(farewellSilenceTimer);
           }
           clearTimeout(watchdogTimer);
+          clearTimeout(manualTurnFallbackTimer);
           isWaitingForResponse = false;
           turnNudgeSent = false;
           interruptedPending = false;
@@ -6894,6 +7271,7 @@ ${langDirective}
       if (capUser) capUser.dataset.fresh = '1';
 
       clearTimeout(watchdogTimer);
+      clearTimeout(manualTurnFallbackTimer);
 
       // Если в режиме сохранения модель прислала текстовый отчет вместо tool call
       if (isExtractingMemory && !memoryCommitted && memoryTextBuffer) {
@@ -6930,7 +7308,7 @@ ${langDirective}
       // Модель отвечает голосом, а не вызывает функцию сохранения — мягко напоминаем (до 2 раз)
       if (isExtractingMemory && !memoryCommitted && saveNudges < 2 && isSetupComplete) {
         saveNudges++;
-        sendText('(Скрытая команда: не отвечай голосом): Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory и lang_memory.', true);
+        sendText('(Скрытая команда: не отвечай голосом): Вызови функцию saveStudentProfile СЕЙЧАС с полными объединёнными данными global_memory, lang_memory и lesson_phrases.', true);
         armSaveTimeout(20000);
       }
       checkBotSpeakingEnded();
@@ -6962,6 +7340,7 @@ ${langDirective}
     isStopping = true;
     stopLessonTimer();
     clearTimeout(watchdogTimer);
+    clearTimeout(manualTurnFallbackTimer);
     clearTimeout(farewellSilenceTimer);
     btnAction.disabled = true;
     btnEndTurn.style.display = 'none';
@@ -7005,23 +7384,23 @@ ${langDirective}
     const min = Math.max(1, Math.round(sec / 60));
     let note = `${SEC_LOG} (${todayStr()}): проведён урок (~${min} мин).`;
 
-    // Если словарь пуст или новые слова не были зафиксированы ИИ, гарантируем наличие фраз темы для домашки
+    // Запасной пакет фраз подставляется ТОЛЬКО если урок шёл в ролевой ситуации (не standard) и ИИ не успел прислать вызов сохранения
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
-    const rpProg = getRoleplayProgress(curMode, sessionLang);
-    const partNum = rpProg ? rpProg.partNumber : 1;
-    const presetPhrases = getSituationPresetPhrases(curMode, partNum, sessionLang);
-    if (presetPhrases && presetPhrases.length > 0) {
-      const existing = parseMem(old)[SEC_VOC] || [];
-      const newPhrases = presetPhrases.filter(p => {
-        const foreign = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
-        return !existing.some(e => e.toLowerCase().includes(foreign));
-      });
-      if (existing.length === 0) {
-        note += `\n\n${SEC_VOC}:\n` + presetPhrases.join('\n');
-      } else if (curMode !== 'standard' && newPhrases.length > 0) {
-        note += `\n\n${SEC_VOC}:\n` + newPhrases.join('\n');
+    if (curMode !== 'standard') {
+      const rpProg = getRoleplayProgress(curMode, sessionLang);
+      const partNum = rpProg ? rpProg.partNumber : 1;
+      const presetPhrases = getSituationPresetPhrases(curMode, partNum, sessionLang);
+      if (presetPhrases && presetPhrases.length > 0) {
+        const existing = parseMem(old)[SEC_VOC] || [];
+        const newPhrases = presetPhrases.filter(p => {
+          const foreign = p.split(/\s+[—–\-]\s+/)[0].trim().toLowerCase();
+          return !existing.some(e => e.toLowerCase().includes(foreign));
+        });
+        if (newPhrases.length > 0) {
+          note += `\n\n${SEC_VOC}:\n` + newPhrases.join('\n');
+        }
+        try { recordLessonPhrases(sessionLang, curMode, presetPhrases); } catch (e) {}
       }
-      try { recordLessonPhrases(sessionLang, curMode, presetPhrases); } catch (e) {}
     }
     store.set(memKey(sessionLang), old ? old.trim() + '\n\n' + note : note);
     refreshMemInfo();
@@ -7043,6 +7422,7 @@ ${langDirective}
     isFinalizing = true;
     const mySession = sessionId;
     clearTimeout(saveTimeoutId); clearTimeout(connectTimer); clearTimeout(watchdogTimer); clearTimeout(reconnectTimer);
+    clearTimeout(manualTurnFallbackTimer);
     clearTimeout(farewellSilenceTimer);
     stopLessonTimer();
     releaseWakeLock();
@@ -7053,8 +7433,7 @@ ${langDirective}
 
     const sec = lessonStarted ? Math.min(2400, Math.round((Date.now() - lessonStartedAtReal) / 1000)) : 0;
     if (lessonStarted) {
-      const curWords = extractHomeworkPhrases();
-      if (!memoryCommitted || curWords.length === 0) {
+      if (!memoryCommitted) {
         addFallbackNote(sec);
         memoryCommitted = true;
       }
