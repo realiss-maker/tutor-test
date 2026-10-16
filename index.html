@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>AI Language Tutor v3.53.0</title>
+  <title>AI Language Tutor v3.54.0</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -628,15 +628,19 @@
         <div id="homeworkList" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;"></div>
       </div>
 
-      <!-- Вкладка 2: Речевой тренажёр (Shadowing / Самосверка) -->
-      <div id="vtab-trainer" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 12px; justify-content: space-between;">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px;">
+      <!-- Вкладка 2: Речевой тренажёр (Shadowing / Самосверка / Конструктор фраз) -->
+      <div id="vtab-trainer" style="display: none; flex-direction: column; flex: 1; overflow: hidden; gap: 10px; justify-content: space-between;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 4px; gap: 8px; flex-wrap: wrap;">
           <span id="flashcardCounter" style="font-size: 0.84rem; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 3px 8px;">1 / 8</span>
-          <span id="lblTrainerMethod" style="font-size: 0.78rem; color: #94a3b8;">Методика самосверки и эталона</span>
+          <div style="display: inline-flex; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 2px; gap: 2px;">
+            <button type="button" id="btnTrainerModeCards" onclick="setTrainerMode('cards')" style="background: rgba(56, 189, 248, 0.22); color: #38bdf8; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">🃏 Карточки</button>
+            <button type="button" id="btnTrainerModeBuilder" onclick="setTrainerMode('builder')" style="background: transparent; color: #94a3b8; border: none; border-radius: 6px; padding: 4px 10px; font-size: 0.76rem; font-weight: 600; cursor: pointer;">🧩 Конструктор</button>
+          </div>
+          <span id="lblTrainerMethod" style="font-size: 0.75rem; color: #94a3b8; display: none;">Методика самосверки и эталона</span>
         </div>
 
         <div class="flashcard-box" id="flashcardElement" onclick="flipFlashcard()">
-          <!-- динамически рендерится карточка -->
+          <!-- динамически рендерится карточка или конструктор -->
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: auto; padding-bottom: 4px;">
@@ -784,7 +788,7 @@
        • исправлен RMS в AudioWorklet, детектор гарнитуры, реальное прерывание кнопкой ✋
      ========================================================================== */
 
-  const APP_VERSION = '3.53.0';
+  const APP_VERSION = '3.54.0';
 
     const I18N = {
   "uk": {
@@ -1209,6 +1213,7 @@
     "vocErrEmpty": "No mistakes recorded yet. Great job!",
     "vocLogEmpty": "Lesson log is empty. Start your first lesson!",
     "vocProfEmpty": "The tutor does not know profile facts yet. They will appear as you converse.",
+    "vocWordsEmpty": "No saved words in the vocabulary yet. They will appear after completing lessons!",
     "vocSearchNone": "Nothing found for \"{q}\"",
     "vtabPass": "🏆 Passport",
     "passTitle": "Traveler's Passport",
@@ -1356,6 +1361,7 @@
     "vocErrEmpty": "Aucune erreur enregistrée pour le moment. Excellent travail !",
     "vocLogEmpty": "Le journal des leçons est vide. Démarrez votre première leçon !",
     "vocProfEmpty": "Le tuteur ne connaît pas encore de détails sur vous. Ils apparaîtront au fil des leçons.",
+    "vocWordsEmpty": "Aucun mot enregistré dans le vocabulaire pour le moment. Ils apparaîtront après les leçons !",
     "vocSearchNone": "Rien trouvé pour « {q} »",
     "vtabPass": "🏆 Passeport",
     "passTitle": "Passeport du voyageur",
@@ -1503,6 +1509,7 @@
     "vocErrEmpty": "No hay errores registrados todavía. ¡Buen trabajo!",
     "vocLogEmpty": "El registro de lecciones está vacío. ¡Empiece su primera lección!",
     "vocProfEmpty": "El tutor aún no conoce datos sobre usted. Aparecerán durante las conversaciones.",
+    "vocWordsEmpty": "Aún no hay palabras guardadas en el vocabulario. ¡Aparecerán después de completar lecciones!",
     "vocSearchNone": "No se encontró nada para «{q}»",
     "vtabPass": "🏆 Pasaporte",
     "passTitle": "Pasaporte del viajero",
@@ -1992,6 +1999,7 @@
 
   const LANGS = {
     french: {
+      bcp47: 'fr-FR',
       ru: 'Французский', label: 'Français', gen: 'французского', adv: 'по-французски', hello: 'Bonjour', emoji: '🥖',
       teachers: { female: { full: 'Камилла (Camille)', short: 'Camille' }, male: { full: 'Лоран (Laurent)', short: 'Laurent' } },
       photo: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=400&q=75',
@@ -2004,6 +2012,7 @@
       farewell: 'au revoir!'
     },
     english: {
+      bcp47: 'en-US',
       ru: 'Английский', label: 'English', gen: 'английского', adv: 'по-английски', hello: 'Hello', emoji: '☂️',
       teachers: { female: { full: 'Эмма (Emma)', short: 'Emma' }, male: { full: 'Артур (Arthur)', short: 'Arthur' } },
       photo: 'https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=400&q=75',
@@ -2016,6 +2025,7 @@
       farewell: 'goodbye, see you next time!'
     },
     spanish: {
+      bcp47: 'es-ES',
       ru: 'Испанский', label: 'Español', gen: 'испанского', adv: 'по-испански', hello: '¡Hola', emoji: '💃',
       teachers: { female: { full: 'Кармен (Carmen)', short: 'Carmen' }, male: { full: 'Диего (Diego)', short: 'Diego' } },
       photo: 'https://images.unsplash.com/photo-1539037116277-4db20889f2d4?auto=format&fit=crop&w=400&q=75',
@@ -2573,26 +2583,49 @@
 
   /* ---------- Статистика уроков (считает приложение, а не ИИ) ---------- */
   const dayKey = d => { const x = new Date(d); return `${x.getFullYear()}-${x.getMonth() + 1}-${x.getDate()}`; };
+  function getTravelerRank(xp, ui = cfg.uiLang) {
+    const ranks = [
+      { min: 1500, emoji: '👑', ru: 'Полиглот', uk: 'Поліглот', en: 'Polyglot', fr: 'Polyglotte', es: 'Políglota' },
+      { min: 700,  emoji: '🎩', ru: 'Знаток', uk: 'Знавець', en: 'Connoisseur', fr: 'Connaisseur', es: 'Conocedor' },
+      { min: 300,  emoji: '🗣️', ru: 'Собеседник', uk: 'Співрозмовник', en: 'Interlocutor', fr: 'Interlocuteur', es: 'Interlocutor' },
+      { min: 100,  emoji: '🧭', ru: 'Турист', uk: 'Турист', en: 'Tourist', fr: 'Touriste', es: 'Turista' },
+      { min: 0,    emoji: '🌱', ru: 'Дебютант', uk: 'Дебютант', en: 'Debutant', fr: 'Débutant', es: 'Debutante' }
+    ];
+    const r = ranks.find(x => xp >= x.min) || ranks[ranks.length - 1];
+    return `${r.emoji} ${r[ui] || r.ru}`;
+  }
   function computeStats() {
     const arr = readJSON('lesson_log', []);
     const lessonsLang = arr.filter(x => x.l === cfg.lang).length;
     const minutes = Math.round(arr.reduce((a, x) => a + (x.s || 0), 0) / 60);
+    const todayK = dayKey(new Date());
+    const todayMin = Math.round(arr.filter(x => dayKey(x.t) === todayK).reduce((a, x) => a + (x.s || 0), 0) / 60);
+    const goalMin = cfg.minutes || 15;
+    const xp = minutes * 10 + arr.length * 15;
     const days = new Set(arr.map(x => dayKey(x.t)));
     let streak = 0;
     const d = new Date();
     if (!days.has(dayKey(d))) d.setDate(d.getDate() - 1);
     while (days.has(dayKey(d))) { streak++; d.setDate(d.getDate() - 1); }
-    return { total: arr.length, lessonsLang, minutes, streak };
+    return { total: arr.length, lessonsLang, minutes, todayMin, goalMin, xp, streak };
   }
   function renderStats() {
     if (isSessionActive) { statsRow.style.display = 'none'; return; }
     const s = computeStats();
     statsRow.style.display = 'flex';
     if (s.total === 0) { statsRow.innerHTML = '<span class="stat-chip">' + t('statNone') + '</span>'; return; }
+    const goalDone = s.todayMin >= s.goalMin;
+    const goalLabel = goalDone
+      ? `✅ ${s.todayMin}/${s.goalMin} ${t('unitMin')}`
+      : `🎯 ${s.todayMin}/${s.goalMin} ${t('unitMin')}`;
+    const goalStyle = goalDone
+      ? ' style="border-color: rgba(52, 211, 153, 0.45); color: #6ee7b7; background: rgba(16, 185, 129, 0.14);"'
+      : '';
     statsRow.innerHTML =
       `<span class="stat-chip">${t('statStreak', { n: s.streak })}</span>` +
+      `<span class="stat-chip"${goalStyle} title="Дневная цель практики">${goalLabel}</span>` +
       `<span class="stat-chip">📚 ${langDisp(cfg.lang)}: ${s.lessonsLang}</span>` +
-      `<span class="stat-chip">${t('statMin', { n: s.minutes })}</span>`;
+      `<span class="stat-chip">${getTravelerRank(s.xp)} • ${s.xp} XP</span>`;
   }
 
   /* ---------- Прочие переменные состояния ---------- */
@@ -2727,6 +2760,8 @@
     if (e.key === 'Escape') {
       if (modalSettings.style.display === 'flex') closeSettings();
       if ($('modalVocab') && $('modalVocab').style.display === 'flex') closeVocabModal();
+      if ($('modalRecap') && $('modalRecap').style.display === 'flex') closeRecapModal();
+      if (mIos && mIos.style.display === 'flex') closeIosInstall();
     }
   });
 
@@ -2734,6 +2769,9 @@
      Озвучка речи (Web Speech API / speechSynthesis)
      ========================================================================== */
   let activeUtterance = null;
+  let lastSpokenKey = '';
+  let lastSpokenAt = 0;
+  let lastSpokenSlow = false;
   if ('speechSynthesis' in window) {
     try {
       window.speechSynthesis.onvoiceschanged = () => { try { window.speechSynthesis.getVoices(); } catch (e) {} };
@@ -2741,7 +2779,7 @@
     } catch (e) {}
   }
 
-  window.speakPhrase = function(text, lang, btnEl) {
+  window.speakPhrase = function(text, lang, btnEl, customRate) {
     if (!text) return;
     if (!('speechSynthesis' in window)) {
       toast('Озвучка речи не поддерживается в этом браузере', 3000);
@@ -2750,6 +2788,25 @@
     try {
       const clean = text.replace(/[\(\)\[\]«»"']/g, '').trim();
       if (!clean) return;
+
+      const now = Date.now();
+      let rate = 0.9;
+      if (typeof customRate === 'number') {
+        rate = customRate;
+        lastSpokenSlow = rate < 0.75;
+      } else {
+        // Повторное нажатие на ту же фразу в течение 4 секунд включает медленный режим «По слогам» (0.6x)
+        if (lastSpokenKey === clean && (now - lastSpokenAt) < 4000 && !lastSpokenSlow) {
+          rate = 0.6;
+          lastSpokenSlow = true;
+          toast('🐢 Медленно (0.6x) — по слогам', 1600);
+        } else {
+          rate = 0.9;
+          lastSpokenSlow = false;
+        }
+      }
+      lastSpokenKey = clean;
+      lastSpokenAt = now;
 
       // Визуальный отклик нажатой кнопки (акцент / масштабирование)
       if (btnEl && btnEl.style) {
@@ -2767,11 +2824,12 @@
 
       const u = new SpeechSynthesisUtterance(clean);
       const l = lang || cfg.lang;
+      const langObj = LANGS[l];
       const langMap = { french: 'fr-FR', english: 'en-US', spanish: 'es-ES' };
-      const targetLang = langMap[l] || 'fr-FR';
+      const targetLang = (langObj && langObj.bcp47) || langMap[l] || 'fr-FR';
       const targetPrefix = targetLang.slice(0, 2).toLowerCase();
       u.lang = targetLang;
-      u.rate = 0.9;
+      u.rate = rate;
 
       const voices = window.speechSynthesis.getVoices();
       if (voices && voices.length > 0) {
@@ -4207,6 +4265,10 @@
 
     if (hist && hist.length > 0) return;
 
+    const allLogs = readJSON('lesson_log', []);
+    const hasLangLessons = allLogs.some(x => x && x.l === lang);
+    if (!hasLangLessons && isEmptyMem(memStr)) return;
+
     const curMode = (typeof sessionMode !== 'undefined' && sessionMode) ? sessionMode : (cfg.mode || 'standard');
     let targetMode = (curMode && curMode !== 'standard' && curMode !== 'random') ? curMode : null;
     if (!targetMode) {
@@ -4478,6 +4540,81 @@
     }).join('');
   }
 
+  let trainerMode = 'cards'; // 'cards' | 'builder'
+  let builderPool = [];
+  let builderPicked = [];
+  let builderSolved = false;
+
+  window.setTrainerMode = function(mode) {
+    trainerMode = (mode === 'builder') ? 'builder' : 'cards';
+    const bCards = $('btnTrainerModeCards');
+    const bBuilder = $('btnTrainerModeBuilder');
+    if (bCards) {
+      bCards.style.background = trainerMode === 'cards' ? 'rgba(56, 189, 248, 0.22)' : 'transparent';
+      bCards.style.color = trainerMode === 'cards' ? '#38bdf8' : '#94a3b8';
+    }
+    if (bBuilder) {
+      bBuilder.style.background = trainerMode === 'builder' ? 'rgba(56, 189, 248, 0.22)' : 'transparent';
+      bBuilder.style.color = trainerMode === 'builder' ? '#38bdf8' : '#94a3b8';
+    }
+    flashcardFlipped = false;
+    initBuilderForCurrentCard();
+    renderFlashcard();
+  };
+
+  function initBuilderForCurrentCard() {
+    builderPicked = [];
+    builderSolved = false;
+    if (flashcardList.length === 0 || !flashcardList[flashcardIndex]) {
+      builderPool = [];
+      return;
+    }
+    const raw = flashcardList[flashcardIndex].foreign || '';
+    const tokens = raw.trim().split(/\s+/).filter(Boolean);
+    builderPool = tokens.map((w, idx) => ({ id: idx, word: w, used: false }));
+    // Перемешиваем слова (алгоритм Фишера-Йетса), избегая совпадения с исходным порядком при >1 слове
+    for (let i = builderPool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const tmp = builderPool[i];
+      builderPool[i] = builderPool[j];
+      builderPool[j] = tmp;
+    }
+    if (builderPool.length > 1 && builderPool.every((x, i) => x.word === tokens[i])) {
+      const t0 = builderPool[0];
+      builderPool[0] = builderPool[1];
+      builderPool[1] = t0;
+    }
+  }
+
+  window.pickBuilderWord = function(poolIdx) {
+    if (builderSolved) return;
+    const item = builderPool[poolIdx];
+    if (!item || item.used) return;
+    item.used = true;
+    builderPicked.push(item);
+    const cur = flashcardList[flashcardIndex];
+    const targetTokens = (cur ? cur.foreign : '').trim().split(/\s+/).filter(Boolean);
+    if (builderPicked.length === targetTokens.length) {
+      const norm = s => (s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+      const ok = builderPicked.every((x, i) => norm(x.word) === norm(targetTokens[i]));
+      if (ok) {
+        builderSolved = true;
+        try { if (navigator.vibrate) navigator.vibrate(45); } catch (e) {}
+        if (cur) speakPhrase(cur.foreign, cfg.lang, null, 0.9);
+      }
+    }
+    renderFlashcard();
+  };
+
+  window.unpickBuilderWord = function(pickedIdx) {
+    if (builderSolved) return;
+    const item = builderPicked[pickedIdx];
+    if (!item) return;
+    item.used = false;
+    builderPicked.splice(pickedIdx, 1);
+    renderFlashcard();
+  };
+
   function initFlashcards() {
     const words = extractHomeworkPhrases();
     flashcardList = words.map(w => {
@@ -4489,6 +4626,7 @@
     });
     flashcardIndex = 0;
     flashcardFlipped = false;
+    initBuilderForCurrentCard();
     renderFlashcard();
   }
 
@@ -4511,30 +4649,78 @@
     const L = LANGS[cfg.lang] || LANGS.french;
     const adv = L.adv || (cfg.uiLang === 'uk' ? 'іноземною' : 'на иностранном');
 
+    if (trainerMode === 'builder') {
+      const targetTokens = (cur.foreign || '').trim().split(/\s+/).filter(Boolean);
+      const isCompleteAttempt = builderPicked.length === targetTokens.length && targetTokens.length > 0;
+      const borderCol = builderSolved
+        ? 'rgba(52, 211, 153, 0.5)'
+        : (isCompleteAttempt ? 'rgba(248, 113, 113, 0.5)' : 'rgba(56, 189, 248, 0.28)');
+
+      const pickedHtml = builderPicked.length === 0
+        ? `<span style="font-size: 0.8rem; color: #64748b;">Нажимайте на слова ниже в правильном порядке...</span>`
+        : builderPicked.map((item, idx) => `
+            <button type="button" onclick="event.stopPropagation(); unpickBuilderWord(${idx})" style="background: ${builderSolved ? 'rgba(16,185,129,0.22)' : 'rgba(56,189,248,0.2)'}; border: 1px solid ${builderSolved ? 'rgba(52,211,153,0.5)' : 'rgba(56,189,248,0.45)'}; color: #f8fafc; border-radius: 8px; padding: 5px 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer;">
+              ${escapeHtml(item.word)}
+            </button>`).join('');
+
+      const poolHtml = builderPool.map((item, idx) => `
+        <button type="button" onclick="event.stopPropagation(); pickBuilderWord(${idx})" ${item.used ? 'disabled' : ''} style="background: ${item.used ? 'rgba(255,255,255,0.03)' : 'rgba(30,41,59,0.9)'}; border: 1px solid ${item.used ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.2)'}; color: ${item.used ? 'transparent' : '#e2e8f0'}; border-radius: 8px; padding: 6px 11px; font-size: 0.88rem; font-weight: 600; cursor: ${item.used ? 'default' : 'pointer'}; transition: all 0.15s;">
+          ${escapeHtml(item.word)}
+        </button>`).join('');
+
+      cardEl.innerHTML = `
+        <div style="font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">🧩 Соберите фразу (${L.label}):</div>
+        <div style="font-size: 1.05rem; font-weight: 600; color: #f8fafc; line-height: 1.35; padding: 2px 8px;">${escapeHtml(cur.trans)}</div>
+        <div onclick="event.stopPropagation();" style="min-height: 46px; width: 100%; background: rgba(15,23,42,0.65); border: 1px dashed ${borderCol}; border-radius: 10px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: center;">
+          ${pickedHtml}
+        </div>
+        <div onclick="event.stopPropagation();" style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 2px 0;">
+          ${poolHtml}
+        </div>
+        <div onclick="event.stopPropagation();" style="display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap; margin-top: 2px;">
+          <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.9)" style="background: rgba(56,189,248,0.16); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+            🔈 Подсказка
+          </button>
+          <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.6)" style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 999px; padding: 5px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+            🐢 0.6x
+          </button>
+          ${builderSolved ? `<span style="color: #34d399; font-size: 0.84rem; font-weight: 700;">✅ Верно!</span>` : (isCompleteAttempt ? `<span style="color: #f87171; font-size: 0.8rem; font-weight: 600;">❌ Проверьте порядок слов (нажмите на слово, чтобы убрать)</span>` : '')}
+        </div>`;
+      return;
+    }
+
     if (!flashcardFlipped) {
       cardEl.innerHTML = `
         <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #38bdf8; font-weight: 700;">${t('cardPrompt', { adv })}</div>
         <div style="font-size: 1.25rem; font-weight: 600; color: #f8fafc; line-height: 1.4; padding: 4px 10px;">${cur.trans}</div>
         <div style="font-size: 0.78rem; color: #64748b; margin-top: 6px;">${t('cardTapFlip')}</div>
-        <div style="margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px;" onclick="event.stopPropagation();">
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
-            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this)" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+        <div style="margin-top: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%;" onclick="event.stopPropagation();">
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;">
+            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.9)" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
               🔈 ${t('cardListenShort')}
             </button>
-            <button type="button" onclick="checkFlashcardVoice()" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            <button type="button" onclick="speakPhrase(flashcardList[flashcardIndex].foreign, cfg.lang, this, 0.6)" title="Медленно по слогам (0.6x)" style="background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.35); color: #fbbf24; border-radius: 999px; padding: 6px 11px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;">
+              🐢 0.6x
+            </button>
+            <button type="button" onclick="checkFlashcardVoice()" style="background: rgba(56,189,248,0.18); border: 1px solid rgba(56,189,248,0.35); color: #38bdf8; border-radius: 999px; padding: 6px 13px; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
               🎤 ${t('cardVoiceBtn')}
             </button>
           </div>
-          <div id="flashcardVoiceStatus" style="display: none; font-size: 0.78rem; font-weight: 500; max-width: 90%; line-height: 1.3;"></div>
+          <div id="flashcardVoiceStatus" style="display: none; font-size: 0.78rem; font-weight: 500; max-width: 95%; line-height: 1.35;"></div>
         </div>`;
     } else {
       cardEl.innerHTML = `
         <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; color: #34d399; font-weight: 700;">${t('cardReference')}</div>
         <div style="font-size: 1.35rem; font-weight: 700; color: #38bdf8; line-height: 1.4; padding: 4px 10px;">${cur.foreign}</div>
         <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 6px;">${cur.trans}</div>
-        <button type="button" onclick="event.stopPropagation(); repeatCurrentFlashcard(this);" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 16px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 10px;">
-          ${t('cardListenAgain')}
-        </button>
+        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px;" onclick="event.stopPropagation();">
+          <button type="button" onclick="repeatCurrentFlashcard(this, 0.9);" style="background: rgba(56,189,248,0.2); border: 1px solid rgba(56,189,248,0.4); color: #38bdf8; border-radius: 999px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+            ${t('cardListenAgain')}
+          </button>
+          <button type="button" onclick="repeatCurrentFlashcard(this, 0.6);" style="background: rgba(245,158,11,0.16); border: 1px solid rgba(245,158,11,0.38); color: #fbbf24; border-radius: 999px; padding: 6px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+            🐢 По слогам (0.6x)
+          </button>
+        </div>
         <div style="border-top: 1px solid rgba(255,255,255,0.1); width: 100%; padding-top: 8px; margin-top: 4px; display: flex; flex-direction: column; gap: 6px;" onclick="event.stopPropagation();">
           <div style="font-size: 0.74rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">Интервальное повторение (SRS):</div>
           <div style="display: flex; gap: 6px; width: 100%;">
@@ -4605,25 +4791,40 @@
     const cExpected = clean(expected);
     if (!cSpoken) {
       statusEl.style.color = '#fca5a5';
-      statusEl.textContent = t('recRetry', { text: '—' });
+      statusEl.textContent = t('recRetry');
       return;
     }
     const wordsExp = cExpected.split(' ').filter(Boolean);
     const wordsSpk = cSpoken.split(' ').filter(Boolean);
     let common = 0;
-    wordsSpk.forEach(w => { if (wordsExp.includes(w)) common++; });
+    wordsExp.forEach(w => { if (wordsSpk.includes(w)) common++; });
     const score = wordsExp.length > 0 ? (common / wordsExp.length) : 0;
+
+    // Пословная подсветка эталонной фразы (зелёный — распознано чётко, янтарный — требует доработки; клик по слову озвучивает его)
+    const origTokens = (expected || '').trim().split(/\s+/).filter(Boolean);
+    const diffBadges = origTokens.map(tok => {
+      const normTok = clean(tok);
+      const hit = normTok && wordsSpk.includes(normTok);
+      const encTok = encodeURIComponent(tok);
+      const col = hit ? '#34d399' : '#fbbf24';
+      const bg = hit ? 'rgba(16,185,129,0.16)' : 'rgba(245,158,11,0.16)';
+      const brd = hit ? 'rgba(52,211,153,0.4)' : 'rgba(245,158,11,0.45)';
+      return `<span data-word="${encTok}" onclick="event.stopPropagation(); speakPhrase(decodeURIComponent(this.dataset.word), cfg.lang, this, 0.75)" title="Нажмите, чтобы прослушать слово" style="display:inline-block; margin: 2px; padding: 2px 7px; border-radius: 6px; font-weight: 700; font-size: 0.78rem; cursor: pointer; color: ${col}; background: ${bg}; border: 1px solid ${brd};">${escapeHtml(tok)}</span>`;
+    }).join('');
+
+    const heardLine = `<div style="font-size: 0.74rem; color: #cbd5e1; margin-top: 3px;">${t('recPartial')} «<b>${escapeHtml(spoken)}</b>»</div>`;
+    const diffLine = `<div style="margin-top: 4px; display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">${diffBadges}</div>`;
 
     if (cSpoken === cExpected || score >= 0.75) {
       statusEl.style.color = '#34d399';
-      statusEl.innerHTML = `✅ ${t('recSuccess', { text: spoken })}`;
+      statusEl.innerHTML = `<div>✅ ${t('recSuccess')} (${Math.round(Math.min(1, score) * 100)}%)</div>${heardLine}${diffLine}`;
       try { if (navigator.vibrate) navigator.vibrate(50); } catch(e) {}
     } else if (score >= 0.35) {
       statusEl.style.color = '#fbbf24';
-      statusEl.innerHTML = `⚠️ ${t('recPartial', { text: spoken })}`;
+      statusEl.innerHTML = `<div>⚠️ Почти получилось (${Math.round(score * 100)}%) — нажмите на жёлтые слова:</div>${heardLine}${diffLine}`;
     } else {
       statusEl.style.color = '#f87171';
-      statusEl.innerHTML = `❌ ${t('recRetry', { text: spoken })}`;
+      statusEl.innerHTML = `<div>❌ ${t('recRetry')}</div>${heardLine}${diffLine}`;
     }
   }
 
@@ -4786,13 +4987,14 @@
           const parts = p.split(/\s*[-—–:]\s*/);
           const f = parts[0] ? parts[0].trim() : p;
           const tr = parts.slice(1).join(' — ').trim();
+          const encF = encodeURIComponent(f);
           return `
             <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 8px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px;">
               <div style="flex: 1; text-align: left;">
-                <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem;">${f}</div>
-                ${tr ? `<div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">${tr}</div>` : ''}
+                <div style="font-weight: 600; color: #38bdf8; font-size: 0.88rem;">${escapeHtml(f)}</div>
+                ${tr ? `<div style="font-size: 0.78rem; color: #94a3b8; margin-top: 2px;">${escapeHtml(tr)}</div>` : ''}
               </div>
-              <button type="button" onclick="speakPhrase('${f.replace(/'/g, "\\'")}', '${sessionLang || cfg.lang}', this)" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
+              <button type="button" data-word="${encF}" onclick="speakPhrase(decodeURIComponent(this.dataset.word), '${sessionLang || cfg.lang}', this)" style="background: rgba(56,189,248,0.15); border: 1px solid rgba(56,189,248,0.3); color: #38bdf8; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; cursor: pointer;">🔊</button>
             </div>
           `;
         }).join('');
@@ -4840,18 +5042,23 @@
     }
   };
 
-  window.repeatCurrentFlashcard = function(btnEl) {
+  window.repeatCurrentFlashcard = function(btnEl, customRate) {
     if (flashcardList.length === 0) return;
     const cur = flashcardList[flashcardIndex];
-    if (cur) speakPhrase(cur.foreign, cfg.lang, btnEl);
+    if (cur) speakPhrase(cur.foreign, cfg.lang, btnEl, customRate);
   };
 
   window.flipFlashcard = function() {
     if (flashcardList.length === 0) return;
+    if (trainerMode === 'builder') {
+      initBuilderForCurrentCard();
+      renderFlashcard();
+      return;
+    }
     flashcardFlipped = !flashcardFlipped;
     renderFlashcard();
     if (flashcardFlipped) {
-      repeatCurrentFlashcard();
+      repeatCurrentFlashcard(null, 0.9);
     }
   };
 
@@ -4859,6 +5066,7 @@
     if (flashcardList.length === 0) return;
     flashcardIndex = (flashcardIndex + 1) % flashcardList.length;
     flashcardFlipped = false;
+    initBuilderForCurrentCard();
     renderFlashcard();
   };
 
@@ -4866,6 +5074,7 @@
     if (flashcardList.length === 0) return;
     flashcardIndex = (flashcardIndex - 1 + flashcardList.length) % flashcardList.length;
     flashcardFlipped = false;
+    initBuilderForCurrentCard();
     renderFlashcard();
   };
 
@@ -5090,7 +5299,11 @@
       level_hint: cfg.level, lesson_minutes: cfg.minutes, ui_lang: cfg.uiLang, user_name: cfg.userName, vibration: cfg.vibration,
       lesson_log: readJSON('lesson_log', [])
     };
-    Object.keys(LANGS).forEach(l => { data[memKey(l)] = getLangMem(l); });
+    Object.keys(LANGS).forEach(l => {
+      data[memKey(l)] = getLangMem(l);
+      data[phrasesHistoryKey(l)] = getLessonPhrasesHistory(l);
+      data['card_srs_' + l] = readJSON('card_srs_' + l, {});
+    });
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -5116,7 +5329,15 @@
         if (!confirm(t('impConfirm'))) return;
         const putStr = (k, v) => { if (typeof v === 'string') { const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.set(k, v); } };
         putStr('global_memory', data.global_memory);
-        Object.keys(LANGS).forEach(l => putStr(memKey(l), data[memKey(l)]));
+        Object.keys(LANGS).forEach(l => {
+          putStr(memKey(l), data[memKey(l)]);
+          if (Array.isArray(data[phrasesHistoryKey(l)])) {
+            saveLessonPhrasesHistory(data[phrasesHistoryKey(l)], l);
+          }
+          if (data['card_srs_' + l] && typeof data['card_srs_' + l] === 'object') {
+            store.set('card_srs_' + l, JSON.stringify(data['card_srs_' + l]));
+          }
+        });
         if (typeof data.lesson_mode === 'string' && $('selectMode') && Array.from($('selectMode').options).some(o => o.value === data.lesson_mode)) {
           cfg.mode = data.lesson_mode; store.set('lesson_mode', cfg.mode);
         }
@@ -5133,13 +5354,14 @@
         if (['strict', 'normal'].includes(data.strict_mode)) { cfg.strict = data.strict_mode; store.set('strict_mode', cfg.strict); }
         if (['auto', 'A0', 'A1', 'A2', 'B1', 'B2'].includes(data.level_hint)) { cfg.level = data.level_hint; store.set('level_hint', cfg.level); }
         if ([10, 15, 20].includes(data.lesson_minutes)) { cfg.minutes = data.lesson_minutes; store.set('lesson_minutes', String(cfg.minutes)); }
-        if (['ru', 'uk', 'en'].includes(data.ui_lang)) { cfg.uiLang = data.ui_lang; store.set('ui_lang', cfg.uiLang); }
+        if (['ru', 'uk', 'en', 'fr', 'es'].includes(data.ui_lang)) { cfg.uiLang = data.ui_lang; store.set('ui_lang', cfg.uiLang); }
         if (['on', 'off'].includes(data.vibration)) { cfg.vibration = data.vibration; store.set('vibration', cfg.vibration); }
         if (typeof data.user_name === 'string') { cfg.userName = data.user_name; store.set('user_name', cfg.userName); }
         if (Array.isArray(data.lesson_log)) {
           store.set('lesson_log', JSON.stringify(data.lesson_log.filter(x => x && typeof x.t === 'number').slice(-500)));
         }
         syncSettingsForm();   // иначе в открытой форме остаются старые значения, и кнопка «Сохранить» затёрла бы импортированные
+        updateInterface();
         updateUI(); refreshMemInfo();
         toast(t('impDone'));
       } catch (err) {
@@ -5165,6 +5387,8 @@
     const k = memKey(cfg.lang);
     const old = store.get(k, ''); if (old) store.set(k + '__prev', old);
     store.remove(k);
+    store.remove(phrasesHistoryKey(cfg.lang));
+    store.remove('card_srs_' + cfg.lang);
 
     // Удаляем уроки текущего языка из журнала статистики
     const log = readJSON('lesson_log', []).filter(x => x && x.l !== cfg.lang);
@@ -5182,7 +5406,13 @@
 
   $('btnResetAllMemory').onclick = () => {
     if (!confirm(t('rstAllConfirm'))) return;
-    Object.keys(LANGS).forEach(l => { const k = memKey(l); const old = store.get(k, ''); if (old) store.set(k + '__prev', old); store.remove(k); });
+    Object.keys(LANGS).forEach(l => {
+      const k = memKey(l);
+      const old = store.get(k, ''); if (old) store.set(k + '__prev', old);
+      store.remove(k);
+      store.remove(phrasesHistoryKey(l));
+      store.remove('card_srs_' + l);
+    });
     const og = getGlobalMem(); if (og) store.set('global_memory__prev', og);
     store.remove('global_memory');
     store.remove('lesson_log');   // Полный сброс журнала уроков и статистики
@@ -5467,15 +5697,15 @@ ${startScenario}
    - Развивай сюжет дальше: если сделан заказ или оплачен счёт — продолжай диалог! Официант/собеседник интересуется впечатлениями, советует десерт, напитки, рассказывает о городе, разыгрывает новые бытовые ситуации.
    - Играй в роли до тех пор, пока от суфлёра не придёт скрытый маркер [SIGNAL_LESSON_FINISH]!
    - Во второй половине урока — НИКАКОЙ СУХОЙ ЗУБРЁЖКИ, ТОЛЬКО ЖИВОЙ ДИАЛОГ!======================================================`;
-    } else if (cfg.mode && cfg.mode !== 'standard') {
+    } else if (effMode && effMode !== 'standard') {
       const modeDict = {
         'small_talk': 'РЕЖИМ: Свободный разговор (Small Talk). Твоя цель — поддерживать легкую непринужденную беседу. Меньше формальных упражнений, больше вопросов о жизни, мнениях, интересах. Если ученик делает ошибки, мягко исправляй.',
         'interview': 'РЕЖИМ: Собеседование на работу. Разбей на цикл: рассказ о себе, опыт работы, сильные и слабые стороны, вопросы работодателю.',
         'grammar': 'РЕЖИМ: Грамматический спринт. Фокус на интенсивной тренировке грамматики. Выбирай одну грамматическую тему за урок и активно гоняй по ней (спряжение глаголов, артикли, времена).',
         'custom': 'РЕЖИМ: Своя ситуация. Спроси ученика, какую тему или ситуацию он хочет разобрать. Подстраивайся под его ответ и разыгрывай соответствующий цикл уроков.'
       };
-      if (modeDict[cfg.mode]) {
-        modeInstructions = `\n\nВНИМАНИЕ! АКТИВЕН СПЕЦИАЛЬНЫЙ РЕЖИМ УРОКА:\n${modeDict[cfg.mode]}`;
+      if (modeDict[effMode]) {
+        modeInstructions = `\n\nВНИМАНИЕ! АКТИВЕН СПЕЦИАЛЬНЫЙ РЕЖИМ УРОКА:\n${modeDict[effMode]}`;
       }
     }
 
