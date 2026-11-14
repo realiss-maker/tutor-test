@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>LinguaViva v3.56.0 — AI Language Tutor</title>
+  <title>LinguaViva v3.56.1 — AI Language Tutor</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -836,7 +836,7 @@
        • PWA-оболочка: manifest.webmanifest + Service Worker с версионированным кэшем
      ========================================================================== */
 
-  const APP_VERSION = '3.56.0';
+  const APP_VERSION = '3.56.1';
 
     const I18N = {
   "uk": {
@@ -6609,6 +6609,7 @@ ${modeInstructions}
 1. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО торопить ученика, перебивать его или говорить «Ничего страшного, мы повторим это позже», если ученик ещё не успел вслух произнести фразу или если в титрах отобразился шум/вздох.
 2. Фразу «Ничего страшного, повторим это чуть-чуть позже» разрешено говорить ИСКЛЮЧИТЕЛЬНО после того, как ученик РЕАЛЬНО произнес фразу вслух и ошибся 4-5 раз подряд при изолированной отработке. Ни в коем случае не произноси её после 1-2 попыток или при паузе ученика!
 3. Если ученик делает паузу или обдумывает фразу — ТЕРПЕЛИВО ЖДИ его голосового ответа.
+4. ОЦЕНКА ПО ГОЛОСУ И ЗАЩИТА ОТ ЛОЖНОГО ПЕРЕХВАТА: Оценивай речь ученика исключительно по живому голосовому аудиопотоку, игнорируя возможные искажения автоматического текстового транскрибатора. Если сразу после твоей команды «Повтори» прозвучал лишь короткий щелчок, эхо или вдох без связного ответа ученика — не говори преждевременно «я не расслышала» и не повторяй фразу за него, а спокойно жди настоящего ответа.
 
 СИСТЕМНЫЙ МАРКЕР ПЕРЕДАЧИ ХОДА:
 Если в сессии появляется служебный маркер [TURN_COMPLETE] — это значит, что ученик нажал кнопку завершения своей реплики. КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО зачитывать этот маркер вслух, упоминать его или обсуждать саму кнопку! Просто оцени услышанную голосовую речь ученика (или переспроси, если была полная тишина) и отвечай строго в соответствии с текущим этапом урока.
@@ -6845,14 +6846,11 @@ ${langDirective}
   }
 
   let lastBotSpeechEndedAt = 0;
+  let lastVoiceDetectedAt = 0;
 
   function onMicChunk(event) {
     micLevel = event.data.rms;
     if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
-
-    // 1. Короткий акустический буфер (80 мс) после окончания речи репетитора:
-    // защищает от остаточного щелчка динамика, но не «проглатывает» начало фразы, когда ученик сразу повторяет за репетитором
-    if (Date.now() - lastBotSpeechEndedAt < 80) return;
 
     let allowTransmission = true;
     if (currentAudioMode() === 'half') {
@@ -6861,11 +6859,18 @@ ${langDirective}
 
     if (!allowTransmission) return;
 
-    // 2. Шумоподавитель (Noise Gate): отсекаем только фоновый шелест/дыхание (rms < 0.003),
-    // чтобы ASR Google не галлюцинировал арабскими/ивритскими символами, но не глушил тихую человеческую речь
+    // 1. Акустическая развязка (320 мс): после окончания речи репетитора отправляем нулевую тишину,
+    // чтобы сбросить хвост динамика из буфера AudioWorklet и не дать VAD сработать на остаточное эхо
+    // 2. Шумоподавитель с удержанием 600 мс: сохраняем тихие согласные и окончания слов внутри фразы
+    const now = Date.now();
     let pcmToSend = event.data.pcm;
-    if (event.data.rms < 0.003) {
+    if (now - lastBotSpeechEndedAt < 320) {
       pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
+    } else {
+      if (event.data.rms >= 0.004) lastVoiceDetectedAt = now;
+      if (event.data.rms < 0.003 && (now - lastVoiceDetectedAt > 600)) {
+        pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
+      }
     }
 
     if (socket.bufferedAmount < 512 * 1024) {
@@ -7098,9 +7103,10 @@ ${langDirective}
     if (playbackContext && playbackContext.state === 'suspended') { try { playbackContext.resume(); } catch (e) {} return; }
     if (activeAudioSources.length > 0) return;
     if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
-    if (Date.now() - lastAudioChunkAt < 1800) return;
+    if (Date.now() - lastAudioChunkAt < 3500) return;
     isServerTurnActive = false;
     isBotSpeaking = false;
+    lastBotSpeechEndedAt = Date.now();
     avatarCard.classList.remove('speaking');
     btnInterrupt.style.display = 'none';
 
@@ -7131,11 +7137,12 @@ ${langDirective}
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 100 мс для быстрого открытия микрофона при повторении фраз
+      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 180 мс для затухания динамика перед открытием микрофона
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
           isBotSpeaking = false;
+          lastBotSpeechEndedAt = Date.now();
           avatarCard.classList.remove('speaking');
           btnInterrupt.style.display = 'none';
 
@@ -7170,7 +7177,7 @@ ${langDirective}
           }
           if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
-      }, 100);
+      }, 180);
     }
   }
 
@@ -7367,11 +7374,9 @@ ${langDirective}
       if (isWaitingForResponse && !receivedAudioThisTurn && !isBotSpeaking && isSessionActive && !isExtractingMemory) {
         turnNudgeSent = true;
         const effNatWait = getEffectiveNativeLang();
-        const userCapText = capUser && capUser.textContent ? capUser.textContent.replace(/^[^:]+:\s*/, '').trim() : '';
-        const contextHint = userCapText ? ` (Ученик только что произнёс: "${userCapText}")` : '';
         sendText((cfg.native === 'uk' || (cfg.native === 'auto' && effNatWait === 'uk'))
-          ? `(Вказівка суфлера: не читай це вголос): Учень натиснув кнопку «Я все сказав» і чекає на твою реакцію${contextHint}. Якщо ти почув його спробу — оціни й продовж урок, а якщо звук перервався — м'яко попроси повторити фразу ще раз!`
-          : `(Указание суфлёра: не читай это вслух): Ученик нажал кнопку «Я всё сказал» и ждёт твою реакцию${contextHint}. Если ты услышал его попытку — оцени и продолжи урок, а если звук прервался — мягко попроси повторить фразу ещё раз!`, true);
+          ? `(Вказівка суфлера: не читай це вголос): Учень натиснув кнопку «Я все сказав» і чекає на твою реакцію. Якщо ти почув його спробу — оціни й продовж урок, а якщо звук перервався — м'яко попроси повторити фразу ще раз!`
+          : `(Указание суфлёра: не читай это вслух): Ученик нажал кнопку «Я всё сказал» и ждёт твою реакцию. Если ты услышал его попытку — оцени и продолжи урок, а если звук прервался — мягко попроси повторить фразу ещё раз!`, true);
       }
     }, 2200);
 
@@ -7515,7 +7520,7 @@ ${langDirective}
     };
     // Ученик говорит с паузами и подбирает слова: «стандартная» тишина — 0.9 с (раньше сервер мог ответить после доли секунды).
     const vadSilence = cfg.vad === 'very' ? 3400 : (cfg.vad === 'patient' ? 2400 : 1600);
-    setup.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: vadSilence, prefixPaddingMs: 300 } };
+    setup.realtimeInputConfig = { automaticActivityDetection: { startOfSpeechSensitivity: 'START_SENSITIVITY_LOW', endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: vadSilence, prefixPaddingMs: 400 } };
     setup.inputAudioTranscription = {};
     setup.outputAudioTranscription = {};
     return { setup };
@@ -7639,6 +7644,8 @@ ${langDirective}
     s = s.replace(/\(\s*(?:СИСТЕМН|СЛУЖЕБН|ПІДКАЗК|КОМАНД|ПОДСКАЗК|РЕЖИСС|СУФЛЕР|СУФЛЁР|ІНСТРУКЦ|ИНСТРУКЦ|МАРКЕР|ПРИМЕЧАН|НАПОМИНАН|ШЁПОТ|ШЕПОТ|ВКАЗІВК|УКАЗАНИ)[^\)]*\)/gi, '');
     s = s.replace(/\{\s*(?:СИСТЕМН|СЛУЖЕБН|ПІДКАЗК|КОМАНД|ПОДСКАЗК|РЕЖИСС|СУФЛЕР|СУФЛЁР|ІНСТРУКЦ|ИНСТРУКЦ|МАРКЕР|ПРИМЕЧАН|НАПОМИНАН|ШЁПОТ|ШЕПОТ|ВКАЗІВК|УКАЗАНИ)[^\}]*\}/gi, '');
     s = s.replace(/(?:Служебная команда|Системная подсказка|Службова команда|Системна підказка|Указание суфлёра|Вказівка суфлера|Маркер окончания времени|Маркер закінчення часу|SIGNAL_LESSON_FINISH)[\s:—–\-].*?(?=[.!?\n]|$)/gi, '');
+    // Убираем галлюцинации мультиязычного ASR (арабский, иврит, азиатские и др. посторонние письменности)
+    s = s.replace(/[^\p{Script=Latin}\p{Script=Cyrillic}\p{N}\s.,!?;:'"’«»¿¡()\-—–…%/+]/gu, '');
     return s.replace(/\s{2,}/g, ' ');
   }
 
