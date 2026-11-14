@@ -30,7 +30,7 @@
                  frame-src 'self' https://www.googletagmanager.com;
                  media-src 'self' blob:;
                  object-src 'none'; base-uri 'none';">
-  <title>LinguaViva v3.56.1 — AI Language Tutor</title>
+  <title>LinguaViva v3.57.0 — AI Language Tutor</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
 
@@ -406,7 +406,7 @@
       <button class="btn-main btn-turn" id="btnEndTurn" style="display: none;">Я всё сказал ➔</button>
       <div class="turn-hint" id="turnHint" style="display: none; font-size: 0.75rem; color: rgba(255,255,255,0.5); text-align: center; margin-top: 4px; margin-bottom: 6px;">Репетитор ответит сам после паузы, или нажмите кнопку</div>
       <button class="btn-main btn-start" id="btnAction">Начать урок</button>
-      <div style="font-size: 0.68rem; color: rgba(255,255,255,0.42); text-align: center; margin-top: 6px; letter-spacing: 0.02em;">LinguaViva <span class="js-version"></span> • Автор и разработчик: Петрик Сергей</div>
+      <div style="font-size: 0.68rem; color: rgba(255,255,255,0.42); text-align: center; margin-top: 6px; letter-spacing: 0.02em;">LinguaViva <span class="js-version"></span> • <span id="lblAuthorFooter">Автор і розробник: Петрик Сергій</span></div>
     </footer>
   </div>
 
@@ -614,7 +614,7 @@
 
       <button class="btn-save" id="btnSaveKey" style="margin-top: 8px;">Сохранить настройки</button>
       <button class="btn-close" id="btnCloseModal">Закрыть</button>
-      <div style="font-size: 0.74rem; color: #64748b; text-align: center; margin-top: 4px;"><b>LinguaViva</b> <span class="js-version"></span> • Автор и разработчик: Петрик Сергей</div>
+      <div style="font-size: 0.74rem; color: #64748b; text-align: center; margin-top: 4px;"><b>LinguaViva</b> <span class="js-version"></span> • <span id="lblAuthorSettings">Автор і розробник: Петрик Сергій</span></div>
     </div>
   </div>
 
@@ -836,7 +836,7 @@
        • PWA-оболочка: manifest.webmanifest + Service Worker с версионированным кэшем
      ========================================================================== */
 
-  const APP_VERSION = '3.56.1';
+  const APP_VERSION = '3.57.0';
 
     const I18N = {
   "uk": {
@@ -1025,7 +1025,8 @@
     "srsHeader": "Як добре ви пам'ятаєте цю фразу?",
     "btnSlowLabel": "🐢 Повільно",
     "tutorBusy": "Репетитор зараз говорить...",
-    "vocInLessonToast": "Завершіть урок перед переглядом матеріалів"
+    "vocInLessonToast": "Завершіть урок перед переглядом матеріалів",
+    "authorCredit": "Автор і розробник: Петрик Сергій"
   },
   "ru": {
     "settingsTitle": "Настройки",
@@ -1213,7 +1214,8 @@
     "srsHeader": "Насколько хорошо вы помните эту фразу?",
     "btnSlowLabel": "🐢 Медленно",
     "tutorBusy": "Репетитор сейчас говорит...",
-    "vocInLessonToast": "Завершите урок перед просмотром материалов"
+    "vocInLessonToast": "Завершите урок перед просмотром материалов",
+    "authorCredit": "Автор и разработчик: Петрик Сергей"
   },
   "en": {
     "settingsTitle": "Settings",
@@ -1401,7 +1403,8 @@
     "srsHeader": "How well do you remember this phrase?",
     "btnSlowLabel": "🐢 Slow",
     "tutorBusy": "Tutor is speaking...",
-    "vocInLessonToast": "Finish the lesson before viewing materials"
+    "vocInLessonToast": "Finish the lesson before viewing materials",
+    "authorCredit": "Author & developer: Serhii Petryk"
   },
   "fr": {
     "settingsTitle": "Paramètres",
@@ -1589,7 +1592,8 @@
     "srsHeader": "À quel point retenez-vous cette phrase ?",
     "btnSlowLabel": "🐢 Lent",
     "tutorBusy": "Le tuteur parle...",
-    "vocInLessonToast": "Terminez la leçon avant de voir les supports"
+    "vocInLessonToast": "Terminez la leçon avant de voir les supports",
+    "authorCredit": "Auteur et développeur : Serhii Petryk"
   },
   "es": {
     "settingsTitle": "Configuración",
@@ -1777,7 +1781,8 @@
     "srsHeader": "¿Qué tan bien recuerdas esta frase?",
     "btnSlowLabel": "🐢 Lento",
     "tutorBusy": "El tutor está hablando...",
-    "vocInLessonToast": "Termina la lección antes de ver los materiales"
+    "vocInLessonToast": "Termina la lección antes de ver los materiales",
+    "authorCredit": "Autor y desarrollador: Serhii Petryk"
   }
 };
 
@@ -2247,6 +2252,8 @@
       setText('settingsTitle', 'settingsTitle');
       setText('msgGetUrl', 'msgGetUrl');
       setText('hintText', 'hintText');
+      setText('lblAuthorFooter', 'authorCredit');
+      setText('lblAuthorSettings', 'authorCredit');
       const bs = $('btnSettings');
       if (bs) { bs.title = t('settingsTitle'); bs.setAttribute('aria-label', t('settingsTitle')); }
 
@@ -2944,8 +2951,11 @@
 
   let isSessionActive = false, isSetupComplete = false, isBotSpeaking = false, isServerTurnActive = false;
   let isExtractingMemory = false, isWaitingForResponse = false, isTimeWarningPending = false, isTimeWarningSent = false;
+  let timeWarningPendingSince = 0, wrapUpSeen = false;
   let isFinalizing = false, isStopping = false;
   let farewellStep = 0, farewellSilenceTimer = null, farewellTranscriptBuf = '';
+  const FAREWELL_RE = /(до\s+встречи|до\s+скорой\s+встречи|до\s+скорого|до\s+свидания|до\s+следующего\s+урока|хорошего\s+дня|отличного\s+дня|всего\s+доброго|до\s+побачення|до\s+зустрічі|до\s+наступного\s+уроку|гарного\s+дня|чудового\s+дня|на\s+все\s+добре|бувай|щасливо|au\s+revoir|à\s+bientôt|à\s+la\s+prochaine|bonne\s+journée|bonne\s+soirée|goodbye|see\s+you|have\s+a\s+(?:nice|great|good)\s+day|take\s+care|hasta\s+luego|hasta\s+pronto|nos\s+vemos|adiós)/i;
+  const WRAPUP_RE = /(домашн(?:ее|є|юю)\s+за(?:вдан|дан)|кнопк[уоюі]\s+.*слов(?:ар|ник)|зафіксувал[аи]?.*домашн|зафиксировал[аи]?.*домашн|на\s+наступному\s+уроці|на\s+следующем\s+уроке|підіб'ємо\s+підсум|подведём\s+итог|подведем\s+итог)/i;
   let audioLoopActive = false, audioLoopTimer = null, audioLoopIdx = 0, liveHintsOpen = false;
   let lessonStarted = false, memoryCommitted = false, lessonLogged = false, finishScheduled = false;
   let suppressIncomingAudio = false, interruptedPending = false, receivedAudioThisTurn = false;
@@ -6560,15 +6570,15 @@ ${startScenario}
 СТРОГАЯ ДВУХФАЗНАЯ МЕТОДИКА СИТУАЦИИ:
 Урок делится ровно на 2 фазы:
 
-ФАЗА 1: РАЗУЧИВАНИЕ ФРАЗ ОБЕИХ СТОРОН ПО ГЛАВНОМУ АЛГОРИТМУ (первая половина урока, ~6-7 минут):
+ФАЗА 1: РАЗУЧИВАНИЕ ФРАЗ ОБЕИХ СТОРОН ПО ГЛАВНОМУ АЛГОРИТМУ (первая треть урока, ~4–5 минут):
 1. В СТАРТЕ УРОКА: Объяви программу серии и СРАЗУ переходи к материалу темы.
 2. ДВУСТОРОННЕЕ РАЗУЧИВАНИЕ ПО ГЛАВНОМУ АЛГОРИТМУ (СТРОЖАЙШЕ ОБЯЗАТЕЛЬНО!):
    Ученик обязан разучить и уметь произносить фразы ОБЕИХ сторон диалога (и свои, и собеседника):
-   - Шаг А (Реплики ученика): Разучи 2–3 ключевые фразы самого ученика строго по Главному алгоритму обучения:
+   - Шаг А (Реплики ученика): Разучи по 2 ключевые фразы самого ученика строго по Главному алгоритму обучения:
      1) Смысл на родном языке ученика.
      2) САМ(А) произнеси эталон ${langAdverb} ДВАЖДЫ медленно с паузой 2–3 сек (... ...).
      3) Команда «Повтори» и замолчи. Ученик повторяет.
-   - Шаг Б (Реплики собеседника — ${rpRole}): Обучи 2–3 ключевым фразам, которые ученику скажет ${rpRole}.
+   - Шаг Б (Реплики собеседника — ${rpRole}): Обучи 2 ключевым фразам, которые ученику скажет ${rpRole}.
      ОБУЧАЙ ИХ ТОЧНО ТАК ЖЕ ПО ГЛАВНОМУ АЛГОРИТМУ ОБУЧЕНИЯ (смысл -> ДВАЖДЫ эталон -> команда «Повтори»)!
      Объясни: «А теперь разберем полезную фразу, которую тебе ответит ${rpRole}. Давай её тоже разучим и повторим: [смысл фразы] -> [ДВАЖДЫ медленно ${langAdverb}] -> Повтори!».
      Ученик ОБЯЗАН сам произнести и отработать эту фразу на иностранном языке!
@@ -6578,6 +6588,7 @@ ${startScenario}
 3. ЯВНЫЙ ПЕРЕХОД К СЦЕНКЕ:
    Как только ключевые фразы обеих сторон разобраны, сделай плавный игровой переход:
    «Отлично, теперь мы полностью готовы! Давай разыграем живую сценку. Я буду ${rpRole}, а ты — клиент/пациент/гость. Приготовились... [сымитируй звонок или шаг: Дзынь-дзынь... / Стук в дверь...] Здравствуйте, слушаю вас!».
+   Сразу после этой первой реплики персонажа ПОЛНОСТЬЮ ЗАМОЛЧИ и терпеливо жди живого ответа ученика! Категорически запрещено после начала сценки самому продолжать речь, подводить итоги или объявлять домашнее задание, не дождавшись ответа ученика!
 4. ИГРА В ОБРАЗЕ:
    - Общайся ТОЛЬКО в своей роли (${rpRole}). Задавай естественные вопросы по ситуации.
    - Живо и реалистично реагируй на ответы ученика.
@@ -6629,7 +6640,7 @@ ${levelBlock}
    На повторных уроках — быстрая разминка из 3 ключевых фраз прошлых занятий. Затем — изучение базовых новых слов темы (существительные ОБЯЗАТЕЛЬНО ${L.articlesNote}!) строго по Главному алгоритму (смысл -> 2 раза медленно -> повтор).
 2. БЛОК 2 (ПРАКТИКА И ОБЯЗАТЕЛЬНЫЙ ЖИВОЙ РОЛЕВОЙ ДИАЛОГ В СИТУАЦИИ): 
    - На базе изученных слов разбираем ключевые практические фразы (реплики покупателя и продавца, клиента и официанта и т.д.).
-   - ОБЯЗАТЕЛЬНАЯ ЖИВАЯ СЦЕНКА: После разбора фраз репетитор ОБЯЗАН объявить ролевую игру: «Отлично! А теперь давай закрепим эти фразы в живой сценке (в магазине / кафе / отеле). Я продавец, а ты покупатель. Bonjour, vous désirez ?».
+   - ОБЯЗАТЕЛЬНАЯ ЖИВАЯ СЦЕНКА: После разбора фраз репетитор ОБЯЗАН объявить ролевую игру: «Отлично! А теперь давай закрепим эти фразы в живой сценке (в магазине / кафе / отеле). Я продавец, а ты покупатель. Bonjour, vous désirez ?». Сразу после первой реплики персонажа ПОЛНОСТЬЮ ЗАМОЛЧИ и жди ответа ученика (категорически запрещено переходить к итогам или домашнему заданию, не получив ответа ученика)!
    - Обязательно проведи полноценную сценку минимум на 4–6 реплик (по 2–3 реплики с каждой стороны)! Играй роль персонажа естественно, реагируй на реплики ученика. Не выходи из роли продавца/собеседника преждевременно!
    - СЮЖЕТНЫЙ ЖИЗНЕННЫЙ МИКРО-ПОВОРОТ (TWIST В СЦЕНКЕ): ${rpTwistDesc ? `Во 2-й половине ролевой сценки твой персонаж (${rpRole}) обязательно разыгрывает жизненный микро-квест: "${rpTwistDesc}". Посмотри, как ученик сориентируется и ответит на иностранном языке!` : 'Во 2-й половине ролевой сценки персонаж обязательно вносит одну естественную бытовую деталь/неожиданность (закончившееся блюдо, сменившийся гейт/время, просьба наличных/карты, рекомендация от шефа), чтобы тренировать спонтанную реакцию ученика в реальной жизни.'}
 3. БЛОК 3 (ЗАКРЕПЛЕНИЕ, ИТОГИ, ДОМАШКА И ПРОЩАНИЕ): 
@@ -6682,8 +6693,8 @@ ${levelBlock}
     const effNat = getEffectiveNativeLang();
     const isUk = (cfg.native === 'uk' || (cfg.native === 'auto' && effNat === 'uk'));
     return isUk
-      ? '[SIGNAL_LESSON_FINISH] (Тиха вказівка суфлера: не читай цей маркер вголос, одразу говори від себе учневі): Час заняття добігає кінця. Проведи коротку перевірку 3 слів двосторонньою методикою, підведи підсумок, обов\'язково нагадай повторити фрази за кнопкою 📖 зі словником на головному екрані, анонсуй наступний урок та виголоси перше прощання. ЗАМОВКНИ І ДОЧЕКАЙСЯ ПРОЩАННЯ ВІД УЧНЯ! Коли учень відповість — тепло скажи коротке напутнє побажання («Гарного дня! До зустрічі!») і виклич функцію saveStudentProfile.'
-      : '[SIGNAL_LESSON_FINISH] (Тихое указание суфлёра: не читай этот маркер вслух, сразу говори от себя ученику): Время занятия подходит к концу. Проведи короткую проверку 3 слов двусторонней методикой, подведи итог, обязательно напомни повторить фразы по кнопке 📖 со словарём на главном экране, анонсируй следующий урок и произнеси первое прощание. ЗАМОЛЧИ И ДОЖДИСЬ ПРОЩАНИЯ ОТ УЧЕНИКА! Когда ученик ответит — тепло скажи короткое напутственное пожелание («Хорошего дня! До встречи!») и вызови функцию saveStudentProfile.';
+      ? '[SIGNAL_LESSON_FINISH] (Тиха вказівка суфлера: не читай цей маркер вголос, одразу говори від себе учневі): Час заняття добігає кінця. СПОЧАТКУ коротко та тепло відреагуй на останню репліку учня (якщо він щойно відповів), а вже потім проведи коротку перевірку 3 слів двосторонньою методикою, підведи підсумок, обов\'язково нагадай повторити фрази за кнопкою 📖 зі словником на головному екрані, анонсуй наступний урок та виголоси перше прощання. ЗАМОВКНИ І ДОЧЕКАЙСЯ ПРОЩАННЯ ВІД УЧНЯ! Коли учень відповість прощанням — скажи ЛИШЕ 2–3 слова («Гарного дня! До зустрічі!»), НЕ став нових запитань, НЕ прощайся вдруге і НЕГАЙНО виклич функцію saveStudentProfile.'
+      : '[SIGNAL_LESSON_FINISH] (Тихое указание суфлёра: не читай этот маркер вслух, сразу говори от себя ученику): Время занятия подходит к концу. СНАЧАЛА коротко и тепло отреагируй на последнюю реплику ученика (если он только что ответил), а уже затем проведи короткую проверку 3 слов двусторонней методикой, подведи итог, обязательно напомни повторить фразы по кнопке 📖 со словарём на главном экране, анонсируй следующий урок и произнеси первое прощание. ЗАМОЛЧИ И ДОЖДИСЬ ПРОЩАНИЯ ОТ УЧЕНИКА! Когда ученик ответит прощанием — скажи ТОЛЬКО 2–3 слова («Хорошего дня! До встречи!»), НЕ задавай новых вопросов, НЕ прощайся по второму кругу и НЕМЕДЛЕННО вызови функцию saveStudentProfile.';
   }
 
   function startPromptText() {
@@ -6852,6 +6863,10 @@ ${langDirective}
     micLevel = event.data.rms;
     if (!isSessionActive || !isSetupComplete || !socket || socket.readyState !== WebSocket.OPEN) return;
 
+    const now = Date.now();
+    // Короткий акустический зазор 120 мс после окончания речи репетитора: гасит остаточное эхо без обрезки начала фразы
+    if (now - lastBotSpeechEndedAt < 120) return;
+
     let allowTransmission = true;
     if (currentAudioMode() === 'half') {
       if (isBotSpeaking || isWaitingForResponse || isExtractingMemory) allowTransmission = false;
@@ -6859,23 +6874,11 @@ ${langDirective}
 
     if (!allowTransmission) return;
 
-    // 1. Акустическая развязка (320 мс): после окончания речи репетитора отправляем нулевую тишину,
-    // чтобы сбросить хвост динамика из буфера AudioWorklet и не дать VAD сработать на остаточное эхо
-    // 2. Шумоподавитель с удержанием 600 мс: сохраняем тихие согласные и окончания слов внутри фразы
-    const now = Date.now();
-    let pcmToSend = event.data.pcm;
-    if (now - lastBotSpeechEndedAt < 320) {
-      pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
-    } else {
-      if (event.data.rms >= 0.004) lastVoiceDetectedAt = now;
-      if (event.data.rms < 0.003 && (now - lastVoiceDetectedAt > 600)) {
-        pcmToSend = new ArrayBuffer(event.data.pcm.byteLength);
-      }
-    }
+    if (event.data.rms >= 0.012 && !isBotSpeaking) lastVoiceDetectedAt = now;
 
     if (socket.bufferedAmount < 512 * 1024) {
       socket.send(JSON.stringify({
-        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(pcmToSend)) }] }
+        realtimeInput: { mediaChunks: [{ mimeType: 'audio/pcm;rate=16000', data: bytesToBase64(new Uint8Array(event.data.pcm)) }] }
       }));
     }
   }
@@ -7115,7 +7118,7 @@ ${langDirective}
       clearTimeout(farewellSilenceTimer);
       farewellSilenceTimer = setTimeout(() => {
         if (isSessionActive && farewellStep === 2) stopSession(false);
-      }, 12000);
+      }, 8000);
     } else if (farewellStep >= 3) {
       farewellStep = 4;
       clearTimeout(farewellSilenceTimer);
@@ -7130,14 +7133,13 @@ ${langDirective}
       setStatus(st('yourTurn'));
       vibrate([50, 50, 50]);
     }
-    if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
   }
 
   function checkBotSpeakingEnded() {
     if (isServerTurnActive) return;
     if (activeAudioSources.length === 0 && (!playbackContext || playbackContext.currentTime >= scheduledPlayTime)) {
       if (botSpeechDrainTimeout) clearTimeout(botSpeechDrainTimeout);
-      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 180 мс для затухания динамика перед открытием микрофона
+      botSpeechDrainTimeout = setTimeout(() => {   // акустический зазор 100 мс для затухания динамика перед открытием микрофона
         if (isServerTurnActive || activeAudioSources.length > 0) return;
         if (playbackContext && playbackContext.currentTime < scheduledPlayTime) return;
         if (isSessionActive) {
@@ -7151,7 +7153,7 @@ ${langDirective}
             clearTimeout(farewellSilenceTimer);
             farewellSilenceTimer = setTimeout(() => {
               if (isSessionActive && farewellStep === 2) stopSession(false);
-            }, 12000);
+            }, 8000);
             if (!isWaitingForResponse && !isExtractingMemory && !isFinalizing) {
               btnEndTurn.style.display = 'block';
               if (turnHint) turnHint.style.display = 'block';
@@ -7175,9 +7177,8 @@ ${langDirective}
             setStatus(st('yourTurn'));
             vibrate([50, 50, 50]);
           }
-          if (isTimeWarningPending && !isTimeWarningSent) sendAutomaticTimeWarning();
         }
-      }, 180);
+      }, 100);
     }
   }
 
@@ -7197,6 +7198,8 @@ ${langDirective}
     lessonEndsAt = Math.max(Date.now(), lessonEndsAt) + mins * 60 * 1000;
     isTimeWarningSent = false;
     isTimeWarningPending = false;
+    timeWarningPendingSince = 0;
+    wrapUpSeen = false;
     farewellStep = 0;
     farewellTranscriptBuf = '';
     clearTimeout(farewellSilenceTimer);
@@ -7214,6 +7217,7 @@ ${langDirective}
   function startLessonTimer() {
     lessonEndsAt = Date.now() + cfg.minutes * 60 * 1000;
     isTimeWarningPending = false; isTimeWarningSent = false;
+    timeWarningPendingSince = 0; wrapUpSeen = false;
     farewellStep = 0; farewellTranscriptBuf = '';
     clearTimeout(farewellSilenceTimer);
     timerBadge.style.display = 'block';
@@ -7230,7 +7234,7 @@ ${langDirective}
       updateTimerBadge();
 
       const totalSec = cfg.minutes * 60;
-      const warnSec = cfg.minutes <= 5 ? 60 : 120;
+      const warnSec = cfg.minutes <= 5 ? 45 : 75;
       const rp = getRoleplayProgress(sessionMode, sessionLang);
       if (rp) {
         const u = cfg.uiLang === 'uk' ? 'uk' : 'ru';
@@ -7253,7 +7257,16 @@ ${langDirective}
       if (r <= warnSec && !isTimeWarningSent && !isTimeWarningPending) {
         timerBadge.classList.add('timer-warning');
         isTimeWarningPending = true;
-        if (!isBotSpeaking && !isWaitingForResponse && isSetupComplete) sendAutomaticTimeWarning();
+        timeWarningPendingSince = Date.now();
+      }
+
+      if (isTimeWarningPending && !isTimeWarningSent && !isBotSpeaking && !isServerTurnActive && !isWaitingForResponse && isSetupComplete) {
+        const nowMs = Date.now();
+        const studentFinishedTurn = lastVoiceDetectedAt > lastBotSpeechEndedAt + 200 && (nowMs - lastVoiceDetectedAt >= 1500);
+        const silenceTimeoutReached = timeWarningPendingSince > 0 && (nowMs - timeWarningPendingSince >= 18000);
+        if (studentFinishedTurn || silenceTimeoutReached || r <= 15) {
+          sendAutomaticTimeWarning();
+        }
       }
 
       if (r <= 0) {
@@ -7351,7 +7364,7 @@ ${langDirective}
     if (!(socket && socket.readyState === WebSocket.OPEN && isSetupComplete && !isExtractingMemory)) return;
     if (isWaitingForResponse || isBotSpeaking) return;
 
-    if (farewellStep === 2) {
+    if (farewellStep === 1 || farewellStep === 2) {
       farewellStep = 3;
       clearTimeout(farewellSilenceTimer);
     }
@@ -7367,18 +7380,28 @@ ${langDirective}
 
     sendVadSilenceFlush();
 
+    if (isTimeWarningPending && !isTimeWarningSent) {
+      sendAutomaticTimeWarning();
+    }
+    if (farewellStep >= 3) {
+      clearTimeout(farewellSilenceTimer);
+      farewellSilenceTimer = setTimeout(() => {
+        if (isSessionActive && farewellStep >= 3 && !isBotSpeaking && !isServerTurnActive) stopSession(false);
+      }, 6500);
+    }
+
     // Страховка: если ученик произнёс короткую фразу сразу после репетитора, и серверный VAD не заметил старт речи,
-    // то через 2.2 с тишины принудительно передаём ход модели текстовым триггером, чтобы не зависать в молчании
+    // то через 3.8 с тишины принудительно передаём ход модели текстовым триггером, чтобы не зависать в молчании
     clearTimeout(manualTurnFallbackTimer);
     manualTurnFallbackTimer = setTimeout(() => {
-      if (isWaitingForResponse && !receivedAudioThisTurn && !isBotSpeaking && isSessionActive && !isExtractingMemory) {
+      if (isWaitingForResponse && !receivedAudioThisTurn && !isBotSpeaking && !isServerTurnActive && isSessionActive && !isExtractingMemory && farewellStep < 3) {
         turnNudgeSent = true;
         const effNatWait = getEffectiveNativeLang();
         sendText((cfg.native === 'uk' || (cfg.native === 'auto' && effNatWait === 'uk'))
-          ? `(Вказівка суфлера: не читай це вголос): Учень натиснув кнопку «Я все сказав» і чекає на твою реакцію. Якщо ти почув його спробу — оціни й продовж урок, а якщо звук перервався — м'яко попроси повторити фразу ще раз!`
-          : `(Указание суфлёра: не читай это вслух): Ученик нажал кнопку «Я всё сказал» и ждёт твою реакцию. Если ты услышал его попытку — оцени и продолжи урок, а если звук прервался — мягко попроси повторить фразу ещё раз!`, true);
+          ? `(Вказівка суфлера: не читай це вголос): Учень щойно завершив свою голосову репліку і чекає на твою відповідь. Реагуй на почуте в аудіопотоці та продовжуй діалог; лише якщо була повна тиша без жодного звуку — спокійно перепитай або запропонуй продовжити.`
+          : `(Указание суфлёра: не читай это вслух): Ученик только что завершил свою голосовую реплику и ждёт твоего ответа. Реагируй на услышанное в аудиопотоке и продолжай диалог; только если была полная тишина без единого звука — спокойно переспроси или предложи продолжить.`, true);
       }
-    }, 2200);
+    }, 3800);
 
     clearTimeout(watchdogTimer);
     watchdogTimer = setTimeout(() => {
@@ -7462,7 +7485,9 @@ ${langDirective}
       isSessionActive = true; isSetupComplete = false; isExtractingMemory = false; isWaitingForResponse = false;
       isStopping = false; isFinalizing = false; lessonStarted = false; memoryCommitted = false; lessonLogged = false; finishScheduled = false;
       isTimeWarningSent = false; isTimeWarningPending = false;
+      timeWarningPendingSince = 0; wrapUpSeen = false;
       farewellStep = 0; farewellTranscriptBuf = ''; clearTimeout(farewellSilenceTimer); clearTimeout(manualTurnFallbackTimer);
+      lastBotSpeechEndedAt = 0; lastVoiceDetectedAt = 0;
       suppressIncomingAudio = false; interruptedPending = false; receivedAudioThisTurn = false;
       saveNudges = 0; reconnectAttempts = 0; resumeHandle = null; captionNewTurn = true;
       turnNudgeSent = false; memoryTextBuffer = '';
@@ -7519,8 +7544,8 @@ ${langDirective}
       contextWindowCompression: { slidingWindow: {} }
     };
     // Ученик говорит с паузами и подбирает слова: «стандартная» тишина — 0.9 с (раньше сервер мог ответить после доли секунды).
-    const vadSilence = cfg.vad === 'very' ? 3400 : (cfg.vad === 'patient' ? 2400 : 1600);
-    setup.realtimeInputConfig = { automaticActivityDetection: { startOfSpeechSensitivity: 'START_SENSITIVITY_LOW', endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: vadSilence, prefixPaddingMs: 400 } };
+    const vadSilence = cfg.vad === 'very' ? 3600 : (cfg.vad === 'patient' ? 2600 : 1800);
+    setup.realtimeInputConfig = { automaticActivityDetection: { endOfSpeechSensitivity: 'END_SENSITIVITY_LOW', silenceDurationMs: vadSilence, prefixPaddingMs: 300 } };
     setup.inputAudioTranscription = {};
     setup.outputAudioTranscription = {};
     return { setup };
@@ -7600,7 +7625,7 @@ ${langDirective}
   function handleToolCalls(calls) {
     calls.forEach(call => {
       if (call.name === 'saveStudentProfile') {
-        const canFinish = isExtractingMemory || isTimeWarningSent;
+        const canFinish = isExtractingMemory || isTimeWarningSent || farewellStep > 0 || wrapUpSeen;
         let ok = false;
         if (call.args) {
           ok = commitMemory(call.args, sessionLang);
@@ -7755,17 +7780,26 @@ ${langDirective}
     if (!sc) return;
 
     if (sc.inputTranscription && sc.inputTranscription.text) {
-      if (farewellStep === 2) {
+      const uText = sc.inputTranscription.text;
+      if (farewellStep === 1 || farewellStep === 2 || ((isTimeWarningSent || wrapUpSeen || farewellStep >= 1) && FAREWELL_RE.test(uText))) {
         farewellStep = 3;
         clearTimeout(farewellSilenceTimer);
+        farewellSilenceTimer = setTimeout(() => {
+          if (isSessionActive && farewellStep >= 3 && !isBotSpeaking && !isServerTurnActive) stopSession(false);
+        }, 6500);
       }
-      pushCaption('user', sc.inputTranscription.text);
+      pushCaption('user', uText);
     }
     if (sc.outputTranscription && sc.outputTranscription.text) {
-      if (isTimeWarningSent && farewellStep === 0 && !isExtractingMemory) {
+      if (!isExtractingMemory) {
         farewellTranscriptBuf += ' ' + sc.outputTranscription.text;
-        if (/(до\s+встречи|до\s+побачення|au\s+revoir|à\s+bientôt|bonne\s+journée|goodbye|see\s+you|hasta\s+luego|adiós)/i.test(farewellTranscriptBuf)) {
+        if (WRAPUP_RE.test(farewellTranscriptBuf)) wrapUpSeen = true;
+        if (farewellStep === 0 && FAREWELL_RE.test(farewellTranscriptBuf) && (isTimeWarningSent || wrapUpSeen)) {
           farewellStep = 1;
+          if (!isBotSpeaking && !isServerTurnActive) checkBotSpeakingEnded();
+        } else if (farewellStep === 2) {
+          farewellStep = 3;
+          clearTimeout(farewellSilenceTimer);
         }
       }
       pushCaption('tutor', sc.outputTranscription.text);
@@ -7854,7 +7888,10 @@ ${langDirective}
 
       // Если ученик закончил говорить и ждал ответа, но модель прислала пустой ход без звука
       if (isWaitingForResponse && !receivedAudioThisTurn && !isExtractingMemory) {
-        if (!turnNudgeSent) {
+        if (farewellStep >= 3) {
+          isWaitingForResponse = false;
+          turnNudgeSent = false;
+        } else if (!turnNudgeSent) {
           turnNudgeSent = true;
           const effNatWait = getEffectiveNativeLang();
           sendText((cfg.native === 'uk' || (cfg.native === 'auto' && effNatWait === 'uk'))
