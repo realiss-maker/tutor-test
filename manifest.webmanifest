@@ -1,6 +1,6 @@
 {
-  "name": "AI Language Tutor",
-  "short_name": "AI Tutor",
+  "name": "LinguaViva — AI Language Tutor",
+  "short_name": "LinguaViva",
   "description": "Голосовой репетитор иностранных языков",
   "lang": "ru",
   "start_url": "./",
