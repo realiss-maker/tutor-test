@@ -1,7 +1,7 @@
 /* AI Language Tutor — минимальный service worker.
    Нужен, чтобы Chrome на Android предлагал полноценную установку (без адресной строки).
    Стратегия «сначала сеть, при отсутствии сети — кэш»: обновления index.html доходят сразу. */
-const CACHE = 'ai-tutor-shell-v3.56.1';
+const CACHE = 'ai-tutor-shell-v3.57.0';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-512-maskable.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
